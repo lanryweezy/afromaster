@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="solar-flare">
+  <head>
+    <meta charset="utf--8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#000000" />
+    <meta
+      name="description"
+      content="Afromaster is the leading AI-powered audio mastering tool specifically designed for Afrobeats, Hip Hop, and Trap music."
+    />
+    <title>Afromaster - AI Mastering for Afrobeats & Hip Hop</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Oswald:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://js.paystack.co/v1/inline.js"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['Inter', 'sans-serif'],
+              heading: ['Oswald', 'sans-serif'],
+            },
+            colors: {
+              // Custom colors that can be controlled by CSS variables
+              primary: {
+                DEFAULT: 'var(--color-primary, #f97316)', 
+                focus: 'var(--color-primary-focus, #fb923c)',
+              },
+              secondary: {
+                DEFAULT: 'var(--color-secondary, #dc2626)',
+              },
+              accent: {
+                DEFAULT: 'var(--color-accent, #fde047)',
+              },
+              'gradient-from': 'var(--gradient-from, #7f1d1d)',
+              'gradient-to': 'var(--gradient-to, #854d0e)',
+              'gradient-via': 'var(--gradient-via, #030712)',
+            }
+          },
+        },
+      }
+    </script>
+    <style>
+      :root {
+        --hero-image-url: url('https://images.unsplash.com/photo-1593697821252-0c9137d9fc45?q=80&w=2670&auto=format&fit=crop&ixlib=rb-4.0.3');
+      }
+
+      html[data-theme='solar-flare'] {
+        --color-primary: #f97316; /* orange-500 */
+        --color-primary-focus: #fb923c; /* orange-400 */
+        --color-secondary: #dc2626; /* red-600 */
+        --color-accent: #fde047;
+        --gradient-from: #7f1d1d; /* red-800 */
+        --gradient-to: #854d0e; /* yellow-800 */
+        --gradient-via: #030712;
+      }
+
+      html[data-theme='nebula'] {
+        --color-primary: #8b5cf6; /* violet-500 */
+        --color-primary-focus: #a78bfa; /* violet-400 */
+        --color-secondary: #3b82f6; /* blue-500 */
+        --color-accent: #ec4899; /* pink-500 */
+        --gradient-from: #3730a3; /* indigo-800 */
+        --gradient-to: #1e40af; /* blue-800 */
+        --gradient-via: #030712;
+      }
+      
+       html[data-theme='starlight'] {
+        --color-primary: #06b6d4; /* cyan-500 */
+        --color-primary-focus: #22d3ee; /* cyan-400 */
+        --color-secondary: #f0f9ff; /* sky-50 */
+        --color-accent: #fef08a; /* yellow-200 */
+        --gradient-from: #0891b2; /* cyan-600 */
+        --gradient-to: #e0f2fe; /* sky-100 */
+        --gradient-via: #0c4a6e; /* sky-900 */
+      }
+
+      body {
+        transition: background-color 0.5s ease;
+        background-color: #030712; /* gray-950 */
+      }
+
+       #aurora-pointer {
+        pointer-events: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: radial-gradient(circle at var(--mouse-x) var(--mouse-y), 
+          var(--color-primary) 0%, 
+          transparent 20%,
+          transparent 100%
+        );
+        opacity: 0.15;
+        mix-blend-mode: screen;
+        transition: background 0.3s ease-out;
+        z-index: -1;
+      }
+
+      .hero-background {
+        background-image: var(--hero-image-url);
+        background-size: cover;
+        background-position: center 40%;
+        transition: background-image 0.5s ease-in-out;
+      }
+      .hero-background::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: radial-gradient(ellipse at center, rgba(3, 7, 18, 0.6) 0%, rgba(3, 7, 18, 1) 80%);
+        z-index: 0;
+      }
+
+      @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px) scale(0.98); }
+        to { opacity: 1; transform: translateY(0) scale(1); }
+      }
+      .animate-fadeIn {
+        animation: fadeIn 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+      }
+
+      @keyframes gradient-move {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+      }
+
+       @keyframes reveal {
+        from {
+          opacity: 0;
+          transform: translateY(20px) scale(0.9);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0) scale(1);
+        }
+      }
+      .animate-reveal span {
+        animation: reveal 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        display: inline-block;
+        opacity: 0;
+      }
+
+      @keyframes slideInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+      }
+      .animate-slideInUp {
+        animation: slideInUp 0.8s ease-out forwards;
+        opacity: 0;
+      }
+      
+      @keyframes pulse {
+        0%, 100% {
+          transform: scale(1);
+          box-shadow: 0 0 0 0 hsla(var(--color-primary-hsl), 0.5);
+        }
+        50% {
+          transform: scale(1.03);
+          box-shadow: 0 0 30px 15px hsla(var(--color-primary-hsl), 0);
+        }
+      }
+
+      .animate-pulse-glow {
+        animation: pulse 2.5s infinite cubic-bezier(0.4, 0, 0.6, 1);
+      }
+
+      /* Scroll Animations */
+      .animate-on-scroll {
+        opacity: 0;
+        transform: translateY(30px);
+        transition: opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1), transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+      }
+      .animate-on-scroll.is-visible {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      /* Particle Background */
+      #particle-container {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: -2;
+        pointer-events: none;
+        overflow: hidden;
+      }
+
+      @keyframes move-particle {
+        0% {
+          transform: translate(var(--start-x), var(--start-y));
+          opacity: 1;
+        }
+        100% {
+          transform: translate(var(--end-x), var(--end-y));
+          opacity: 0;
+        }
+      }
+
+      .particle {
+        position: absolute;
+        color: var(--color-primary-focus);
+        font-size: var(--particle-size, 16px);
+        opacity: 0;
+        animation: move-particle linear infinite;
+        mix-blend-mode: screen;
+        user-select: none;
+        -webkit-user-select: none;
+        transition: color 0.5s ease;
+      }
+      
+      /* NEW STYLES FOR UI RETOUCH */
+      .card-accent {
+        position: relative;
+        overflow: hidden;
+      }
+      .card-accent::after {
+          content: '';
+          position: absolute;
+          bottom: 0;
+          left: 0;
+          right: 0;
+          height: 3px;
+          background: var(--color-primary);
+          filter: blur(8px);
+          opacity: 0.9;
+          pointer-events: none;
+          z-index: 20;
+          transition: background 0.5s ease;
+      }
+      .text-gradient-primary {
+          background: linear-gradient(to right, var(--color-primary), var(--color-primary-focus), var(--color-accent));
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
+          text-fill-color: transparent;
+          background-size: 200% auto;
+          animation: gradient-move 5s ease-in-out infinite;
+          transition: background 0.5s ease;
+      }
+    </style>
+  <script type="importmap">
+{
+  "imports": {
+    "react": "https://esm.sh/react@^19.1.0",
+    "react-dom/": "https://esm.sh/react-dom@^19.1.0/",
+    "react/": "https://esm.sh/react@^19.1.0/",
+    "react-dropzone": "https://esm.sh/react-dropzone@^14.3.8",
+    "@google/genai": "https://esm.sh/@google/genai@^1.4.0"
+  }
+}
+</script>
+</head>
+  <body class="bg-gray-950 text-slate-200 font-sans overflow-x-hidden">
+    <noscript>You need to enable JavaScript to run this app.</noscript>
+    <div id="particle-container"></div>
+    <div id="aurora-pointer"></div>
+    <div id="root"></div>
+    <script type="module" src="./index.tsx"></script>
+  </body>
+</html>
