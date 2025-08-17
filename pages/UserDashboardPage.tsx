@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useAppContext } from '../contexts/AppContext';
 import TrackCard from '../components/TrackCard';
 import Button from '../components/Button';
@@ -8,6 +8,16 @@ import { IconUpload, IconMusicNote, IconLockClosed } from '../constants';
 
 const UserDashboardPage: React.FC = () => {
   const { userProjects, setCurrentPage, isAuthenticated } = useAppContext();
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      setCurrentPage(AppPage.AUTH);
+    }
+  }, [isAuthenticated, setCurrentPage]);
+
+  if (!isAuthenticated) {
+    return null; // or a loading spinner
+  }
 
   return (
     <div className="max-w-6xl mx-auto">

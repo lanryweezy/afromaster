@@ -10,6 +10,7 @@ export enum AppPage {
   PREVIEW,
   DOWNLOAD,
   DASHBOARD,
+  AUTH,
 }
 
 export interface MasteringSettings {

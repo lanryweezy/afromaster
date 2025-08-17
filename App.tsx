@@ -11,6 +11,7 @@ import ProcessingAudioPage from './pages/ProcessingAudioPage';
 import PreviewAndComparePage from './pages/PreviewAndComparePage';
 import DownloadMasterPage from './pages/DownloadMasterPage';
 import UserDashboardPage from './pages/UserDashboardPage';
+import AuthPage from './pages/AuthPage';
 import ParticleBackground from './components/ParticleBackground';
 
 const App: React.FC = () => {
@@ -63,6 +64,8 @@ const App: React.FC = () => {
         return <DownloadMasterPage />;
       case AppPage.DASHBOARD:
         return <UserDashboardPage />;
+      case AppPage.AUTH:
+        return <AuthPage />;
       default:
         return <LandingPage />;
     }
