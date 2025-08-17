@@ -6,6 +6,10 @@ import ProgressBar from '../components/ProgressBar';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { fetchAIChainSettings, generateMasteringReport } from '../services/geminiService';
 import { IconSparkles } from '../constants';
+import { db, storage } from '../firebaseConfig';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { collection, addDoc } from 'firebase/firestore';
+import toWav from 'audiobuffer-to-wav';
 
 const ProcessingAudioPage: React.FC = () => {
   const {
@@ -15,7 +19,8 @@ const ProcessingAudioPage: React.FC = () => {
     setMasteredTrackInfo,
     setMasteredAudioBuffer,
     addUserProject,
-    apiKey
+    apiKey,
+    user
   } = useAppContext();
 
   const [progress, setProgress] = useState(0);
@@ -32,10 +37,28 @@ const ProcessingAudioPage: React.FC = () => {
     const worker = new Worker(new URL('../audio.worker.ts', import.meta.url), { type: 'module' });
 
     let cancelled = false;
-    worker.onmessage = (event) => {
+    worker.onmessage = async (event) => {
       if (cancelled) return;
       const { masteredBuffer } = event.data;
       setMasteredAudioBuffer(masteredBuffer);
+
+      if (user) {
+        setStatusMessage("Uploading files to cloud...");
+        const wavBlob = new Blob([toWav(masteredBuffer)], { type: 'audio/wav' });
+        const storageRef = ref(storage, `users/${user.uid}/tracks/${Date.now()}_mastered.wav`);
+        await uploadBytes(storageRef, wavBlob);
+        const downloadURL = await getDownloadURL(storageRef);
+
+        const projectData = {
+          userId: user.uid,
+          trackName: uploadedTrack.name,
+          masteredFileUrl: downloadURL,
+          settings: masteringSettings,
+          createdAt: new Date(),
+        };
+        await addDoc(collection(db, "projects"), projectData);
+      }
+
       setProgress(100);
       setStatusMessage("Mastering complete!");
       setTimeout(() => setCurrentPage(AppPage.PREVIEW), 1000);

@@ -1,19 +1,33 @@
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useAppContext } from '../contexts/AppContext';
 import TrackCard from '../components/TrackCard';
 import Button from '../components/Button';
-import { AppPage } from '../types';
+import { AppPage, MasteredTrackInfo } from '../types';
 import { IconUpload, IconMusicNote, IconLockClosed } from '../constants';
+import { db } from '../firebaseConfig';
+import { collection, query, where, getDocs } from 'firebase/firestore';
 
 const UserDashboardPage: React.FC = () => {
-  const { userProjects, setCurrentPage, isAuthenticated } = useAppContext();
+  const { user, setCurrentPage, isAuthenticated } = useAppContext();
+  const [projects, setProjects] = useState<MasteredTrackInfo[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    if (!isAuthenticated) {
+    if (isAuthenticated && user) {
+      const fetchProjects = async () => {
+        setIsLoading(true);
+        const q = query(collection(db, "projects"), where("userId", "==", user.uid));
+        const querySnapshot = await getDocs(q);
+        const userProjects = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as MasteredTrackInfo));
+        setProjects(userProjects);
+        setIsLoading(false);
+      };
+      fetchProjects();
+    } else if (!isAuthenticated) {
       setCurrentPage(AppPage.AUTH);
     }
-  }, [isAuthenticated, setCurrentPage]);
+  }, [isAuthenticated, user, setCurrentPage]);
 
   if (!isAuthenticated) {
     return null; // or a loading spinner
@@ -30,13 +44,11 @@ const UserDashboardPage: React.FC = () => {
         )}
       </div>
 
-      {!isAuthenticated ? (
-        <div className="text-center py-20 bg-slate-900/60 backdrop-blur-lg border border-slate-800/50 rounded-xl shadow-lg card-accent">
-          <IconLockClosed className="w-16 h-16 text-slate-600 mx-auto mb-4" />
-          <h3 className="text-2xl font-bold text-primary">Please log in to view your dashboard.</h3>
-          <p className="text-slate-300 mt-2">Your mastered tracks and projects will be saved here.</p>
+      {isLoading ? (
+        <div className="text-center py-20">
+          <p>Loading projects...</p>
         </div>
-      ) : userProjects.length === 0 ? (
+      ) : projects.length === 0 ? (
         <div className="text-center py-20 bg-slate-900/60 backdrop-blur-lg border border-slate-800/50 rounded-xl shadow-lg card-accent">
           <IconMusicNote className="w-16 h-16 text-slate-600 mx-auto mb-4" />
           <h3 className="text-2xl font-bold text-primary">No Projects Yet</h3>
@@ -44,7 +56,7 @@ const UserDashboardPage: React.FC = () => {
         </div>
       ) : (
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {userProjects.map(track => (
+          {projects.map(track => (
             <TrackCard key={track.id} track={track} />
           ))}
         </div>
