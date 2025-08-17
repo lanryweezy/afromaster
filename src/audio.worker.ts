@@ -1,4 +1,4 @@
-import { MasteringSettings } from '../types';
+import { MasteringSettings } from './types';
 
 const createCompressor = (
   context: OfflineAudioContext,
@@ -39,7 +39,7 @@ const normalizeBuffer = async (buffer: AudioBuffer): Promise<AudioBuffer> => {
     if (max <= targetPeak) {
         return buffer;
     }
-    
+
     const gain = targetPeak / max;
 
     const context = new OfflineAudioContext(buffer.numberOfChannels, buffer.length, buffer.sampleRate);
@@ -78,7 +78,7 @@ const createDynamicEQ = (context: OfflineAudioContext, freq: number, gain: numbe
   return eq;
 };
 
-export const processAudio = async (
+const processAudio = async (
   originalBuffer: AudioBuffer,
   settings: MasteringSettings
 ): Promise<AudioBuffer> => {
@@ -90,7 +90,7 @@ export const processAudio = async (
 
     const source = context.createBufferSource();
     source.buffer = originalBuffer;
-    
+
     let lastNode: AudioNode = source;
 
     if (settings.useDynamicEQ) {
@@ -143,13 +143,13 @@ export const processAudio = async (
     midGain.gain.value = settings.bands.mid.makeupGain;
     const highGain = context.createGain();
     highGain.gain.value = settings.bands.high.makeupGain;
-    
+
     const saturationNode = context.createWaveShaper();
     if (settings.saturation.amount > 0) {
         saturationNode.curve = createSaturationCurve(settings.saturation.amount);
         saturationNode.oversample = '4x';
     }
-    
+
     const merger = context.createGain();
     const finalGain = context.createGain();
     finalGain.gain.value = settings.finalGain;
@@ -158,7 +158,7 @@ export const processAudio = async (
     source.connect(bassEQ);
     bassEQ.connect(trebleEQ);
     const lastPreNode = trebleEQ;
-    
+
     lastPreNode.connect(lowpass);
     lowpass.connect(lowComp);
     lowComp.connect(lowGain);
@@ -174,13 +174,13 @@ export const processAudio = async (
     highpass.connect(highComp);
     highComp.connect(highGain);
     highGain.connect(merger);
-    
-    let lastNode: AudioNode = merger;
+
+    lastNode = merger;
     if (settings.saturation.amount > 0) {
         merger.connect(saturationNode);
         lastNode = saturationNode;
     }
-    
+
     lastNode.connect(finalGain);
     finalGain.connect(limiter);
     limiter.connect(context.destination);
@@ -188,6 +188,12 @@ export const processAudio = async (
     source.start(0);
 
     const renderedBuffer = await context.startRendering();
-    
+
     return normalizeBuffer(renderedBuffer);
+};
+
+self.onmessage = async (event) => {
+  const { originalBuffer, settings } = event.data;
+  const masteredBuffer = await processAudio(originalBuffer, settings);
+  self.postMessage({ masteredBuffer });
 };

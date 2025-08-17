@@ -4,7 +4,6 @@ import { useAppContext } from '../contexts/AppContext';
 import { AppPage, MasteredTrackInfo } from '../types';
 import ProgressBar from '../components/ProgressBar';
 import LoadingSpinner from '../components/LoadingSpinner';
-import { processAudio } from '../services/audioProcessingService';
 import { fetchAIChainSettings, generateMasteringReport } from '../services/geminiService';
 import { IconSparkles } from '../constants';
 
@@ -26,6 +25,16 @@ const ProcessingAudioPage: React.FC = () => {
   const [reportError, setReportError] = useState<string | null>(null);
 
   useEffect(() => {
+    const worker = new Worker(new URL('../audio.worker.ts', import.meta.url), { type: 'module' });
+
+    worker.onmessage = (event) => {
+      const { masteredBuffer } = event.data;
+      setMasteredAudioBuffer(masteredBuffer);
+      setProgress(100);
+      setStatusMessage("Mastering complete!");
+      setTimeout(() => setCurrentPage(AppPage.PREVIEW), 1000);
+    };
+
     const performMastering = async () => {
       if (!uploadedTrack || !masteringSettings || !uploadedTrack.audioBuffer) {
         setCurrentPage(AppPage.UPLOAD);
@@ -57,26 +66,7 @@ const ProcessingAudioPage: React.FC = () => {
 
         setStatusMessage("Applying advanced audio processing...");
         setProgress(75);
-        const masteredBuffer = await processAudio(uploadedTrack.audioBuffer, finalSettings);
-
-        setMasteredAudioBuffer(masteredBuffer);
-        const newMasteredTrack: MasteredTrackInfo = {
-          file: uploadedTrack.file,
-          name: uploadedTrack.name,
-          audioBuffer: uploadedTrack.audioBuffer,
-          id: `proj_${Date.now()}`,
-          masteredFileUrl: 'processed_in_browser',
-          settings: finalSettings,
-          masteredDate: new Date(),
-          duration: masteredBuffer.duration,
-          masteringReportNotes: masteringReportNotes || undefined,
-        };
-        setMasteredTrackInfo(newMasteredTrack);
-        addUserProject(newMasteredTrack);
-
-        setProgress(100);
-        setStatusMessage("Mastering complete!");
-        setTimeout(() => setCurrentPage(AppPage.PREVIEW), 1000);
+        worker.postMessage({ originalBuffer: uploadedTrack.audioBuffer, settings: finalSettings });
 
       } catch (error) {
         console.error("Mastering failed:", error);
@@ -86,6 +76,10 @@ const ProcessingAudioPage: React.FC = () => {
     };
 
     performMastering();
+
+    return () => {
+      worker.terminate();
+    };
   }, [apiKey, addUserProject, masteringSettings, setCurrentPage, setMasteredAudioBuffer, setMasteredTrackInfo, uploadedTrack, masteringReportNotes]);
 
   if (!uploadedTrack || !masteringSettings) {
