@@ -5,7 +5,7 @@ export const fetchAIChainSettings = async (
   genre: string,
   trackName: string,
   apiKey: string,
-  referenceTrackName?: string
+  referenceAnalysis?: any
 ): Promise<any> => {
   if (!apiKey) {
     throw new Error("Gemini API key is not provided.");
@@ -18,9 +18,12 @@ export const fetchAIChainSettings = async (
     - Genre: ${genre}
     - Tentative Name / Keywords: ${trackName}`;
 
-  if (referenceTrackName) {
+  if (referenceAnalysis) {
     prompt += `
-    - Reference Track Inspiration: ${referenceTrackName}`;
+    - Reference Track Analysis:
+      - Loudness: ${referenceAnalysis.loudness.toFixed(2)} dB
+      - Spectral Balance: Bass: ${(referenceAnalysis.spectralBalance.bass * 100).toFixed(1)}%, Mid: ${(referenceAnalysis.spectralBalance.mid * 100).toFixed(1)}%, Treble: ${(referenceAnalysis.spectralBalance.treble * 100).toFixed(1)}%
+      - Peak: ${referenceAnalysis.peak.toFixed(2)} dB`;
   }
 
   prompt += `

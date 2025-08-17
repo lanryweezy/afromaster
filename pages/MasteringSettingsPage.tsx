@@ -48,6 +48,7 @@ const MasteringSettingsPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [aiStrength, setAiStrength] = useState(100);
+  const [referenceAnalysis, setReferenceAnalysis] = useState(null);
 
   useEffect(() => {
     if (!uploadedTrack) {
@@ -64,12 +65,27 @@ const MasteringSettingsPage: React.FC = () => {
     setCurrentSettings(prev => ({ ...prev, [name]: isNumberInput ? parseFloat(value) : value }));
   };
 
-  const handleReferenceFileAccepted = (file: File) => {
+  const handleReferenceFileAccepted = async (file: File) => {
     setCurrentSettings(prev => ({ ...prev, referenceTrackFile: file }));
+    const audioContext = new AudioContext();
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      if (e.target?.result instanceof ArrayBuffer) {
+        const buffer = await audioContext.decodeAudioData(e.target.result);
+        const worker = new Worker(new URL('../analysis.worker.ts', import.meta.url), { type: 'module' });
+        worker.onmessage = (event) => {
+          setReferenceAnalysis(event.data);
+          worker.terminate();
+        };
+        worker.postMessage({ buffer });
+      }
+    };
+    reader.readAsArrayBuffer(file);
   };
 
   const handleReferenceFileCleared = () => {
     setCurrentSettings(prev => ({ ...prev, referenceTrackFile: null }));
+    setReferenceAnalysis(null);
   };
 
   const handleGetAISettings = useCallback(async () => {
@@ -80,8 +96,7 @@ const MasteringSettingsPage: React.FC = () => {
     setIsLoading(true);
     setError(null);
     try {
-      const refTrackName = currentSettings.referenceTrackFile ? currentSettings.referenceTrackFile.name : undefined;
-      const settings = await fetchAIChainSettings(currentSettings.genre, uploadedTrack.name, apiKey, refTrackName);
+      const settings = await fetchAIChainSettings(currentSettings.genre, uploadedTrack.name, apiKey, referenceAnalysis);
       setAiSettings(settings);
       setCurrentSettings(prev => ({ ...prev, aiSettingsApplied: true }));
     } catch (err: any) {
@@ -89,7 +104,7 @@ const MasteringSettingsPage: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [uploadedTrack, currentSettings, apiKey]);
+  }, [uploadedTrack, currentSettings, apiKey, referenceAnalysis]);
 
   const applyAIStrength = useCallback((baseSettings: MasteringSettings, aiSettings: Partial<MasteringSettings> | null, strength: number): MasteringSettings => {
     if (!aiSettings) return baseSettings;
