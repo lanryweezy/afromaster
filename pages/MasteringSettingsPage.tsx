@@ -32,7 +32,7 @@ const MasteringSettingsPage: React.FC = () => {
       trebleBoost: 0,
       crossover: { lowPass: 250, highPass: 4000 },
       eq: { bassFreq: 200, trebleFreq: 5000, bassGain: 0, trebleGain: 0 },
-      saturation: { amount: 0 },
+      saturation: { amount: 0, flavor: 'tape' },
       preGain: 1.0,
       bands: {
         low: { threshold: -35, knee: 15, ratio: 4, attack: 0.05, release: 0.3, makeupGain: 2.0 },
@@ -41,6 +41,7 @@ const MasteringSettingsPage: React.FC = () => {
       },
       limiter: { threshold: -1.5, attack: 0.002, release: 0.05 },
       finalGain: 1.0,
+      reverb: { impulseResponse: 'none', wetDryMix: 0 },
     };
     return masteringSettings || initialSettings;
   });
@@ -62,7 +63,19 @@ const MasteringSettingsPage: React.FC = () => {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
     const isNumberInput = type === 'number' || type === 'range';
-    setCurrentSettings(prev => ({ ...prev, [name]: isNumberInput ? parseFloat(value) : value }));
+    const [mainKey, subKey] = name.split('.');
+
+    if (subKey) {
+      setCurrentSettings(prev => ({
+        ...prev,
+        [mainKey]: {
+          ...prev[mainKey],
+          [subKey]: isNumberInput ? parseFloat(value) : value,
+        },
+      }));
+    } else {
+      setCurrentSettings(prev => ({ ...prev, [name]: isNumberInput ? parseFloat(value) : value }));
+    }
   };
 
   const handleReferenceFileAccepted = async (file: File) => {
@@ -232,11 +245,22 @@ const MasteringSettingsPage: React.FC = () => {
                 onChange={handleInputChange}
                 unit="%"
               />
+              <Dropdown
+                label="Saturation Flavor"
+                name="saturation.flavor"
+                options={[
+                  { value: 'tape', label: 'Warm Tape' },
+                  { value: 'tube', label: 'Tube' },
+                  { value: 'fuzz', label: 'Fuzz' },
+                ]}
+                value={currentSettings.saturation.flavor}
+                onChange={handleInputChange}
+              />
               <Slider
                 label="Analog Saturation"
-                name="saturationAmount"
+                name="saturation.amount"
                 min={0} max={100} step={1}
-                value={currentSettings.saturationAmount}
+                value={currentSettings.saturation.amount}
                 onChange={handleInputChange}
                 unit="%"
               />
@@ -255,6 +279,31 @@ const MasteringSettingsPage: React.FC = () => {
                 value={currentSettings.trebleBoost}
                 onChange={handleInputChange}
                 unit="dB"
+              />
+            </div>
+
+            <div className="pt-4">
+              <h4 className="text-lg font-semibold text-primary-focus mb-2">Creative Effects</h4>
+              <Dropdown
+                label="Reverb"
+                name="reverb.impulseResponse"
+                options={[
+                  { value: 'none', label: 'None' },
+                  { value: 'small_drum_room.wav', label: 'Small Drum Room' },
+                  { value: 'nice_drum_room.wav', label: 'Nice Drum Room' },
+                  { value: 'large_long_echo_hall.wav', label: 'Large Hall' },
+                  { value: 'masonic_lodge.wav', label: 'Masonic Lodge' },
+                ]}
+                value={currentSettings.reverb.impulseResponse}
+                onChange={handleInputChange}
+              />
+              <Slider
+                label="Reverb Mix"
+                name="reverb.wetDryMix"
+                min={0} max={1} step={0.01}
+                value={currentSettings.reverb.wetDryMix}
+                onChange={handleInputChange}
+                unit="%"
               />
             </div>
 

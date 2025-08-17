@@ -27,7 +27,7 @@ export interface MasteringSettings {
   useDynamicEQ?: boolean;
   crossover: { lowPass: number; highPass: number };
   eq: { bassFreq: number; trebleFreq: number; bassGain: number; trebleGain: number };
-  saturation: { amount: number };
+  saturation: { amount: number; flavor: string };
   preGain: number;
   bands: {
     low: { threshold: number; knee: number; ratio: number; attack: number; release: number; makeupGain: number };
@@ -36,6 +36,10 @@ export interface MasteringSettings {
   };
   limiter: { threshold: number; attack: number; release: number };
   finalGain: number;
+  reverb: {
+    impulseResponse: string;
+    wetDryMix: number;
+  };
 }
 
 export interface UploadedTrack {

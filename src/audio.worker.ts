@@ -13,13 +13,25 @@ const createCompressor = (
   return compressor;
 };
 
-const createSaturationCurve = (amount: number): Float32Array => {
+const createSaturationCurve = (amount: number, flavor: string): Float32Array => {
     const k = amount;
     const n_samples = 44100;
     const curve = new Float32Array(n_samples);
+    let x;
     for (let i = 0; i < n_samples; i++) {
-        const x = i * 2 / n_samples - 1;
-        curve[i] = (1 + k/100) * x / (1 + k/100 * Math.abs(x));
+        x = i * 2 / n_samples - 1;
+        switch (flavor) {
+            case 'tube':
+                curve[i] = x - (x * x * x / 3);
+                break;
+            case 'fuzz':
+                curve[i] = Math.sign(x);
+                break;
+            case 'tape':
+            default:
+                curve[i] = Math.tanh(k * x) / Math.tanh(k);
+                break;
+        }
     }
     return curve;
 };
@@ -117,7 +129,7 @@ const processAudio = async (
 
     const saturationNode = context.createWaveShaper();
     if (settings.saturation.amount > 0) {
-        saturationNode.curve = createSaturationCurve(settings.saturation.amount);
+        saturationNode.curve = createSaturationCurve(settings.saturation.amount, settings.saturation.flavor);
         saturationNode.oversample = '4x';
     }
 
@@ -156,13 +168,42 @@ const processAudio = async (
 
     lastNode.connect(finalGain);
     finalGain.connect(limiter);
-    limiter.connect(context.destination);
+
+    if (settings.reverb.impulseResponse !== 'none') {
+      const reverb = await createReverb(context, settings.reverb);
+      limiter.connect(reverb.wet);
+      limiter.connect(reverb.dry);
+      reverb.output.connect(context.destination);
+    } else {
+      limiter.connect(context.destination);
+    }
 
     source.start(0);
 
     const renderedBuffer = await context.startRendering();
 
     return normalizeBuffer(renderedBuffer);
+};
+
+const createReverb = async (context: OfflineAudioContext, settings: { impulseResponse: string, wetDryMix: number }) => {
+  const convolver = context.createConvolver();
+  const response = await fetch(`/irs/${settings.impulseResponse}`);
+  const buffer = await response.arrayBuffer();
+  convolver.buffer = await context.decodeAudioData(buffer);
+
+  const wet = context.createGain();
+  wet.gain.value = settings.wetDryMix;
+
+  const dry = context.createGain();
+  dry.gain.value = 1 - settings.wetDryMix;
+
+  const output = context.createGain();
+
+  wet.connect(convolver);
+  convolver.connect(output);
+  dry.connect(output);
+
+  return { wet, dry, output };
 };
 
 self.onmessage = async (event) => {
