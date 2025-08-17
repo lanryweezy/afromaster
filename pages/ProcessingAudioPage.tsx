@@ -1,161 +1,88 @@
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAppContext } from '../contexts/AppContext';
 import { AppPage, MasteredTrackInfo } from '../types';
 import ProgressBar from '../components/ProgressBar';
 import LoadingSpinner from '../components/LoadingSpinner';
-import { processAudio } from '../services/audioProcessingService';
-import { generateMasteringReport } from '../services/geminiService';
-import { IconMusicNote, IconSparkles } from '../constants';
+import { fetchAIChainSettings, generateMasteringReport } from '../services/geminiService';
+import { IconSparkles } from '../constants';
 
 const ProcessingAudioPage: React.FC = () => {
-  const { 
-    setCurrentPage, 
-    uploadedTrack, 
-    masteringSettings, 
+  const {
+    setCurrentPage,
+    uploadedTrack,
+    masteringSettings,
     setMasteredTrackInfo,
     setMasteredAudioBuffer,
     addUserProject,
-    apiKey 
+    apiKey
   } = useAppContext();
-  
+
   const [progress, setProgress] = useState(0);
-  const [statusMessage, setStatusMessage] = useState("Initializing mastering engine...");
+  const [statusMessage, setStatusMessage] = useState("Initializing...");
   const [masteringReportNotes, setMasteringReportNotes] = useState<string | null>(null);
   const [isFetchingReport, setIsFetchingReport] = useState(false);
   const [reportError, setReportError] = useState<string | null>(null);
 
-  const intervalIdRef = useRef<number | undefined>(undefined);
-  const processingTimeoutIdRef = useRef<number | undefined>(undefined);
-  const isMountedRef = useRef(true);
-
-
   useEffect(() => {
-    isMountedRef.current = true;
     if (!uploadedTrack || !masteringSettings || !uploadedTrack.audioBuffer) {
-      setCurrentPage(AppPage.UPLOAD); 
+      setCurrentPage(AppPage.UPLOAD);
       return;
     }
+    const worker = new Worker(new URL('../audio.worker.ts', import.meta.url), { type: 'module' });
 
-    const phases = [
-      { msg: "Analyzing audio structure...", duration: 1000, progressIncr: 15, key: "analysis" },
-      { msg: "AI generating mastering plan...", duration: 1000, progressIncr: 25, key: "ai_plan_initiate" }, // Shorter, just to show message
-      { msg: "Applying EQ and dynamics...", duration: 1500, progressIncr: 25, key: "eq_dynamics" },
-      { msg: "Enhancing stereo image...", duration: 1000, progressIncr: 15, key: "stereo" },
-      { msg: "Optimizing loudness & finalizing...", duration: 1000, progressIncr: 20, key: "finalize" },
-    ];
-
-    let currentPhaseIndex = 0;
-    let cumulativeProgress = 0;
-
-    const executePhase = async () => {
-      if (currentPhaseIndex >= phases.length) {
-        if (!isMountedRef.current) return;
-        setProgress(100);
-        setStatusMessage("Mastering complete!");
-        processingTimeoutIdRef.current = window.setTimeout(async () => {
-          if (!isMountedRef.current) return;
-          try {
-            // This is now the real processing call
-            const masteredBuffer = await processAudio(uploadedTrack.audioBuffer!, masteringSettings);
-            if (!isMountedRef.current) return;
-
-            setMasteredAudioBuffer(masteredBuffer);
-
-            const newMasteredTrack: MasteredTrackInfo = {
-              file: uploadedTrack.file,
-              name: uploadedTrack.name,
-              audioBuffer: uploadedTrack.audioBuffer,
-              id: `proj_${Date.now()}`,
-              masteredFileUrl: 'processed_in_browser', // No longer a mock URL
-              settings: masteringSettings,
-              masteredDate: new Date(),
-              duration: masteredBuffer.duration,
-              masteringReportNotes: masteringReportNotes || undefined,
-            };
-            setMasteredTrackInfo(newMasteredTrack);
-            addUserProject(newMasteredTrack);
-            setCurrentPage(AppPage.PREVIEW);
-          } catch (error) {
-            console.error("Mastering failed:", error);
-            setStatusMessage("Error during mastering. Please try again.");
-            if (isMountedRef.current) setTimeout(() => setCurrentPage(AppPage.SETTINGS), 2000);
-          }
-        }, 500);
-        return;
-      }
-
-      const currentPhase = phases[currentPhaseIndex];
-      if (!isMountedRef.current) return;
-      setStatusMessage(currentPhase.msg);
-
-      if (currentPhase.key === "ai_plan_initiate") {
-        if (apiKey && uploadedTrack && masteringSettings) {
-          if (!isMountedRef.current) return;
-          setIsFetchingReport(true);
-          setReportError(null);
-          try {
-            const report = await generateMasteringReport(uploadedTrack.name, masteringSettings, apiKey);
-            if (isMountedRef.current) setMasteringReportNotes(report);
-          } catch (err: any) {
-            if (isMountedRef.current) setReportError(err.message || "Failed to get AI insights.");
-          } finally {
-            if (isMountedRef.current) setIsFetchingReport(false);
-          }
-        } else if (!apiKey) {
-            if (isMountedRef.current) setReportError("API Key not available for AI insights.");
-        }
-      }
-      
-      // Animate progress for the current phase
-      const progressTarget = cumulativeProgress + currentPhase.progressIncr;
-      const steps = 10;
-      const stepDuration = currentPhase.duration / steps;
-      const progressStep = currentPhase.progressIncr / steps;
-      let currentStepProgress = cumulativeProgress;
-
-      const animateProgress = () => {
-        if (!isMountedRef.current) return;
-        currentStepProgress += progressStep;
-        setProgress(Math.min(progressTarget, currentStepProgress));
-
-        if (currentStepProgress < progressTarget) {
-          intervalIdRef.current = window.setTimeout(animateProgress, stepDuration);
-        } else {
-          cumulativeProgress = progressTarget;
-          currentPhaseIndex++;
-          // Ensure AI report fetching completes before moving if it was initiated
-          if (currentPhase.key === "ai_plan_initiate" && isFetchingReport) {
-             // Wait for fetching to complete by checking isFetchingReport in a loop or promise
-             const waitForReport = async () => {
-                while(isFetchingReport && isMountedRef.current) {
-                    await new Promise(resolve => setTimeout(resolve, 100));
-                }
-                if(isMountedRef.current) executePhase();
-             }
-             waitForReport();
-          } else {
-            if(isMountedRef.current) executePhase();
-          }
-        }
-      };
-      animateProgress();
+    let cancelled = false;
+    worker.onmessage = (event) => {
+      if (cancelled) return;
+      const { masteredBuffer } = event.data;
+      setMasteredAudioBuffer(masteredBuffer);
+      setProgress(100);
+      setStatusMessage("Mastering complete!");
+      setTimeout(() => setCurrentPage(AppPage.PREVIEW), 1000);
     };
-    
-    executePhase();
+
+    const performMastering = async () => {
+      try {
+        let finalSettings = { ...masteringSettings };
+
+        if (finalSettings.aiSettingsApplied) {
+          if (!apiKey) {
+            setStatusMessage("AI plan skipped: missing API key.");
+          } else {
+            setStatusMessage("Generating AI mastering plan...");
+            setProgress(25);
+            const aiSettings = await fetchAIChainSettings(
+              finalSettings.genre,
+              uploadedTrack.name,
+              apiKey,
+              finalSettings.referenceTrackFile?.name
+            );
+            finalSettings = { ...finalSettings, ...aiSettings };
+            setIsFetchingReport(true);
+            generateMasteringReport(uploadedTrack.name, finalSettings, apiKey)
+              .then(report => !cancelled && setMasteringReportNotes(report))
+              .catch(err => !cancelled && setReportError(err.message))
+              .finally(() => !cancelled && setIsFetchingReport(false));
+          }
+        }
+
+        setStatusMessage("Applying advanced audio processing...");
+        setProgress(75);
+        worker.postMessage({ originalBuffer: uploadedTrack.audioBuffer, settings: finalSettings });
+      } catch (error) {
+        console.error("Mastering failed:", error);
+        setStatusMessage(`Error during mastering: ${error instanceof Error ? (error as Error).message : 'Unknown error'}`);
+        setTimeout(() => setCurrentPage(AppPage.SETTINGS), 3000);
+      }
+    };
+
+    performMastering();
 
     return () => {
-      isMountedRef.current = false;
-      if (intervalIdRef.current !== undefined) {
-        clearTimeout(intervalIdRef.current);
-      }
-      if (processingTimeoutIdRef.current !== undefined) {
-        clearTimeout(processingTimeoutIdRef.current);
-      }
+      cancelled = true;
+      worker.terminate();
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [uploadedTrack, masteringSettings, setCurrentPage, setMasteredTrackInfo, addUserProject, apiKey]); // masteringReportNotes removed, it's set internally
-
+  }, [uploadedTrack, masteringSettings, apiKey, setCurrentPage, setMasteredAudioBuffer]);
 
   if (!uploadedTrack || !masteringSettings) {
     return <LoadingSpinner text="Loading data..." />;
@@ -183,7 +110,7 @@ const ProcessingAudioPage: React.FC = () => {
         </div>
       )}
 
-      {progress === 100 && statusMessage === "Mastering complete!" && (
+      {progress === 100 && (
         <p className="mt-6 text-green-400 animate-fadeIn">Processing finished! Preparing your preview...</p>
       )}
     </div>
