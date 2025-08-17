@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { useAppContext } from '../contexts/AppContext';
 import { AppPage } from '../types';
@@ -5,18 +6,7 @@ import Button from '../components/Button';
 import { IconPlay, IconPause, IconCog, IconCheckCircle } from '../constants';
 import LoadingSpinner from '../components/LoadingSpinner';
 import WaveformCanvas from '../components/WaveformCanvas';
-
-// A simple toggle switch component
-const ToggleSwitch: React.FC<{ isEnabled: boolean; onToggle: () => void; enabledLabel: string; disabledLabel: string; }> = ({ isEnabled, onToggle, enabledLabel, disabledLabel }) => (
-    <div onClick={onToggle} className="relative cursor-pointer flex items-center p-1 bg-slate-900 rounded-full w-60 justify-center">
-        <div className={`absolute top-1 left-1 h-[calc(100%-8px)] w-[calc(50%-4px)] rounded-full bg-primary transition-transform duration-300 ease-in-out`}
-            style={{ transform: isEnabled ? 'translateX(100%)' : 'translateX(0%)' }}
-        ></div>
-        <span className={`relative px-4 py-1.5 text-sm rounded-full transition-colors w-1/2 text-center ${!isEnabled ? 'text-white' : 'text-slate-400'}`}>{disabledLabel}</span>
-        <span className={`relative px-4 py-1.5 text-sm rounded-full transition-colors w-1/2 text-center ${isEnabled ? 'text-white' : 'text-slate-400'}`}>{enabledLabel}</span>
-    </div>
-);
-
+import ToggleSwitch from '../components/ToggleSwitch';
 
 const PreviewAndComparePage: React.FC = () => {
   const { setCurrentPage, uploadedTrack, masteredTrackInfo, masteringSettings, originalAudioBuffer, masteredAudioBuffer } = useAppContext();
@@ -156,7 +146,7 @@ const PreviewAndComparePage: React.FC = () => {
 
   return (
     <div className="max-w-4xl mx-auto p-6 md:p-8 bg-slate-900/60 backdrop-blur-lg border border-slate-700/50 rounded-xl shadow-2xl card-accent">
-      <h2 className="text-4xl font-heading font-semibold mb-2 text-gradient-primary">Preview Your Master</h2>
+      <h2 className="text-3xl sm:text-4xl font-heading font-semibold mb-2 text-gradient-primary">Preview Your Master</h2>
       <p className="text-slate-300 mb-8">A/B test the Afromastered version of <span className="font-semibold text-primary-focus transition-colors">{trackName}</span>.</p>
 
       <div className="mb-8 flex flex-col items-center justify-center gap-6">

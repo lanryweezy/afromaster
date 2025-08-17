@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import FileUpload from '../components/FileUpload';
 import Button from '../components/Button';
@@ -72,7 +73,7 @@ const UploadAudioPage: React.FC = () => {
 
   return (
     <div className="max-w-3xl mx-auto text-center p-6 md:p-8 bg-slate-900/60 backdrop-blur-lg border border-slate-700/50 rounded-xl shadow-2xl card-accent">
-      <h2 className="text-4xl font-heading font-semibold mb-2 text-gradient-primary">Upload Your Next Hit</h2>
+      <h2 className="text-3xl sm:text-4xl font-heading font-semibold mb-2 text-gradient-primary">Upload Your Next Hit</h2>
       <p className="text-slate-300 mb-8">Start by uploading your Afrobeats or Hip Hop track.</p>
       
       <FileUpload 

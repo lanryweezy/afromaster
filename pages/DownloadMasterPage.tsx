@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useAppContext } from '../contexts/AppContext';
 import { AppPage } from '../types';
@@ -69,11 +70,11 @@ const DownloadMasterPage: React.FC = () => {
 
   return (
     <>
-      <div className="max-w-2xl mx-auto text-center p-8 bg-slate-900/60 backdrop-blur-lg border border-slate-700/50 rounded-xl shadow-2xl card-accent">
+      <div className="max-w-2xl mx-auto text-center p-6 sm:p-8 bg-slate-900/60 backdrop-blur-lg border border-slate-700/50 rounded-xl shadow-2xl card-accent">
         <div className="w-24 h-24 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
           <IconCheckCircle className="w-20 h-20 text-green-400" />
         </div>
-        <h2 className="text-4xl font-heading font-semibold mb-3 text-gradient-primary">Your Master is Ready!</h2>
+        <h2 className="text-3xl sm:text-4xl font-heading font-semibold mb-3 text-gradient-primary">Your Master is Ready!</h2>
         <p className="text-slate-200 mb-6 text-lg">
           <span className="font-semibold text-primary-focus transition-colors">{name}</span> has been successfully Afromastered.
         </p>

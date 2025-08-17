@@ -1,3 +1,4 @@
+
 import React, { useEffect } from 'react';
 import { useAppContext } from '../contexts/AppContext';
 import { AppPage } from '../types';
@@ -38,7 +39,7 @@ const Feature: React.FC<{ icon: React.ReactNode; title: string; description: str
 
 // How It Works Step
 const HowItWorksStep: React.FC<{ icon: React.ReactNode; title: string; description: string; delay: number }> = ({ icon, title, description, delay }) => (
-    <div className="relative pl-16 animate-on-scroll" style={{ transitionDelay: `${delay}s`}}>
+    <div className="relative pl-14 sm:pl-16 animate-on-scroll" style={{ transitionDelay: `${delay}s`}}>
         <div className="absolute left-0 top-0 w-12 h-12 flex items-center justify-center text-2xl font-bold bg-slate-800/80 border border-slate-700 rounded-full text-primary font-heading">{icon}</div>
         <h3 className="text-xl font-heading font-semibold text-primary">{title}</h3>
         <p className="mt-1 text-slate-300">{description}</p>
@@ -54,9 +55,9 @@ const LandingPage: React.FC = () => {
       {/* Hero Section */}
       <section className="text-center pt-10 md:pt-16 relative min-h-[70vh] flex flex-col justify-center items-center hero-background">
         <div className="relative z-10 flex flex-col justify-center items-center w-full p-4">
-            <StaggeredText text="Mastering, Reimagined for the Culture." className="text-5xl md:text-7xl font-heading font-bold text-gradient-primary pb-4" />
+            <StaggeredText text="Mastering, Reimagined for the Culture." className="text-4xl sm:text-5xl md:text-7xl font-heading font-bold text-gradient-primary pb-4" />
 
-            <p className="mt-6 text-lg md:text-xl text-slate-200 max-w-3xl mx-auto animate-slideInUp" style={{ animationDelay: '0.5s'}}>
+            <p className="mt-6 text-base sm:text-lg md:text-xl text-slate-200 max-w-3xl mx-auto animate-slideInUp" style={{ animationDelay: '0.5s'}}>
              From a flat mix to a global hit. The AI mastering engine trained on Afrobeats, Amapiano, and Trap.
             </p>
             <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4 animate-slideInUp" style={{ animationDelay: '0.7s'}}>
@@ -94,7 +95,7 @@ const LandingPage: React.FC = () => {
       {/* "Hear the Difference" A/B Demo Section */}
       <section id="demo-section" className="max-w-4xl mx-auto">
         <div className="text-center mb-12 animate-on-scroll">
-            <h2 className="text-4xl font-heading font-bold text-gradient-primary">Feel The Bounce</h2>
+            <h2 className="text-3xl sm:text-4xl font-heading font-bold text-gradient-primary">Feel The Bounce</h2>
             <p className="mt-3 text-slate-300 max-w-2xl mx-auto">Toggle between the raw mix and the Afromastered version. Hear the punch, clarity, and loudness our AI adds, tailored for Afrobeats and Trap.</p>
         </div>
         <div className="animate-on-scroll" style={{ transitionDelay: '200ms' }}>
@@ -105,7 +106,7 @@ const LandingPage: React.FC = () => {
       {/* Why Afromaster Section */}
       <section className="max-w-5xl mx-auto">
         <div className="text-center mb-12 animate-on-scroll">
-            <h2 className="text-4xl font-heading font-bold text-gradient-primary">Stop Guessing, Start Finishing</h2>
+            <h2 className="text-3xl sm:text-4xl font-heading font-bold text-gradient-primary">Stop Guessing, Start Finishing</h2>
             <p className="mt-3 text-slate-300 max-w-3xl mx-auto">Afromaster bridges the gap between your final mix and a professional, release-ready track, so you can focus on creating.</p>
         </div>
         <div className="grid md:grid-cols-2 gap-8 p-6 bg-slate-900/40 border border-slate-800/50 rounded-2xl">
@@ -133,7 +134,7 @@ const LandingPage: React.FC = () => {
       {/* How It Works Section */}
       <section className="max-w-4xl mx-auto">
         <div className="text-center mb-12 animate-on-scroll">
-            <h2 className="text-4xl font-heading font-bold text-gradient-primary">Your Studio, Simplified</h2>
+            <h2 className="text-3xl sm:text-4xl font-heading font-bold text-gradient-primary">Your Studio, Simplified</h2>
             <p className="mt-3 text-slate-300">Get a release-ready master in 4 simple steps.</p>
         </div>
         <div className="grid md:grid-cols-2 gap-x-8 gap-y-12">
@@ -147,7 +148,7 @@ const LandingPage: React.FC = () => {
       {/* Features Section */}
       <section className="max-w-5xl mx-auto">
         <div className="text-center mb-12 animate-on-scroll">
-          <h2 className="text-4xl font-heading font-bold text-gradient-primary">Built for the Culture</h2>
+          <h2 className="text-3xl sm:text-4xl font-heading font-bold text-gradient-primary">Built for the Culture</h2>
           <p className="mt-3 text-slate-300">Features designed to make your Afrobeats and Trap tracks hit harder.</p>
         </div>
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -180,7 +181,7 @@ const LandingPage: React.FC = () => {
          <div className="absolute top-0 left-0 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-tr from-primary/50 to-secondary/50 rounded-full blur-3xl opacity-30 transition-all duration-500"></div>
          <div className="absolute bottom-0 right-0 translate-x-1/2 translate-y-1/2 w-96 h-96 bg-gradient-to-bl from-primary/50 to-secondary/50 rounded-full blur-3xl opacity-30 transition-all duration-500"></div>
         <div className="relative z-10">
-            <h2 className="text-4xl font-heading font-bold text-gradient-primary">Your Next Hit is One Click Away</h2>
+            <h2 className="text-3xl sm:text-4xl font-heading font-bold text-gradient-primary">Your Next Hit is One Click Away</h2>
             <p className="mt-4 text-slate-200 max-w-xl mx-auto">Join top producers and artists using Afromaster to get their tracks radio and playlist-ready.</p>
             <div className="mt-8">
               <Button 

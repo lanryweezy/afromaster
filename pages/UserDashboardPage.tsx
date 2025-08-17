@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useAppContext } from '../contexts/AppContext';
 import TrackCard from '../components/TrackCard';
@@ -10,8 +11,8 @@ const UserDashboardPage: React.FC = () => {
 
   return (
     <div className="max-w-6xl mx-auto">
-      <div className="flex justify-between items-center mb-8">
-        <h2 className="text-4xl font-heading font-semibold text-gradient-primary">Your Project Studio</h2>
+      <div className="flex flex-col sm:flex-row justify-between sm:items-center mb-8 gap-4">
+        <h2 className="text-3xl sm:text-4xl font-heading font-semibold text-gradient-primary">Your Project Studio</h2>
         {isAuthenticated && (
            <Button onClick={() => setCurrentPage(AppPage.UPLOAD)} leftIcon={<IconUpload className="w-5 h-5"/>}>
             Master New Track

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { useAppContext } from '../contexts/AppContext';
 import { AppPage, MasteredTrackInfo } from '../types';
@@ -162,7 +163,7 @@ const ProcessingAudioPage: React.FC = () => {
 
   return (
     <div className="max-w-2xl mx-auto text-center p-6 md:p-8 bg-slate-900/60 backdrop-blur-lg border border-slate-700/50 rounded-xl shadow-2xl card-accent">
-      <h2 className="text-4xl font-heading font-semibold mb-6 text-gradient-primary">Afromastering Your Track</h2>
+      <h2 className="text-3xl sm:text-4xl font-heading font-semibold mb-6 text-gradient-primary">Afromastering Your Track</h2>
       <LoadingSpinner size="lg" className="mb-6" />
       <p className="text-slate-300 mb-2">Hang tight! <span className="font-semibold text-primary-focus transition-colors">{uploadedTrack.name}</span> is being polished.</p>
       <p className="text-slate-400 mb-6 text-sm min-h-[20px]">{statusMessage}</p>
