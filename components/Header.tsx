@@ -51,6 +51,12 @@ const Header: React.FC = () => {
                       Dashboard
                     </button>
                     <button
+                      onClick={() => navigate(AppPage.BUY_CREDITS)}
+                      className="text-slate-300 hover:bg-slate-800 hover:text-white transition-colors px-4 py-2 rounded-md text-sm font-medium"
+                    >
+                      Buy Credits
+                    </button>
+                    <button
                         onClick={handleLogout}
                         className="text-slate-300 hover:bg-slate-800 hover:text-white transition-colors px-4 py-2 rounded-md text-sm font-medium"
                     >
@@ -104,6 +110,12 @@ const Header: React.FC = () => {
                           className="text-2xl font-semibold text-slate-200 hover:text-primary transition-colors"
                         >
                           Dashboard
+                        </button>
+                        <button
+                          onClick={() => navigate(AppPage.BUY_CREDITS)}
+                          className="text-2xl font-semibold text-slate-200 hover:text-primary transition-colors"
+                        >
+                          Buy Credits
                         </button>
                         <button
                             onClick={handleLogout}

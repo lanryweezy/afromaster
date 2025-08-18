@@ -8,7 +8,7 @@ import { fetchAIChainSettings, generateMasteringReport } from '../services/gemin
 import { IconSparkles } from '../constants';
 import { db, storage } from '../firebaseConfig';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { collection, addDoc } from 'firebase/firestore';
+import { collection, addDoc, doc, getDoc, updateDoc } from 'firebase/firestore';
 import toWav from 'audiobuffer-to-wav';
 
 const ProcessingAudioPage: React.FC = () => {
@@ -56,6 +56,7 @@ const ProcessingAudioPage: React.FC = () => {
           settings: masteringSettings,
           createdAt: new Date(),
         };
+        };
         await addDoc(collection(db, "projects"), projectData);
       }
 
@@ -66,6 +67,19 @@ const ProcessingAudioPage: React.FC = () => {
 
     const performMastering = async () => {
       try {
+        if (user) {
+          const userRef = doc(db, "users", user.uid);
+          const userDoc = await getDoc(userRef);
+          if (!userDoc.exists() || userDoc.data().credits < 1) {
+            setStatusMessage("You don't have enough credits to master a track.");
+            setTimeout(() => setCurrentPage(AppPage.BUY_CREDITS), 3000);
+            return;
+          }
+          await updateDoc(userRef, {
+            credits: userDoc.data().credits - 1,
+          });
+        }
+
         let finalSettings = { ...masteringSettings };
 
         if (finalSettings.aiSettingsApplied) {

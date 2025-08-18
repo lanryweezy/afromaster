@@ -11,6 +11,7 @@ export enum AppPage {
   DOWNLOAD,
   DASHBOARD,
   AUTH,
+  BUY_CREDITS,
 }
 
 export interface MasteringSettings {

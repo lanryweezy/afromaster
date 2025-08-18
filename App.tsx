@@ -12,6 +12,7 @@ import PreviewAndComparePage from './pages/PreviewAndComparePage';
 import DownloadMasterPage from './pages/DownloadMasterPage';
 import UserDashboardPage from './pages/UserDashboardPage';
 import AuthPage from './pages/AuthPage';
+import BuyCreditsPage from './pages/BuyCreditsPage';
 import ParticleBackground from './components/ParticleBackground';
 
 const App: React.FC = () => {
@@ -66,6 +67,8 @@ const App: React.FC = () => {
         return <UserDashboardPage />;
       case AppPage.AUTH:
         return <AuthPage />;
+      case AppPage.BUY_CREDITS:
+        return <BuyCreditsPage />;
       default:
         return <LandingPage />;
     }
