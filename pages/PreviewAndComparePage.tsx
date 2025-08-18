@@ -7,6 +7,7 @@ import { IconPlay, IconPause, IconCog, IconCheckCircle } from '../constants';
 import LoadingSpinner from '../components/LoadingSpinner';
 import WaveformCanvas from '../components/WaveformCanvas';
 import ToggleSwitch from '../components/ToggleSwitch';
+import SpectrumAnalyzer from '../components/SpectrumAnalyzer';
 
 const PreviewAndComparePage: React.FC = () => {
   const { setCurrentPage, uploadedTrack, masteredTrackInfo, masteringSettings, originalAudioBuffer, masteredAudioBuffer } = useAppContext();
@@ -99,14 +100,16 @@ const PreviewAndComparePage: React.FC = () => {
       }
   };
 
+  useEffect(() => {
+    if (isPlayingRef.current && audioCtxRef.current) {
+      const newStartTime = startTimeRef.current + (audioCtxRef.current.currentTime - startedAtRef.current);
+      startTimeRef.current = newStartTime;
+      playCurrentVersion(newStartTime);
+    }
+  }, [isMastered]);
+
   const handleToggle = () => {
-      const newIsMastered = !isMastered;
-      setIsMastered(newIsMastered);
-      if (isPlayingRef.current && audioCtxRef.current) {
-          const newStartTime = startTimeRef.current + (audioCtxRef.current.currentTime - startedAtRef.current);
-          startTimeRef.current = newStartTime;
-          playCurrentVersion(newStartTime);
-      }
+    setIsMastered(!isMastered);
   };
 
   if (!uploadedTrack || !masteredTrackInfo || !masteringSettings) {
@@ -154,6 +157,12 @@ const PreviewAndComparePage: React.FC = () => {
           {isActuallyPlaying ? <IconPause className="w-8 h-8"/> : <IconPlay className="w-8 h-8"/>}
         </button>
         <ToggleSwitch isEnabled={isMastered} onToggle={handleToggle} disabledLabel="Original" enabledLabel="Mastered" />
+      </div>
+
+      <div className="mb-8">
+        {audioCtxRef.current && sourceNodeRef.current && (
+          <SpectrumAnalyzer audioContext={audioCtxRef.current} audioNode={sourceNodeRef.current} />
+        )}
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">

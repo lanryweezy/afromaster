@@ -1,11 +1,8 @@
 import React, { createContext, useState, useContext, ReactNode, useEffect } from 'react';
 import { AppPage, UploadedTrack, MasteringSettings, MasteredTrackInfo, Theme } from '../types';
 import { Genre, LoudnessTarget, TonePreference, StereoWidth } from '../constants';
-
-interface User {
-  name: string;
-  avatarUrl: string;
-}
+import { auth } from '../src/firebaseConfig';
+import { User, onAuthStateChanged } from 'firebase/auth';
 
 interface AppContextType {
   currentPage: AppPage;
@@ -27,9 +24,7 @@ interface AppContextType {
   isMusicPlaying: boolean;
   setIsMusicPlaying: (isPlaying: boolean) => void;
   isAuthenticated: boolean;
-  setIsAuthenticated: (isAuth: boolean) => void;
   user: User | null;
-  setUser: (user: User | null) => void;
   theme: Theme;
   setTheme: (theme: Theme) => void;
 }
@@ -58,9 +53,17 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const [originalAudioBuffer, setOriginalAudioBuffer] = useState<AudioBuffer | null>(null);
   const [masteredAudioBuffer, setMasteredAudioBuffer] = useState<AudioBuffer | null>(null);
   const [isMusicPlaying, setIsMusicPlaying] = useState(false);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState<User | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [theme, setTheme] = useState<Theme>('solar-flare');
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setUser(user);
+      setIsAuthenticated(!!user);
+    });
+    return () => unsubscribe();
+  }, []);
 
   const addUserProject = (project: MasteredTrackInfo) => {
     setUserProjects(prevProjects => [project, ...prevProjects]);
@@ -81,8 +84,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       originalAudioBuffer, setOriginalAudioBuffer,
       masteredAudioBuffer, setMasteredAudioBuffer,
       isMusicPlaying, setIsMusicPlaying,
-      isAuthenticated, setIsAuthenticated,
-      user, setUser,
+      isAuthenticated,
+      user,
       theme, setTheme
     }}>
       {children}
