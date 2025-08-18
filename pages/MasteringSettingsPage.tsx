@@ -82,17 +82,31 @@ const MasteringSettingsPage: React.FC = () => {
     setCurrentSettings(prev => ({ ...prev, referenceTrackFile: file }));
     const audioContext = new AudioContext();
     const reader = new FileReader();
+
+    const cleanup = (worker?: Worker) => {
+      try { worker?.terminate(); } catch {}
+      try { audioContext.close(); } catch {}
+    };
+
     reader.onload = async (e) => {
-      if (e.target?.result instanceof ArrayBuffer) {
-        const buffer = await audioContext.decodeAudioData(e.target.result);
-        const worker = new Worker(new URL('../analysis.worker.ts', import.meta.url), { type: 'module' });
-        worker.onmessage = (event) => {
-          setReferenceAnalysis(event.data);
-          worker.terminate();
-        };
-        worker.postMessage({ buffer });
+      try {
+        if (e.target?.result instanceof ArrayBuffer) {
+          const buffer = await audioContext.decodeAudioData(e.target.result);
+          const worker = new Worker(new URL('../analysis.worker.ts', import.meta.url), { type: 'module' });
+          worker.onmessage = (event) => {
+            setReferenceAnalysis(event.data);
+            cleanup(worker);
+          };
+          worker.onerror = () => cleanup(worker);
+          worker.postMessage({ buffer });
+        } else {
+          cleanup();
+        }
+      } catch {
+        cleanup();
       }
     };
+    reader.onerror = () => cleanup();
     reader.readAsArrayBuffer(file);
   };
 
