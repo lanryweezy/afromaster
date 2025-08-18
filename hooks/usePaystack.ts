@@ -5,6 +5,7 @@ interface PaystackOptions {
   publicKey: string;
   email: string;
   amount: number;
+  currency: string;
   onSuccess: (reference: any) => void;
   onClose: () => void;
 }

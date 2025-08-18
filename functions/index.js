@@ -5,7 +5,8 @@ const axios = require("axios");
 admin.initializeApp();
 
 const db = admin.firestore();
-const PAYSTACK_SECRET_KEY = "YOUR_PAYSTACK_SECRET_KEY"; // TODO: Replace with your secret key
+// TODO: Replace with your secret key from the Paystack dashboard
+const PAYSTACK_SECRET_KEY = "YOUR_PAYSTACK_SECRET_KEY";
 
 exports.verifyPaystackTransaction = functions.https.onCall(async (data, context) => {
   if (!context.auth) {
@@ -25,11 +26,19 @@ exports.verifyPaystackTransaction = functions.https.onCall(async (data, context)
     const transaction = response.data.data;
 
     if (transaction.status === "success") {
-      const amount = transaction.amount / 100; // Amount is in kobo
+      const { amount, currency } = transaction;
+      const price = amount / 100;
       let credits = 0;
-      if (amount === 500) credits = 1;
-      else if (amount === 2000) credits = 5;
-      else if (amount === 3500) credits = 10;
+
+      if (currency === 'NGN') {
+        if (price === 5000) credits = 1;
+        else if (price === 20000) credits = 5;
+        else if (price === 35000) credits = 10;
+      } else if (currency === 'USD') {
+        if (price === 5) credits = 1;
+        else if (price === 22) credits = 5;
+        else if (price === 40) credits = 10;
+      }
 
       if (credits > 0) {
         const userRef = db.collection("users").doc(context.auth.uid);
