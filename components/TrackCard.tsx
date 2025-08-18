@@ -12,16 +12,32 @@ interface TrackCardProps {
 
 const TrackCard: React.FC<TrackCardProps> = ({ track }) => {
   const { setCurrentPage, setMasteredTrackInfo, setUploadedTrack, setMasteringSettings } = useAppContext();
-  const audioContext = new AudioContext();
+  let audioCtx: AudioContext | null = null;
+  let playingSource: AudioBufferSourceNode | null = null;
 
   const handlePlay = async () => {
-    const response = await fetch(track.masteredFileUrl);
-    const arrayBuffer = await response.arrayBuffer();
-    const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
-    const source = audioContext.createBufferSource();
-    source.buffer = audioBuffer;
-    source.connect(audioContext.destination);
-    source.start();
+    try {
+      if (!audioCtx) audioCtx = new AudioContext();
+      if (audioCtx.state === 'suspended') await audioCtx.resume();
+
+      const response = await fetch(track.masteredFileUrl);
+      const arrayBuffer = await response.arrayBuffer();
+      const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+
+      // Stop previous playback if any
+      try { playingSource?.stop(); } catch {}
+      try { playingSource?.disconnect(); } catch {}
+      playingSource = audioCtx.createBufferSource();
+      playingSource.buffer = audioBuffer;
+      playingSource.connect(audioCtx.destination);
+      playingSource.start();
+      playingSource.onended = () => {
+        try { playingSource?.disconnect(); } catch {}
+        playingSource = null;
+      };
+    } catch (e) {
+      // optionally surface error
+    }
   };
 
   const handleDownload = () => {
