@@ -6,10 +6,7 @@ import ProgressBar from '../components/ProgressBar';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { fetchAIChainSettings, generateMasteringReport } from '../services/geminiService';
 import { IconSparkles } from '../constants';
-import { db, storage } from '../firebaseConfig';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { collection, addDoc, doc, getDoc, updateDoc } from 'firebase/firestore';
-import toWav from 'audiobuffer-to-wav';
+
 
 const ProcessingAudioPage: React.FC = () => {
   const {
@@ -19,8 +16,6 @@ const ProcessingAudioPage: React.FC = () => {
     setMasteredTrackInfo,
     setMasteredAudioBuffer,
     addUserProject,
-    apiKey,
-    user
   } = useAppContext();
 
   const [progress, setProgress] = useState(0);
@@ -30,96 +25,6 @@ const ProcessingAudioPage: React.FC = () => {
   const [reportError, setReportError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!uploadedTrack || !masteringSettings || !uploadedTrack.audioBuffer) {
-      setCurrentPage(AppPage.UPLOAD);
-      return;
-    }
-    const worker = new Worker(new URL('../audio.worker.ts', import.meta.url), { type: 'module' });
-
-    let cancelled = false;
-    worker.onmessage = async (event) => {
-      if (cancelled) return;
-      const { masteredBuffer } = event.data;
-      setMasteredAudioBuffer(masteredBuffer);
-
-      if (user) {
-        setStatusMessage("Uploading files to cloud...");
-        const wavBlob = new Blob([toWav(masteredBuffer)], { type: 'audio/wav' });
-        const storageRef = ref(storage, `users/${user.uid}/tracks/${Date.now()}_mastered.wav`);
-        await uploadBytes(storageRef, wavBlob);
-        const downloadURL = await getDownloadURL(storageRef);
-
-        const projectData = {
-          userId: user.uid,
-          trackName: uploadedTrack.name,
-          masteredFileUrl: downloadURL,
-          settings: masteringSettings,
-          createdAt: new Date(),
-        };
-        };
-        await addDoc(collection(db, "projects"), projectData);
-      }
-
-      setProgress(100);
-      setStatusMessage("Mastering complete!");
-      setTimeout(() => setCurrentPage(AppPage.PREVIEW), 1000);
-    };
-
-    const performMastering = async () => {
-      try {
-        if (user) {
-          const userRef = doc(db, "users", user.uid);
-          const userDoc = await getDoc(userRef);
-          if (!userDoc.exists() || userDoc.data().credits < 1) {
-            setStatusMessage("You don't have enough credits to master a track.");
-            setTimeout(() => setCurrentPage(AppPage.BUY_CREDITS), 3000);
-            return;
-          }
-          await updateDoc(userRef, {
-            credits: userDoc.data().credits - 1,
-          });
-        }
-
-        let finalSettings = { ...masteringSettings };
-
-        if (finalSettings.aiSettingsApplied) {
-          if (!apiKey) {
-            setStatusMessage("AI plan skipped: missing API key.");
-          } else {
-            setStatusMessage("Generating AI mastering plan...");
-            setProgress(25);
-            const aiSettings = await fetchAIChainSettings(
-              finalSettings.genre,
-              uploadedTrack.name,
-              apiKey,
-              finalSettings.referenceTrackFile?.name
-            );
-            finalSettings = { ...finalSettings, ...aiSettings };
-            setIsFetchingReport(true);
-            generateMasteringReport(uploadedTrack.name, finalSettings, apiKey)
-              .then(report => !cancelled && setMasteringReportNotes(report))
-              .catch(err => !cancelled && setReportError(err.message))
-              .finally(() => !cancelled && setIsFetchingReport(false));
-          }
-        }
-
-        setStatusMessage("Applying advanced audio processing...");
-        setProgress(75);
-        worker.postMessage({ originalBuffer: uploadedTrack.audioBuffer, settings: finalSettings });
-      } catch (error) {
-        console.error("Mastering failed:", error);
-        setStatusMessage(`Error during mastering: ${error instanceof Error ? (error as Error).message : 'Unknown error'}`);
-        setTimeout(() => setCurrentPage(AppPage.SETTINGS), 3000);
-      }
-    };
-
-    performMastering();
-
-    return () => {
-      cancelled = true;
-      worker.terminate();
-    };
-  }, [uploadedTrack, masteringSettings, apiKey, setCurrentPage, setMasteredAudioBuffer]);
 
   if (!uploadedTrack || !masteringSettings) {
     return <LoadingSpinner text="Loading data..." />;

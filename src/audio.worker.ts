@@ -12,26 +12,6 @@ const createCompressor = (
   compressor.release.setValueAtTime(settings.release, context.currentTime);
   return compressor;
 };
-
-const createSaturationCurve = (amount: number, flavor: string): Float32Array => {
-    const k = amount;
-    const n_samples = 44100;
-    const curve = new Float32Array(n_samples);
-    let x;
-    for (let i = 0; i < n_samples; i++) {
-        x = i * 2 / n_samples - 1;
-        switch (flavor) {
-            case 'tube':
-                curve[i] = x - (x * x * x / 3);
-                break;
-            case 'fuzz':
-                curve[i] = Math.sign(x);
-                break;
-            case 'tape':
-            default:
-                curve[i] = Math.tanh(k * x) / Math.tanh(k);
-                break;
-        }
     }
     return curve;
 };
@@ -66,7 +46,6 @@ const normalizeBuffer = async (buffer: AudioBuffer): Promise<AudioBuffer> => {
 
     return context.startRendering();
 }
-
 const processAudio = async (
   originalBuffer: AudioBuffer,
   settings: MasteringSettings
@@ -81,7 +60,6 @@ const processAudio = async (
     source.buffer = originalBuffer;
 
     let lastNode: AudioNode = source;
-
     const bassEQ = context.createBiquadFilter();
     bassEQ.type = 'lowshelf';
     bassEQ.frequency.value = settings.eq.bassFreq;
@@ -104,7 +82,6 @@ const processAudio = async (
     const highpassForMid = context.createBiquadFilter();
     highpassForMid.type = 'highpass';
     highpassForMid.frequency.value = settings.crossover.lowPass;
-    highpassForMid.Q.value = 0.71;
 
     const lowpassForMid = context.createBiquadFilter();
     lowpassForMid.type = 'lowpass';
@@ -129,7 +106,6 @@ const processAudio = async (
 
     const saturationNode = context.createWaveShaper();
     if (settings.saturation.amount > 0) {
-        saturationNode.curve = createSaturationCurve(settings.saturation.amount, settings.saturation.flavor);
         saturationNode.oversample = '4x';
     }
 
@@ -137,25 +113,9 @@ const processAudio = async (
     const finalGain = context.createGain();
     finalGain.gain.value = settings.finalGain;
     const limiter = createCompressor(context, { ...settings.limiter, knee: 0, ratio: 20 });
-
-    const preamp = context.createGain();
-    preamp.gain.value = settings.preGain;
-    lastNode.connect(preamp);
-
-    preamp.connect(lowpass);
     lowpass.connect(lowComp);
     lowComp.connect(lowGain);
     lowGain.connect(merger);
-
-    const midBand = context.createGain();
-    preamp.connect(highpassForMid);
-    highpassForMid.connect(lowpassForMid);
-    lowpassForMid.connect(midBand);
-    midBand.connect(midComp);
-    midComp.connect(midGain);
-    midGain.connect(merger);
-
-    preamp.connect(highpass);
     highpass.connect(highComp);
     highComp.connect(highGain);
     highGain.connect(merger);
@@ -169,41 +129,11 @@ const processAudio = async (
     lastNode.connect(finalGain);
     finalGain.connect(limiter);
 
-    if (settings.reverb.impulseResponse !== 'none') {
-      const reverb = await createReverb(context, settings.reverb);
-      limiter.connect(reverb.wet);
-      limiter.connect(reverb.dry);
-      reverb.output.connect(context.destination);
-    } else {
-      limiter.connect(context.destination);
-    }
-
     source.start(0);
 
     const renderedBuffer = await context.startRendering();
 
     return normalizeBuffer(renderedBuffer);
-};
-
-const createReverb = async (context: OfflineAudioContext, settings: { impulseResponse: string, wetDryMix: number }) => {
-  const convolver = context.createConvolver();
-  const response = await fetch(`/irs/${settings.impulseResponse}`);
-  const buffer = await response.arrayBuffer();
-  convolver.buffer = await context.decodeAudioData(buffer);
-
-  const wet = context.createGain();
-  wet.gain.value = settings.wetDryMix;
-
-  const dry = context.createGain();
-  dry.gain.value = 1 - settings.wetDryMix;
-
-  const output = context.createGain();
-
-  wet.connect(convolver);
-  convolver.connect(output);
-  dry.connect(output);
-
-  return { wet, dry, output };
 };
 
 self.onmessage = async (event) => {

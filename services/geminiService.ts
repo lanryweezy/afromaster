@@ -5,7 +5,6 @@ export const fetchAIChainSettings = async (
   genre: string,
   trackName: string,
   apiKey: string,
-  referenceAnalysis?: any
 ): Promise<any> => {
   if (!apiKey) {
     throw new Error("Gemini API key is not provided.");
@@ -72,12 +71,6 @@ export const fetchAIChainSettings = async (
         console.error("Raw Gemini Response Text for settings:", response.text);
         throw new Error("Failed to parse AI settings JSON from Gemini response.");
     }
-
-    if (!validateAIChainSettings(parsedData)) {
-      console.error("AI response failed validation:", parsedData);
-      throw new Error("AI response did not match the expected schema.");
-    }
-
     return parsedData;
 
   } catch (error: any) {
