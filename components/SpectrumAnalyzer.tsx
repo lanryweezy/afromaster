@@ -19,20 +19,6 @@ const SpectrumAnalyzer: React.FC<SpectrumAnalyzerProps> = ({ audioContext, audio
 
     const canvas = canvasRef.current;
     const canvasCtx = canvas?.getContext('2d');
-    const bufferLength = analyser.frequencyBinCount;
-    const dataArray = new Uint8Array(bufferLength);
-
-    const draw = () => {
-      if (!canvas || !canvasCtx) return;
-      requestAnimationFrame(draw);
-      analyser.getByteFrequencyData(dataArray);
-      canvasCtx.fillStyle = 'rgb(0, 0, 0)';
-      canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
-      const barWidth = (canvas.width / bufferLength) * 2.5;
-      let barHeight;
-      let x = 0;
-      for (let i = 0; i < bufferLength; i++) {
-        barHeight = dataArray[i];
         canvasCtx.fillStyle = `rgb(${barHeight + 100},50,50)`;
         canvasCtx.fillRect(x, canvas.height - barHeight / 2, barWidth, barHeight / 2);
         x += barWidth + 1;
@@ -42,7 +28,7 @@ const SpectrumAnalyzer: React.FC<SpectrumAnalyzerProps> = ({ audioContext, audio
     draw();
 
     return () => {
-      audioNode.disconnect(analyser);
+
     };
   }, [audioContext, audioNode]);
 

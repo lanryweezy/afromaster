@@ -9,8 +9,6 @@ import FileUpload from '../components/FileUpload';
 import Slider from '../components/Slider';
 import { fetchAIChainSettings } from '../services/geminiService';
 import { Genre, LoudnessTarget, TonePreference, StereoWidth, GENRE_OPTIONS, LOUDNESS_TARGET_OPTIONS, TONE_PREFERENCE_OPTIONS, STEREO_WIDTH_OPTIONS, IconArrowRight, IconSparkles, IconArrowLeft } from '../constants';
-import DynamicEQ from '../components/DynamicEQ';
-
 const MasteringSettingsPage: React.FC = () => {
   const {
     setCurrentPage,
@@ -34,7 +32,6 @@ const MasteringSettingsPage: React.FC = () => {
       trebleBoost: 0,
       crossover: { lowPass: 250, highPass: 4000 },
       eq: { bassFreq: 200, trebleFreq: 5000, bassGain: 0, trebleGain: 0 },
-      saturation: { amount: 0 },
       preGain: 1.0,
       bands: {
         low: { threshold: -35, knee: 15, ratio: 4, attack: 0.05, release: 0.3, makeupGain: 2.0 },
@@ -50,7 +47,6 @@ const MasteringSettingsPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [aiStrength, setAiStrength] = useState(100);
-  const [useDynamicEQ, setUseDynamicEQ] = useState(false);
 
   useEffect(() => {
     if (!uploadedTrack) {
@@ -64,15 +60,43 @@ const MasteringSettingsPage: React.FC = () => {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
     const isNumberInput = type === 'number' || type === 'range';
-    setCurrentSettings(prev => ({ ...prev, [name]: isNumberInput ? parseFloat(value) : value }));
   };
 
-  const handleReferenceFileAccepted = (file: File) => {
+  const handleReferenceFileAccepted = async (file: File) => {
     setCurrentSettings(prev => ({ ...prev, referenceTrackFile: file }));
+    const audioContext = new AudioContext();
+    const reader = new FileReader();
+
+    const cleanup = (worker?: Worker) => {
+      try { worker?.terminate(); } catch {}
+      try { audioContext.close(); } catch {}
+    };
+
+    reader.onload = async (e) => {
+      try {
+        if (e.target?.result instanceof ArrayBuffer) {
+          const buffer = await audioContext.decodeAudioData(e.target.result);
+          const worker = new Worker(new URL('../analysis.worker.ts', import.meta.url), { type: 'module' });
+          worker.onmessage = (event) => {
+            setReferenceAnalysis(event.data);
+            cleanup(worker);
+          };
+          worker.onerror = () => cleanup(worker);
+          worker.postMessage({ buffer });
+        } else {
+          cleanup();
+        }
+      } catch {
+        cleanup();
+      }
+    };
+    reader.onerror = () => cleanup();
+    reader.readAsArrayBuffer(file);
   };
 
   const handleReferenceFileCleared = () => {
     setCurrentSettings(prev => ({ ...prev, referenceTrackFile: null }));
+    setReferenceAnalysis(null);
   };
 
   const handleGetAISettings = useCallback(async () => {
@@ -83,8 +107,6 @@ const MasteringSettingsPage: React.FC = () => {
     setIsLoading(true);
     setError(null);
     try {
-      const refTrackName = currentSettings.referenceTrackFile ? currentSettings.referenceTrackFile.name : undefined;
-      const settings = await fetchAIChainSettings(currentSettings.genre, uploadedTrack.name, apiKey, refTrackName);
       setAiSettings(settings);
       setCurrentSettings(prev => ({ ...prev, aiSettingsApplied: true }));
     } catch (err: any) {
@@ -92,16 +114,6 @@ const MasteringSettingsPage: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [uploadedTrack, currentSettings, apiKey]);
-
-  const applyAIStrength = useCallback((baseSettings: MasteringSettings, aiSettings: Partial<MasteringSettings> | null, strength: number): MasteringSettings => {
-    if (!aiSettings) return baseSettings;
-
-    const strengthRatio = strength / 100;
-    const newSettings = { ...baseSettings };
-
-    const blend = (base: number, ai: number) => base + (ai - base) * strengthRatio;
-
     if (aiSettings.bands) {
       newSettings.bands = {
         low: {
@@ -220,11 +232,6 @@ const MasteringSettingsPage: React.FC = () => {
                 onChange={handleInputChange}
                 unit="%"
               />
-              <Slider
-                label="Analog Saturation"
-                name="saturationAmount"
-                min={0} max={100} step={1}
-                value={currentSettings.saturationAmount}
                 onChange={handleInputChange}
                 unit="%"
               />
@@ -244,17 +251,6 @@ const MasteringSettingsPage: React.FC = () => {
                 onChange={handleInputChange}
                 unit="dB"
               />
-            </div>
-
-            <div className="pt-4">
-              <FileUpload
-                label="Match a Reference Track (Optional)"
-                onFileAccepted={handleReferenceFileAccepted}
-                onFileCleared={handleReferenceFileCleared}
-                existingFile={currentSettings.referenceTrackFile || null}
-                id="reference-track-upload"
-              />
-            </div>
           </div>
         </div>
 
@@ -278,19 +274,6 @@ const MasteringSettingsPage: React.FC = () => {
               onChange={(e) => setAiStrength(parseInt(e.target.value))}
               unit="%"
             />
-            <div className="flex items-center">
-              <input
-                type="checkbox"
-                id="dynamicEQ"
-                checked={useDynamicEQ}
-                onChange={(e) => setUseDynamicEQ(e.target.checked)}
-                className="h-4 w-4 text-primary focus:ring-primary border-slate-300 rounded"
-              />
-              <label htmlFor="dynamicEQ" className="ml-2 block text-sm text-slate-100">
-                Enable Dynamic EQ
-              </label>
-            </div>
-            {useDynamicEQ && <DynamicEQ />}
           </div>
         </div>
       </div>

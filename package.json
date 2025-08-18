@@ -6,16 +6,25 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "jest"
   },
   "dependencies": {
+    "@google/genai": "^1.4.0",
+    "@paystack/inline-js": "^2.22.7",
+    "audiobuffer-to-wav": "^1.0.0",
+    "firebase": "^12.1.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
-    "react-dropzone": "^14.3.8",
-    "@google/genai": "^1.4.0"
+    "react-dropzone": "^14.3.8"
   },
   "devDependencies": {
+    "@testing-library/jest-dom": "^6.7.0",
+    "@testing-library/react": "^16.3.0",
+    "@types/jest": "^30.0.0",
     "@types/node": "^22.14.0",
+    "jest": "^30.0.5",
+    "ts-jest": "^29.4.1",
     "typescript": "~5.8.2",
     "vite": "^6.2.0"
   }

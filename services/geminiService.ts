@@ -5,7 +5,6 @@ export const fetchAIChainSettings = async (
   genre: string,
   trackName: string,
   apiKey: string,
-  referenceTrackName?: string
 ): Promise<any> => {
   if (!apiKey) {
     throw new Error("Gemini API key is not provided.");
@@ -18,9 +17,12 @@ export const fetchAIChainSettings = async (
     - Genre: ${genre}
     - Tentative Name / Keywords: ${trackName}`;
 
-  if (referenceTrackName) {
+  if (referenceAnalysis) {
     prompt += `
-    - Reference Track Inspiration: ${referenceTrackName}`;
+    - Reference Track Analysis:
+      - Loudness: ${referenceAnalysis.loudness.toFixed(2)} dB
+      - Spectral Balance: Bass: ${(referenceAnalysis.spectralBalance.bass * 100).toFixed(1)}%, Mid: ${(referenceAnalysis.spectralBalance.mid * 100).toFixed(1)}%, Treble: ${(referenceAnalysis.spectralBalance.treble * 100).toFixed(1)}%
+      - Peak: ${referenceAnalysis.peak.toFixed(2)} dB`;
   }
 
   prompt += `
@@ -69,7 +71,6 @@ export const fetchAIChainSettings = async (
         console.error("Raw Gemini Response Text for settings:", response.text);
         throw new Error("Failed to parse AI settings JSON from Gemini response.");
     }
-
     return parsedData;
 
   } catch (error: any) {
@@ -84,6 +85,22 @@ export const fetchAIChainSettings = async (
   }
 };
 
+const validateAIChainSettings = (data: any): boolean => {
+  if (typeof data !== 'object' || data === null) return false;
+  const has = (prop: string) => Object.prototype.hasOwnProperty.call(data, prop);
+  if (!has('crossover') || !has('eq') || !has('saturation') || !has('preGain') || !has('bands') || !has('limiter') || !has('finalGain')) {
+    return false;
+  }
+  if (typeof data.crossover.lowPass !== 'number' || typeof data.crossover.highPass !== 'number') return false;
+  if (typeof data.eq.bassFreq !== 'number' || typeof data.eq.trebleFreq !== 'number' || typeof data.eq.bassGain !== 'number' || typeof data.eq.trebleGain !== 'number') return false;
+  if (typeof data.saturation.amount !== 'number') return false;
+  if (typeof data.preGain !== 'number') return false;
+  if (typeof data.finalGain !== 'number') return false;
+  if (typeof data.limiter.threshold !== 'number' || typeof data.limiter.attack !== 'number' || typeof data.limiter.release !== 'number') return false;
+  const bandSchema = (band: any) => typeof band.threshold === 'number' && typeof band.knee === 'number' && typeof band.ratio === 'number' && typeof band.attack === 'number' && typeof band.release === 'number' && typeof band.makeupGain === 'number';
+  if (!bandSchema(data.bands.low) || !bandSchema(data.bands.mid) || !bandSchema(data.bands.high)) return false;
+  return true;
+};
 
 export const generateMasteringReport = async (
   trackName: string,

@@ -7,6 +7,7 @@ import LoadingSpinner from '../components/LoadingSpinner';
 import { fetchAIChainSettings, generateMasteringReport } from '../services/geminiService';
 import { IconSparkles } from '../constants';
 
+
 const ProcessingAudioPage: React.FC = () => {
   const {
     setCurrentPage,
@@ -15,7 +16,6 @@ const ProcessingAudioPage: React.FC = () => {
     setMasteredTrackInfo,
     setMasteredAudioBuffer,
     addUserProject,
-    apiKey
   } = useAppContext();
 
   const [progress, setProgress] = useState(0);
@@ -25,62 +25,6 @@ const ProcessingAudioPage: React.FC = () => {
   const [reportError, setReportError] = useState<string | null>(null);
 
   useEffect(() => {
-    const worker = new Worker(new URL('../audio.worker.ts', import.meta.url), { type: 'module' });
-
-    worker.onmessage = (event) => {
-      const { masteredBuffer } = event.data;
-      setMasteredAudioBuffer(masteredBuffer);
-      setProgress(100);
-      setStatusMessage("Mastering complete!");
-      setTimeout(() => setCurrentPage(AppPage.PREVIEW), 1000);
-    };
-
-    const performMastering = async () => {
-      if (!uploadedTrack || !masteringSettings || !uploadedTrack.audioBuffer) {
-        setCurrentPage(AppPage.UPLOAD);
-        return;
-      }
-
-      try {
-        let finalSettings = { ...masteringSettings };
-
-        if (masteringSettings.aiSettingsApplied) {
-          setStatusMessage("Generating AI mastering plan...");
-          setProgress(25);
-          const aiSettings = await fetchAIChainSettings(
-            finalSettings.genre,
-            uploadedTrack.name,
-            apiKey!,
-            finalSettings.referenceTrackFile?.name
-          );
-          finalSettings = { ...finalSettings, ...aiSettings };
-        }
-
-        if (finalSettings.aiSettingsApplied) {
-          setIsFetchingReport(true);
-          generateMasteringReport(uploadedTrack.name, finalSettings, apiKey!)
-            .then(report => setMasteringReportNotes(report))
-            .catch(err => setReportError(err.message))
-            .finally(() => setIsFetchingReport(false));
-        }
-
-        setStatusMessage("Applying advanced audio processing...");
-        setProgress(75);
-        worker.postMessage({ originalBuffer: uploadedTrack.audioBuffer, settings: finalSettings });
-
-      } catch (error) {
-        console.error("Mastering failed:", error);
-        setStatusMessage(`Error during mastering: ${error instanceof Error ? error.message : 'Unknown error'}`);
-        setTimeout(() => setCurrentPage(AppPage.SETTINGS), 3000);
-      }
-    };
-
-    performMastering();
-
-    return () => {
-      worker.terminate();
-    };
-  }, [apiKey, addUserProject, masteringSettings, setCurrentPage, setMasteredAudioBuffer, setMasteredTrackInfo, uploadedTrack, masteringReportNotes]);
 
   if (!uploadedTrack || !masteringSettings) {
     return <LoadingSpinner text="Loading data..." />;

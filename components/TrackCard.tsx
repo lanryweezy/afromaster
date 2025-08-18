@@ -1,7 +1,7 @@
 import React from 'react';
 import { MasteredTrackInfo } from '../types';
 import Button from './Button';
-import { IconMusicNote, IconDownload, IconCog } from '../constants';
+import { IconMusicNote, IconDownload, IconCog, IconPlay } from '../constants';
 import { useAppContext } from '../contexts/AppContext';
 import { AppPage } from '../types';
 
@@ -12,6 +12,33 @@ interface TrackCardProps {
 
 const TrackCard: React.FC<TrackCardProps> = ({ track }) => {
   const { setCurrentPage, setMasteredTrackInfo, setUploadedTrack, setMasteringSettings } = useAppContext();
+  let audioCtx: AudioContext | null = null;
+  let playingSource: AudioBufferSourceNode | null = null;
+
+  const handlePlay = async () => {
+    try {
+      if (!audioCtx) audioCtx = new AudioContext();
+      if (audioCtx.state === 'suspended') await audioCtx.resume();
+
+      const response = await fetch(track.masteredFileUrl);
+      const arrayBuffer = await response.arrayBuffer();
+      const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+
+      // Stop previous playback if any
+      try { playingSource?.stop(); } catch {}
+      try { playingSource?.disconnect(); } catch {}
+      playingSource = audioCtx.createBufferSource();
+      playingSource.buffer = audioBuffer;
+      playingSource.connect(audioCtx.destination);
+      playingSource.start();
+      playingSource.onended = () => {
+        try { playingSource?.disconnect(); } catch {}
+        playingSource = null;
+      };
+    } catch (e) {
+      // optionally surface error
+    }
+  };
 
   const handleDownload = () => {
     // In a real app, this would trigger a download
@@ -44,6 +71,9 @@ const TrackCard: React.FC<TrackCardProps> = ({ track }) => {
         </div>
       </div>
       <div className="mt-auto flex space-x-2">
+        <Button onClick={handlePlay} variant="primary" size="sm" leftIcon={<IconPlay className="w-4 h-4"/>}>
+          Play
+        </Button>
         <Button onClick={handleDownload} variant="secondary" size="sm" leftIcon={<IconDownload className="w-4 h-4"/>}>
           Download
         </Button>

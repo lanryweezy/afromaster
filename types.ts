@@ -10,6 +10,8 @@ export enum AppPage {
   PREVIEW,
   DOWNLOAD,
   DASHBOARD,
+  AUTH,
+  BUY_CREDITS,
 }
 
 export interface MasteringSettings {
@@ -27,7 +29,6 @@ export interface MasteringSettings {
   useDynamicEQ?: boolean;
   crossover: { lowPass: number; highPass: number };
   eq: { bassFreq: number; trebleFreq: number; bassGain: number; trebleGain: number };
-  saturation: { amount: number };
   preGain: number;
   bands: {
     low: { threshold: number; knee: number; ratio: number; attack: number; release: number; makeupGain: number };

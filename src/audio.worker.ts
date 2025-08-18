@@ -12,14 +12,6 @@ const createCompressor = (
   compressor.release.setValueAtTime(settings.release, context.currentTime);
   return compressor;
 };
-
-const createSaturationCurve = (amount: number): Float32Array => {
-    const k = amount;
-    const n_samples = 44100;
-    const curve = new Float32Array(n_samples);
-    for (let i = 0; i < n_samples; i++) {
-        const x = i * 2 / n_samples - 1;
-        curve[i] = (1 + k/100) * x / (1 + k/100 * Math.abs(x));
     }
     return curve;
 };
@@ -54,30 +46,6 @@ const normalizeBuffer = async (buffer: AudioBuffer): Promise<AudioBuffer> => {
 
     return context.startRendering();
 }
-
-const createDynamicEQ = (context: OfflineAudioContext, freq: number, gain: number) => {
-  const eq = context.createBiquadFilter();
-  eq.type = 'peaking';
-  eq.frequency.value = freq;
-  eq.gain.value = gain;
-
-  const compressor = context.createDynamicsCompressor();
-  compressor.threshold.value = -40;
-  compressor.knee.value = 30;
-  compressor.ratio.value = 12;
-  compressor.attack.value = 0;
-  compressor.release.value = 0.25;
-
-  const gainNode = context.createGain();
-  gainNode.gain.value = -gain; // Invert the gain for the sidechain
-
-  eq.connect(compressor);
-  compressor.connect(gainNode);
-  gainNode.connect(eq.gain);
-
-  return eq;
-};
-
 const processAudio = async (
   originalBuffer: AudioBuffer,
   settings: MasteringSettings
@@ -92,13 +60,6 @@ const processAudio = async (
     source.buffer = originalBuffer;
 
     let lastNode: AudioNode = source;
-
-    if (settings.useDynamicEQ) {
-      const dynamicEQ = createDynamicEQ(context, 8000, 3);
-      lastNode.connect(dynamicEQ);
-      lastNode = dynamicEQ;
-    }
-
     const bassEQ = context.createBiquadFilter();
     bassEQ.type = 'lowshelf';
     bassEQ.frequency.value = settings.eq.bassFreq;
@@ -121,7 +82,6 @@ const processAudio = async (
     const highpassForMid = context.createBiquadFilter();
     highpassForMid.type = 'highpass';
     highpassForMid.frequency.value = settings.crossover.lowPass;
-    highpassForMid.Q.value =.71;
 
     const lowpassForMid = context.createBiquadFilter();
     lowpassForMid.type = 'lowpass';
@@ -146,7 +106,6 @@ const processAudio = async (
 
     const saturationNode = context.createWaveShaper();
     if (settings.saturation.amount > 0) {
-        saturationNode.curve = createSaturationCurve(settings.saturation.amount);
         saturationNode.oversample = '4x';
     }
 
@@ -154,23 +113,9 @@ const processAudio = async (
     const finalGain = context.createGain();
     finalGain.gain.value = settings.finalGain;
     const limiter = createCompressor(context, { ...settings.limiter, knee: 0, ratio: 20 });
-
-    source.connect(bassEQ);
-    bassEQ.connect(trebleEQ);
-    const lastPreNode = trebleEQ;
-
-    lastPreNode.connect(lowpass);
     lowpass.connect(lowComp);
     lowComp.connect(lowGain);
     lowGain.connect(merger);
-
-    lastPreNode.connect(highpassForMid);
-    highpassForMid.connect(lowpassForMid);
-    lowpassForMid.connect(midComp);
-    midComp.connect(midGain);
-    midGain.connect(merger);
-
-    lastPreNode.connect(highpass);
     highpass.connect(highComp);
     highComp.connect(highGain);
     highGain.connect(merger);
@@ -183,7 +128,6 @@ const processAudio = async (
 
     lastNode.connect(finalGain);
     finalGain.connect(limiter);
-    limiter.connect(context.destination);
 
     source.start(0);
 
