@@ -7,60 +7,37 @@ import {
   signInWithPopup,
 } from 'firebase/auth';
 import Button from '../components/Button';
-<<<<<<< HEAD
-
-const AuthPage: React.FC = () => {
-=======
 import { useAppContext } from '../contexts/AppContext';
 import { AppPage } from '../types';
 
 const AuthPage: React.FC = () => {
   const { setCurrentPage } = useAppContext();
->>>>>>> main
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isSignUp, setIsSignUp] = useState(true);
   const [error, setError] = useState<string | null>(null);
-<<<<<<< HEAD
-
-  const handleEmailPasswordAuth = async () => {
-    setError(null);
-=======
   const [isLoading, setIsLoading] = useState(false);
 
   const handleEmailPasswordAuth = async () => {
     setError(null);
     setIsLoading(true);
->>>>>>> main
     try {
       if (isSignUp) {
         await createUserWithEmailAndPassword(auth, email, password);
       } else {
         await signInWithEmailAndPassword(auth, email, password);
       }
-<<<<<<< HEAD
-    } catch (err: any) {
-      setError(err.message);
-=======
       // Redirect to dashboard after successful authentication
       setCurrentPage(AppPage.DASHBOARD);
     } catch (err: any) {
       setError(err.message);
     } finally {
       setIsLoading(false);
->>>>>>> main
     }
   };
 
   const handleGoogleAuth = async () => {
     setError(null);
-<<<<<<< HEAD
-    const provider = new GoogleAuthProvider();
-    try {
-      await signInWithPopup(auth, provider);
-    } catch (err: any) {
-      setError(err.message);
-=======
     setIsLoading(true);
     const provider = new GoogleAuthProvider();
     try {
@@ -71,7 +48,6 @@ const AuthPage: React.FC = () => {
       setError(err.message);
     } finally {
       setIsLoading(false);
->>>>>>> main
     }
   };
 
@@ -95,17 +71,10 @@ const AuthPage: React.FC = () => {
           placeholder="Password"
           className="w-full px-4 py-2 bg-slate-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
         />
-<<<<<<< HEAD
-        <Button onClick={handleEmailPasswordAuth} className="w-full">
-          {isSignUp ? 'Sign Up' : 'Log In'}
-        </Button>
-        <Button onClick={handleGoogleAuth} variant="secondary" className="w-full">
-=======
         <Button onClick={handleEmailPasswordAuth} className="w-full" isLoading={isLoading} disabled={isLoading}>
           {isSignUp ? 'Sign Up' : 'Log In'}
         </Button>
         <Button onClick={handleGoogleAuth} variant="secondary" className="w-full" isLoading={isLoading} disabled={isLoading}>
->>>>>>> main
           Sign in with Google
         </Button>
       </div>

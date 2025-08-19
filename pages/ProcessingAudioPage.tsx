@@ -33,7 +33,7 @@ const ProcessingAudioPage: React.FC = () => {
       setCurrentPage(AppPage.UPLOAD);
       return;
     }
-    const worker = new Worker(new URL('../audio.worker.ts', import.meta.url), { type: 'module' });
+    const worker = new Worker(new URL('../src/audio.worker.ts', import.meta.url), { type: 'module' });
 
     let cancelled = false;
     worker.onmessage = async (event) => {

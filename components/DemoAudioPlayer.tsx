@@ -1,6 +1,4 @@
-
 import React, { useState, useEffect, useRef } from 'react';
-import { processAudio } from '../services/audioProcessingService';
 import { MasteringSettings } from '../types';
 import { Genre, LoudnessTarget, StereoWidth, TonePreference, BACKGROUND_MUSIC_URL, IconPlay, IconPause } from '../constants';
 import LoadingSpinner from './LoadingSpinner';
@@ -11,26 +9,17 @@ const DemoAudioPlayer: React.FC = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [isPlaying, setIsPlaying] = useState(false);
-    const [isMastered, setIsMastered] = useState(false);
     
     const audioCtxRef = useRef<AudioContext | null>(null);
     const sourceNodeRef = useRef<AudioBufferSourceNode | null>(null);
     const originalBufferRef = useRef<AudioBuffer | null>(null);
-    const masteredBufferRef = useRef<AudioBuffer | null>(null);
     const isMountedRef = useRef(true);
     
     useEffect(() => {
         isMountedRef.current = true;
         
         const dataUriToArrayBuffer = (dataUri: string): ArrayBuffer => {
-            if (!dataUri.startsWith('data:')) {
-                throw new Error('Invalid data URI');
-            }
-            const base64 = dataUri.split(',')[1];
-            if (!base64) {
-                 throw new Error('Invalid data URI: no base64 content');
-            }
-            const byteString = atob(base64);
+            const byteString = atob(dataUri.split(',')[1]);
             const len = byteString.length;
             const bytes = new Uint8Array(len);
             for (let i = 0; i < len; i++) {
@@ -46,22 +35,6 @@ const DemoAudioPlayer: React.FC = () => {
                 const decodedBuffer = await audioCtxRef.current.decodeAudioData(arrayBuffer);
                 if (!isMountedRef.current) return;
                 originalBufferRef.current = decodedBuffer;
-
-                const demoSettings: MasteringSettings = {
-                    genre: Genre.HIPHOP,
-                    loudnessTarget: LoudnessTarget.STREAMING_LOUD,
-                    tonePreference: TonePreference.PUNCHY,
-                    stereoWidth: StereoWidth.WIDE,
-                    customLoudnessValue: -11,
-                    compressionAmount: 65,
-                    saturationAmount: 15,
-                    bassBoost: 1,
-                    trebleBoost: 0.5,
-                };
-                
-                const processedBuffer = await processAudio(decodedBuffer, demoSettings);
-                if (!isMountedRef.current) return;
-                masteredBufferRef.current = processedBuffer;
 
             } catch (err) {
                 console.error("Failed to set up demo audio:", err);
@@ -115,20 +88,10 @@ const DemoAudioPlayer: React.FC = () => {
         if (isPlaying) {
             sourceNodeRef.current?.stop();
         } else {
-            const bufferToPlay = isMastered ? masteredBufferRef.current : originalBufferRef.current;
-            playBuffer(bufferToPlay);
+            playBuffer(originalBufferRef.current);
         }
     };
     
-    const handleToggle = () => {
-        const newIsMastered = !isMastered;
-        setIsMastered(newIsMastered);
-        if (isPlaying) {
-            const bufferToPlay = newIsMastered ? masteredBufferRef.current : originalBufferRef.current;
-            playBuffer(bufferToPlay);
-        }
-    };
-
     if (isLoading) {
         return <div className="bg-slate-800/50 p-8 rounded-2xl flex justify-center items-center"><LoadingSpinner text="Loading Audio Demo..." /></div>;
     }
@@ -144,10 +107,9 @@ const DemoAudioPlayer: React.FC = () => {
                     <p className="font-bold text-white">"Future Funk" - Demo Track</p>
                     <p className="text-sm text-white">Electronic Pop</p>
                 </div>
-                <ToggleSwitch isEnabled={isMastered} onToggle={handleToggle} disabledLabel="Original" enabledLabel="Mastered" />
             </div>
             <div className="h-24 bg-slate-900/50 rounded-lg flex items-center justify-center mb-4 overflow-hidden">
-                <WaveformCanvas buffer={isMastered ? masteredBufferRef.current : originalBufferRef.current} />
+                <WaveformCanvas buffer={originalBufferRef.current} />
             </div>
              <div className="flex items-center space-x-4">
                 <button onClick={handlePlayPause} className="text-white hover:text-primary-focus transition-colors">

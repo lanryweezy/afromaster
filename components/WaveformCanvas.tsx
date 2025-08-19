@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { useAppContext } from '../contexts/AppContext';
 
 interface WaveformCanvasProps {
@@ -8,16 +8,12 @@ interface WaveformCanvasProps {
 const WaveformCanvas: React.FC<WaveformCanvasProps> = ({ buffer }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const { theme } = useAppContext(); // Depend on theme to trigger redraw
-
-import { useState } from 'react';
-
   const [waveformData, setWaveformData] = useState<Float32Array | null>(null);
-  const { theme } = useAppContext(); // Depend on theme to trigger redraw
 
   useEffect(() => {
     if (buffer && canvasRef.current) {
       const canvas = canvasRef.current;
-      const worker = new Worker(new URL('../waveform.worker.ts', import.meta.url), { type: 'module' });
+      const worker = new Worker(new URL('../src/waveform.worker.ts', import.meta.url), { type: 'module' });
       worker.onmessage = (event) => {
         setWaveformData(event.data.waveformData);
         worker.terminate();
