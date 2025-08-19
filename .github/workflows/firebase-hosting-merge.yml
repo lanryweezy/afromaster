@@ -24,6 +24,8 @@ jobs:
         run: |
           npm cache clean --force
           rm -rf node_modules
+      - name: Install problematic Rollup native module
+        run: npm install @rollup/rollup-linux-x64-gnu
       - run: npm install --force
       - run: npm run build
       - uses: FirebaseExtended/action-hosting-deploy@v0
