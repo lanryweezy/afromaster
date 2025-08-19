@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import { useAppContext } from '../contexts/AppContext';
 import { AppPage } from '../types';
@@ -99,7 +98,7 @@ const LandingPage: React.FC = () => {
             <p className="mt-3 text-slate-300 max-w-2xl mx-auto">Toggle between the raw mix and the Afromastered version. Hear the punch, clarity, and loudness our AI adds, tailored for Afrobeats and Trap.</p>
         </div>
         <div className="animate-on-scroll" style={{ transitionDelay: '200ms' }}>
-          <DemoAudioPlayer />
+          {/* <DemoAudioPlayer /> */}
         </div>
       </section>
       

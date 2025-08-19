@@ -42,11 +42,24 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     stereoWidth: StereoWidth.STANDARD,
     customLoudnessValue: -14,
     referenceTrackFile: null,
-    // New settings with defaults
     compressionAmount: 50,
     saturationAmount: 0,
     bassBoost: 0,
     trebleBoost: 0,
+    aiSettingsApplied: false, // Default value
+    useDynamicEQ: false, // Default value
+    crossover: { lowPass: 250, highPass: 4000 },
+    eq: { bassFreq: 200, trebleFreq: 5000, bassGain: 0, trebleGain: 0 },
+    saturation: { amount: 0, flavor: 'tape' }, // Default values
+    preGain: 1.0, // Default value
+    bands: { // Default values
+      low: { threshold: -35, knee: 15, ratio: 4, attack: 0.05, release: 0.3, makeupGain: 2.0 },
+      mid: { threshold: -30, knee: 10, ratio: 3, attack: 0.01, release: 0.25, makeupGain: 2.0 },
+      high: { threshold: -25, knee: 5, ratio: 3, attack: 0.005, release: 0.15, makeupGain: 1.5 },
+    },
+    limiter: { threshold: -1.5, attack: 0.002, release: 0.05 }, // Default values
+    finalGain: 1.0, // Default value
+    reverb: { impulseResponse: 'none', wetDryMix: 0 }, // Default values
   });
   const [masteredTrackInfo, setMasteredTrackInfo] = useState<MasteredTrackInfo | null>(null);
   const [userProjects, setUserProjects] = useState<MasteredTrackInfo[]>([]);
