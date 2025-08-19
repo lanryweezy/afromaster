@@ -12,17 +12,30 @@ interface TrackCardProps {
 
 const TrackCard: React.FC<TrackCardProps> = ({ track }) => {
   const { setCurrentPage, setMasteredTrackInfo, setUploadedTrack, setMasteringSettings } = useAppContext();
-  const audioContext = new AudioContext();
+  const audioCtxRef = React.useRef<AudioContext | null>(null);
+  const sourceRef = React.useRef<AudioBufferSourceNode | null>(null);
 
   const handlePlay = async () => {
+    if (!audioCtxRef.current) audioCtxRef.current = new AudioContext();
+    const ctx = audioCtxRef.current;
+    // Stop previous playback if any
+    try { sourceRef.current?.stop(); sourceRef.current?.disconnect(); } catch {}
     const response = await fetch(track.masteredFileUrl);
     const arrayBuffer = await response.arrayBuffer();
-    const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
-    const source = audioContext.createBufferSource();
+    const audioBuffer = await ctx.decodeAudioData(arrayBuffer);
+    const source = ctx.createBufferSource();
     source.buffer = audioBuffer;
-    source.connect(audioContext.destination);
+    source.connect(ctx.destination);
     source.start();
+    sourceRef.current = source;
   };
+
+  React.useEffect(() => {
+    return () => {
+      try { sourceRef.current?.stop(); sourceRef.current?.disconnect(); } catch {}
+      audioCtxRef.current?.close().catch(() => {});
+    };
+  }, []);
 
   const handleDownload = () => {
     // In a real app, this would trigger a download
