@@ -47,11 +47,15 @@ export interface UploadedTrack {
   audioBuffer?: AudioBuffer | null; // To store decoded audio data
 }
 
-export interface MasteredTrackInfo extends UploadedTrack {
+export interface MasteredTrackInfo {
   id: string;
-  masteredFileUrl: string; // Simulated URL
+  originalName: string;
+  masteredName: string;
+  dateProcessed: string;
   settings: MasteringSettings;
-  masteredDate: Date;
+  downloadUrl: string;
+  originalDuration: number;
+  masteredDuration: number;
   masteringReportNotes?: string; // Added for AI-generated notes
 }
 

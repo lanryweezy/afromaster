@@ -9,6 +9,7 @@ import FileUpload from '../components/FileUpload';
 import Slider from '../components/Slider';
 import { fetchAIChainSettings } from '../services/geminiService';
 import { Genre, LoudnessTarget, TonePreference, StereoWidth, GENRE_OPTIONS, LOUDNESS_TARGET_OPTIONS, TONE_PREFERENCE_OPTIONS, STEREO_WIDTH_OPTIONS, IconArrowRight, IconSparkles, IconArrowLeft } from '../constants';
+
 const MasteringSettingsPage: React.FC = () => {
   const {
     setCurrentPage,
@@ -43,10 +44,12 @@ const MasteringSettingsPage: React.FC = () => {
     };
     return masteringSettings || initialSettings;
   });
+  
   const [aiSettings, setAiSettings] = useState<Partial<MasteringSettings> | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [aiStrength, setAiStrength] = useState(100);
+  const [referenceAnalysis, setReferenceAnalysis] = useState<any>(null);
 
   useEffect(() => {
     if (!uploadedTrack) {
@@ -60,6 +63,11 @@ const MasteringSettingsPage: React.FC = () => {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
     const isNumberInput = type === 'number' || type === 'range';
+    
+    setCurrentSettings(prev => ({
+      ...prev,
+      [name]: isNumberInput ? parseFloat(value) : value
+    }));
   };
 
   const handleReferenceFileAccepted = async (file: File) => {
@@ -107,13 +115,36 @@ const MasteringSettingsPage: React.FC = () => {
     setIsLoading(true);
     setError(null);
     try {
+      const settings = await fetchAIChainSettings(uploadedTrack.name, currentSettings, apiKey);
       setAiSettings(settings);
-      setCurrentSettings(prev => ({ ...prev, aiSettingsApplied: true }));
     } catch (err: any) {
       setError(err.message || "Failed to fetch AI settings.");
     } finally {
       setIsLoading(false);
     }
+  }, [uploadedTrack, currentSettings, apiKey]);
+
+  const applyAIStrength = useCallback((baseSettings: MasteringSettings, aiSettings: Partial<MasteringSettings>, strength: number) => {
+    const blend = (base: number, ai: number) => base + (ai - base) * (strength / 100);
+    
+    const newSettings = { ...baseSettings };
+
+    if (aiSettings.compressionAmount !== undefined) {
+      newSettings.compressionAmount = blend(baseSettings.compressionAmount, aiSettings.compressionAmount);
+    }
+
+    if (aiSettings.saturationAmount !== undefined) {
+      newSettings.saturationAmount = blend(baseSettings.saturationAmount, aiSettings.saturationAmount);
+    }
+
+    if (aiSettings.bassBoost !== undefined) {
+      newSettings.bassBoost = blend(baseSettings.bassBoost, aiSettings.bassBoost);
+    }
+
+    if (aiSettings.trebleBoost !== undefined) {
+      newSettings.trebleBoost = blend(baseSettings.trebleBoost, aiSettings.trebleBoost);
+    }
+
     if (aiSettings.bands) {
       newSettings.bands = {
         low: {
@@ -152,12 +183,6 @@ const MasteringSettingsPage: React.FC = () => {
       };
     }
 
-    if (aiSettings.saturation) {
-      newSettings.saturation = {
-        amount: blend(baseSettings.saturation.amount, aiSettings.saturation.amount),
-      };
-    }
-
     if (aiSettings.limiter) {
       newSettings.limiter = {
         threshold: blend(baseSettings.limiter.threshold, aiSettings.limiter.threshold),
@@ -166,7 +191,7 @@ const MasteringSettingsPage: React.FC = () => {
       };
     }
 
-    if (aiSettings.finalGain) {
+    if (aiSettings.finalGain !== undefined) {
       newSettings.finalGain = blend(baseSettings.finalGain, aiSettings.finalGain);
     }
 
@@ -178,7 +203,7 @@ const MasteringSettingsPage: React.FC = () => {
       const newSettings = applyAIStrength(currentSettings, aiSettings, aiStrength);
       setCurrentSettings(newSettings);
     }
-  }, [aiStrength, aiSettings, applyAIStrength]);
+  }, [aiStrength, aiSettings, applyAIStrength, currentSettings]);
 
   const handleSubmit = () => {
     setMasteringSettings(currentSettings);
@@ -253,30 +278,54 @@ const MasteringSettingsPage: React.FC = () => {
         </div>
 
         <div>
-          <h3 className="text-2xl font-heading text-primary mb-4 border-b-2 border-slate-700 pb-2">AI Suggestions</h3>
-          <div className="mb-6 text-center bg-slate-800/50 p-4 rounded-lg">
-            <Button onClick={handleGetAISettings} isLoading={isLoading} disabled={isLoading || !apiKey} leftIcon={<IconSparkles className="w-5 h-5" />}>
-              {apiKey ? 'Generate AI Settings' : 'Configure API Key for AI'}
+          <h3 className="text-2xl font-heading text-primary-focus transition-colors mb-4 border-b-2 border-slate-700 pb-2">AI Enhancement</h3>
+          <div className="space-y-4">
+            <Button
+              onClick={handleGetAISettings}
+              disabled={isLoading || !apiKey}
+              leftIcon={<IconSparkles className="w-5 h-5" />}
+              className="w-full"
+            >
+              {isLoading ? 'Analyzing...' : 'Get AI Recommendations'}
             </Button>
-            {error && <p className="text-red-400 text-sm mt-2">{error}</p>}
-          </div>
 
-          {isLoading && <LoadingSpinner text="Generating AI Settings..." className="my-6" />}
+            {error && <p className="text-red-400 text-sm">{error}</p>}
 
-          <div className="pt-4 space-y-6">
-            <Slider
-              label="AI Strength"
-              name="aiStrength"
-              min={0} max={100} step={1}
-              value={aiStrength}
-              onChange={(e) => setAiStrength(parseInt(e.target.value))}
-              unit="%"
-            />
+            {aiSettings && (
+              <div className="space-y-4">
+                <Slider
+                  label="AI Strength"
+                  name="aiStrength"
+                  min={0} max={100} step={1}
+                  value={aiStrength}
+                  onChange={(e) => setAiStrength(parseFloat(e.target.value))}
+                  unit="%"
+                />
+                <p className="text-xs text-slate-400">
+                  Blend between your manual settings and AI recommendations
+                </p>
+              </div>
+            )}
+
+            <div className="pt-4">
+              <h4 className="text-lg font-semibold text-slate-300 mb-3">Reference Track (Optional)</h4>
+              <FileUpload
+                onFileAccepted={handleReferenceFileAccepted}
+                onFileCleared={handleReferenceFileCleared}
+                existingFile={currentSettings.referenceTrackFile}
+                label="Upload a reference track to match its characteristics"
+              />
+              {referenceAnalysis && (
+                <div className="mt-3 p-3 bg-slate-800/50 rounded-lg">
+                  <p className="text-sm text-slate-300">Reference track analyzed</p>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
 
-      <div className="mt-10 pt-6 border-t border-slate-800 text-right">
+      <div className="mt-8 flex justify-center">
         <Button onClick={handleSubmit} size="lg" rightIcon={<IconArrowRight className="w-5 h-5" />}>
           Start Mastering
         </Button>
