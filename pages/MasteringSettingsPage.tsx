@@ -115,7 +115,7 @@ const MasteringSettingsPage: React.FC = () => {
     setIsLoading(true);
     setError(null);
     try {
-      const settings = await fetchAIChainSettings(uploadedTrack.name, currentSettings, apiKey);
+      const settings = await fetchAIChainSettings(currentSettings.genre, uploadedTrack.name, apiKey);
       setAiSettings(settings);
     } catch (err: any) {
       setError(err.message || "Failed to fetch AI settings.");
