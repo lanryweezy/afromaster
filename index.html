@@ -243,15 +243,22 @@
           transition: background 0.5s ease;
       }
       .text-gradient-primary {
-          color: var(--color-primary);
-          background: linear-gradient(to right, var(--color-primary), var(--color-primary-focus), var(--color-accent));
+          color: #ffffff;
+          background: linear-gradient(45deg, #f97316, #fb923c, #fde047, #f97316);
+          background-size: 300% 300%;
           -webkit-background-clip: text;
           background-clip: text;
-          background-size: 200% auto;
-          animation: gradient-move 5s ease-in-out infinite;
-          transition: background 0.5s ease;
-          text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
-          font-weight: 700;
+          animation: gradient-move 3s ease-in-out infinite, glow-pulse 2s ease-in-out infinite alternate;
+          transition: all 0.3s ease;
+          text-shadow: 
+              0 0 10px rgba(249, 115, 22, 0.8),
+              0 0 20px rgba(249, 115, 22, 0.6),
+              0 0 30px rgba(249, 115, 22, 0.4),
+              0 0 40px rgba(249, 115, 22, 0.2);
+          font-weight: 900;
+          letter-spacing: 2px;
+          position: relative;
+          z-index: 10;
       }
       
       /* Enhanced gradient text for supporting browsers */
@@ -259,6 +266,22 @@
           .text-gradient-primary {
               -webkit-text-fill-color: transparent;
               text-fill-color: transparent;
+          }
+      }
+      
+      @keyframes glow-pulse {
+          0% {
+              text-shadow: 
+                  0 0 10px rgba(249, 115, 22, 0.8),
+                  0 0 20px rgba(249, 115, 22, 0.6),
+                  0 0 30px rgba(249, 115, 22, 0.4);
+          }
+          100% {
+              text-shadow: 
+                  0 0 20px rgba(249, 115, 22, 1),
+                  0 0 30px rgba(249, 115, 22, 0.8),
+                  0 0 40px rgba(249, 115, 22, 0.6),
+                  0 0 50px rgba(249, 115, 22, 0.4);
           }
       }
     </style>
