@@ -27,7 +27,7 @@ const BuyCreditsPage: React.FC = () => {
 
   const handleBuy = (amount: number, currency: string) => {
     payWithPaystack({
-      publicKey: 'pk_test_f1323d315e348027151bd1535899539b03e14b52',
+      publicKey: import.meta.env.VITE_PAYSTACK_PUBLIC_KEY as string,
       email: user?.email || '',
       amount: amount * 100, // Paystack expects amount in kobo/cents
       currency,
