@@ -12,7 +12,6 @@ const createCompressor = (
   compressor.release.setValueAtTime(settings.release, context.currentTime);
   return compressor;
 };
-<<<<<<< HEAD
 
 const createSaturationCurve = (amount: number, flavor: string): Float32Array => {
     const k = amount;
@@ -33,8 +32,6 @@ const createSaturationCurve = (amount: number, flavor: string): Float32Array => 
                 curve[i] = Math.tanh(k * x) / Math.tanh(k);
                 break;
         }
-=======
->>>>>>> main
     }
     return curve;
 };
@@ -69,10 +66,7 @@ const normalizeBuffer = async (buffer: AudioBuffer): Promise<AudioBuffer> => {
 
     return context.startRendering();
 }
-<<<<<<< HEAD
 
-=======
->>>>>>> main
 const processAudio = async (
   originalBuffer: AudioBuffer,
   settings: MasteringSettings
@@ -87,10 +81,7 @@ const processAudio = async (
     source.buffer = originalBuffer;
 
     let lastNode: AudioNode = source;
-<<<<<<< HEAD
 
-=======
->>>>>>> main
     const bassEQ = context.createBiquadFilter();
     bassEQ.type = 'lowshelf';
     bassEQ.frequency.value = settings.eq.bassFreq;
@@ -113,10 +104,7 @@ const processAudio = async (
     const highpassForMid = context.createBiquadFilter();
     highpassForMid.type = 'highpass';
     highpassForMid.frequency.value = settings.crossover.lowPass;
-<<<<<<< HEAD
     highpassForMid.Q.value = 0.71;
-=======
->>>>>>> main
 
     const lowpassForMid = context.createBiquadFilter();
     lowpassForMid.type = 'lowpass';
@@ -141,10 +129,7 @@ const processAudio = async (
 
     const saturationNode = context.createWaveShaper();
     if (settings.saturation.amount > 0) {
-<<<<<<< HEAD
         saturationNode.curve = createSaturationCurve(settings.saturation.amount, settings.saturation.flavor);
-=======
->>>>>>> main
         saturationNode.oversample = '4x';
     }
 
@@ -152,7 +137,6 @@ const processAudio = async (
     const finalGain = context.createGain();
     finalGain.gain.value = settings.finalGain;
     const limiter = createCompressor(context, { ...settings.limiter, knee: 0, ratio: 20 });
-<<<<<<< HEAD
 
     const preamp = context.createGain();
     preamp.gain.value = settings.preGain;
@@ -172,11 +156,6 @@ const processAudio = async (
     midGain.connect(merger);
 
     preamp.connect(highpass);
-=======
-    lowpass.connect(lowComp);
-    lowComp.connect(lowGain);
-    lowGain.connect(merger);
->>>>>>> main
     highpass.connect(highComp);
     highComp.connect(highGain);
     highGain.connect(merger);
@@ -190,7 +169,6 @@ const processAudio = async (
     lastNode.connect(finalGain);
     finalGain.connect(limiter);
 
-<<<<<<< HEAD
     if (settings.reverb.impulseResponse !== 'none') {
       const reverb = await createReverb(context, settings.reverb);
       limiter.connect(reverb.wet);
@@ -200,8 +178,6 @@ const processAudio = async (
       limiter.connect(context.destination);
     }
 
-=======
->>>>>>> main
     source.start(0);
 
     const renderedBuffer = await context.startRendering();
@@ -209,7 +185,6 @@ const processAudio = async (
     return normalizeBuffer(renderedBuffer);
 };
 
-<<<<<<< HEAD
 const createReverb = async (context: OfflineAudioContext, settings: { impulseResponse: string, wetDryMix: number }) => {
   const convolver = context.createConvolver();
   const response = await fetch(`/irs/${settings.impulseResponse}`);
@@ -231,8 +206,6 @@ const createReverb = async (context: OfflineAudioContext, settings: { impulseRes
   return { wet, dry, output };
 };
 
-=======
->>>>>>> main
 self.onmessage = async (event) => {
   const { originalBuffer, settings } = event.data;
   const masteredBuffer = await processAudio(originalBuffer, settings);

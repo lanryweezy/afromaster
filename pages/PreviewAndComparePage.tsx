@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { useAppContext } from '../contexts/AppContext';
 import { AppPage } from '../types';
@@ -22,6 +21,11 @@ const PreviewAndComparePage: React.FC = () => {
   const [isReady, setIsReady] = useState(false);
   const [isActuallyPlaying, setActuallyPlaying] = useState(false); // UI state
   const [isMastered, setIsMastered] = useState(true);
+
+  useEffect(() => {
+    console.log("originalAudioBuffer", originalAudioBuffer);
+    console.log("masteredAudioBuffer", masteredAudioBuffer);
+  }, [originalAudioBuffer, masteredAudioBuffer]);
 
   useEffect(() => {
       const initAudio = async () => {
