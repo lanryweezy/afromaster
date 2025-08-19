@@ -32,34 +32,61 @@ interface AppContextType {
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
+const deepMerge = (target: any, source: any) => {
+  for (const key in source) {
+    if (source.hasOwnProperty(key)) {
+      if (typeof source[key] === 'object' && source[key] !== null && !Array.isArray(source[key]) && typeof target[key] === 'object' && target[key] !== null && !Array.isArray(target[key])) {
+        target[key] = deepMerge(target[key] || {}, source[key]);
+      } else {
+        target[key] = source[key];
+      }
+    }
+  }
+  return target;
+};
+
 export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [currentPage, setCurrentPage] = useLocalStorage<AppPage>('afromaster-current-page', AppPage.LANDING);
   const [uploadedTrack, setUploadedTrack] = useState<UploadedTrack | null>(null);
-  const [masteringSettings, setMasteringSettings] = useLocalStorage<MasteringSettings | null>('afromaster-settings', {
-    genre: Genre.POP,
-    loudnessTarget: LoudnessTarget.STREAMING_STANDARD,
-    tonePreference: TonePreference.BALANCED,
-    stereoWidth: StereoWidth.STANDARD,
-    customLoudnessValue: -14,
-    referenceTrackFile: null,
-    compressionAmount: 50,
-    saturationAmount: 0,
-    bassBoost: 0,
-    trebleBoost: 0,
-    aiSettingsApplied: false, // Default value
-    useDynamicEQ: false, // Default value
-    crossover: { lowPass: 250, highPass: 4000 },
-    eq: { bassFreq: 200, trebleFreq: 5000, bassGain: 0, trebleGain: 0 },
-    saturation: { amount: 0, flavor: 'tape' }, // Default values
-    preGain: 1.0, // Default value
-    bands: { // Default values
-      low: { threshold: -35, knee: 15, ratio: 4, attack: 0.05, release: 0.3, makeupGain: 2.0 },
-      mid: { threshold: -30, knee: 10, ratio: 3, attack: 0.01, release: 0.25, makeupGain: 2.0 },
-      high: { threshold: -25, knee: 5, ratio: 3, attack: 0.005, release: 0.15, makeupGain: 1.5 },
-    },
-    limiter: { threshold: -1.5, attack: 0.002, release: 0.05 }, // Default values
-    finalGain: 1.0, // Default value
-    reverb: { impulseResponse: 'none', wetDryMix: 0 }, // Default values
+  const [masteringSettings, setMasteringSettings] = useLocalStorage<MasteringSettings | null>('afromaster-settings', () => {
+    const initialSettings = {
+      genre: Genre.POP,
+      loudnessTarget: LoudnessTarget.STREAMING_STANDARD,
+      tonePreference: TonePreference.BALANCED,
+      stereoWidth: StereoWidth.STANDARD,
+      customLoudnessValue: -14,
+      referenceTrackFile: null,
+      compressionAmount: 50,
+      saturationAmount: 0,
+      bassBoost: 0,
+      trebleBoost: 0,
+      aiSettingsApplied: false,
+      useDynamicEQ: false,
+      crossover: { lowPass: 250, highPass: 4000 },
+      eq: { bassFreq: 200, trebleFreq: 5000, bassGain: 0, trebleGain: 0 },
+      saturation: { amount: 0, flavor: 'tape' },
+      preGain: 1.0,
+      bands: {
+        low: { threshold: -35, knee: 15, ratio: 4, attack: 0.05, release: 0.3, makeupGain: 2.0 },
+        mid: { threshold: -30, knee: 10, ratio: 3, attack: 0.01, release: 0.25, makeupGain: 2.0 },
+        high: { threshold: -25, knee: 5, ratio: 3, attack: 0.005, release: 0.15, makeupGain: 1.5 },
+      },
+      limiter: { threshold: -1.5, attack: 0.002, release: 0.05 },
+      finalGain: 1.0,
+      reverb: { impulseResponse: 'none', wetDryMix: 0 },
+    };
+
+    const storedItem = window.localStorage.getItem('afromaster-settings');
+    if (storedItem) {
+      try {
+        const parsedItem = JSON.parse(storedItem);
+        return deepMerge(initialSettings, parsedItem);
+      } catch (error) {
+        console.error("Error parsing stored mastering settings:", error);
+        return initialSettings;
+      }
+    }
+    return initialSettings;
   });
   const [masteredTrackInfo, setMasteredTrackInfo] = useState<MasteredTrackInfo | null>(null);
   const [userProjects, setUserProjects] = useState<MasteredTrackInfo[]>([]);
