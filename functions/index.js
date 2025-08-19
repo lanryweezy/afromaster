@@ -5,6 +5,11 @@ const axios = require("axios");
 admin.initializeApp();
 
 const db = admin.firestore();
+<<<<<<< HEAD
+=======
+// TODO: Replace with your secret key from the Paystack dashboard
+const PAYSTACK_SECRET_KEY = "YOUR_PAYSTACK_SECRET_KEY";
+>>>>>>> main
 
 exports.verifyPaystackTransaction = functions.https.onCall(async (data, context) => {
   if (!context.auth) {
@@ -17,7 +22,11 @@ exports.verifyPaystackTransaction = functions.https.onCall(async (data, context)
   try {
     const response = await axios.get(url, {
       headers: {
+<<<<<<< HEAD
         Authorization: `Bearer ${functions.config().paystack.secret}`,
+=======
+        Authorization: `Bearer ${PAYSTACK_SECRET_KEY}`,
+>>>>>>> main
       },
     });
 

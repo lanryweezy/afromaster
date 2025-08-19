@@ -21,9 +21,9 @@ export const fetchAIChainSettings = async (
   if (referenceAnalysis) {
     prompt += `
     - Reference Track Analysis:
-      - Loudness: ${referenceAnalysis.loudness.toFixed(2)} dB
-      - Spectral Balance: Bass: ${(referenceAnalysis.spectralBalance.bass * 100).toFixed(1)}%, Mid: ${(referenceAnalysis.spectralBalance.mid * 100).toFixed(1)}%, Treble: ${(referenceAnalysis.spectralBalance.treble * 100).toFixed(1)}%
-      - Peak: ${referenceAnalysis.peak.toFixed(2)} dB`;
+      - Loudness: ${referenceAnalysis.loudness?.toFixed(2) || 'N/A'} dB
+      - Spectral Balance: Bass: ${(referenceAnalysis.spectralBalance?.bass * 100)?.toFixed(1) || 'N/A'}%, Mid: ${(referenceAnalysis.spectralBalance?.mid * 100)?.toFixed(1) || 'N/A'}%, Treble: ${(referenceAnalysis.spectralBalance?.treble * 100)?.toFixed(1) || 'N/A'}%
+      - Peak: ${referenceAnalysis.peak?.toFixed(2) || 'N/A'} dB`;
   }
 
   prompt += `
@@ -112,11 +112,12 @@ const validateAIChainSettings = (data: any): boolean => {
 export const generateMasteringReport = async (
   trackName: string,
   settings: MasteringSettings,
-  apiKey: string
+  apiKey?: string
 ): Promise<string> => {
   if (!apiKey) {
-    throw new Error("Gemini API key is not provided.");
+    return "AI insights unavailable - API key not configured.";
   }
+  
   const ai = new GoogleGenAI({ apiKey });
 
   const loudnessTargetString = typeof settings.loudnessTarget === 'string' 
@@ -149,12 +150,6 @@ export const generateMasteringReport = async (
     return response.text;
   } catch (error: any) {
     console.error("Error generating mastering report from Gemini:", error);
-    if (error.message && error.message.includes("API key not valid")) {
-      throw new Error("Invalid API Key for Gemini. Please check your configuration for report generation.");
-    }
-    if (error.message && (error.message.toLowerCase().includes("quota") || error.message.toLowerCase().includes("rate limit"))) {
-        throw new Error("API quota exceeded or rate limit hit while generating report. Please try again later.");
-    }
-    throw new Error(`Failed to generate mastering report: ${error.message || 'Unknown error'}`);
+    return "AI insights temporarily unavailable.";
   }
 };

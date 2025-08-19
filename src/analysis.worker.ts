@@ -20,6 +20,7 @@ const analyzeTrack = async (buffer: AudioBuffer) => {
   const analyser = offlineCtx.createAnalyser();
   analyser.fftSize = 2048;
   source.connect(analyser);
+<<<<<<< HEAD
   analyser.connect(offlineCtx.destination);
   source.start(0);
   const rendered = await offlineCtx.startRendering();
@@ -39,6 +40,12 @@ const analyzeTrack = async (buffer: AudioBuffer) => {
   // Fallback: compute simple band energies directly from renderedAgain.getChannelData(...)
   const freqData = new Uint8Array(tempAnalyser.frequencyBinCount);
   tempAnalyser.getByteFrequencyData(freqData);
+=======
+  await offlineCtx.startRendering();
+
+  const freqData = new Uint8Array(analyser.frequencyBinCount);
+  analyser.getByteFrequencyData(freqData);
+>>>>>>> main
 
   const bass = freqData.slice(0, 10).reduce((a, b) => a + b, 0);
   const mid = freqData.slice(10, 100).reduce((a, b) => a + b, 0);

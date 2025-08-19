@@ -8,7 +8,6 @@ const Footer: React.FC = () => {
       <div className="container mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
         <div className="text-center sm:text-left">
            <p className="text-sm text-slate-400">&copy; {new Date().getFullYear()} Afromaster.</p>
-           <p className="text-xs mt-1 text-slate-500">Powered by Gemini API & React</p>
         </div>
         <div className="flex items-center space-x-4">
             <BackgroundMusicPlayer />

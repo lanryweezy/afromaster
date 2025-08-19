@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useAppContext } from '../contexts/AppContext';
 import { AppPage, MasteredTrackInfo } from '../types';
@@ -6,7 +5,7 @@ import ProgressBar from '../components/ProgressBar';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { fetchAIChainSettings, generateMasteringReport } from '../services/geminiService';
 import { IconSparkles } from '../constants';
-import { db, storage } from '../firebaseConfig';
+import { db, storage } from '../src/firebaseConfig';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { collection, addDoc, doc, getDoc, updateDoc } from 'firebase/firestore';
 import toWav from 'audiobuffer-to-wav';
@@ -123,7 +122,7 @@ const ProcessingAudioPage: React.FC = () => {
       cancelled = true;
       worker.terminate();
     };
-  }, [uploadedTrack, masteringSettings, apiKey, setCurrentPage, setMasteredAudioBuffer]);
+  }, [uploadedTrack, masteringSettings, apiKey, setCurrentPage, setMasteredAudioBuffer, addUserProject, user]);
 
   if (!uploadedTrack || !masteringSettings) {
     return <LoadingSpinner text="Loading data..." />;
@@ -132,20 +131,48 @@ const ProcessingAudioPage: React.FC = () => {
   return (
     <div className="max-w-2xl mx-auto text-center p-6 md:p-8 bg-slate-900/60 backdrop-blur-lg border border-slate-700/50 rounded-xl shadow-2xl card-accent">
       <h2 className="text-3xl sm:text-4xl font-heading font-semibold mb-6 text-gradient-primary">Afromastering Your Track</h2>
-      <LoadingSpinner size="lg" className="mb-6" />
-      <p className="text-slate-300 mb-2">Hang tight! <span className="font-semibold text-primary-focus transition-colors">{uploadedTrack.name}</span> is being polished.</p>
-      <p className="text-slate-400 mb-6 text-sm min-h-[20px]">{statusMessage}</p>
-      <ProgressBar progress={progress} />
+      
+      {/* Processing Status */}
+      <div className="mb-8">
+        <LoadingSpinner size="lg" className="mb-6" />
+        <p className="text-slate-300 mb-2">
+          Hang tight! <span className="font-semibold text-primary-focus transition-colors">{uploadedTrack.name}</span> is being polished.
+        </p>
+        <p className="text-slate-400 mb-6 text-sm min-h-[20px] font-mono">{statusMessage}</p>
+        
+        {/* Progress Bar with Percentage */}
+        <div className="mb-4">
+          <ProgressBar progress={progress} />
+          <p className="text-primary-focus font-bold text-lg mt-2">{progress}%</p>
+        </div>
+      </div>
 
-      {(isFetchingReport || masteringReportNotes || reportError) && (
+      {/* Error Display */}
+      {reportError && (
+        <div className="mt-6 p-4 bg-red-900/20 backdrop-blur-md border border-red-500/50 rounded-lg text-left animate-fadeIn">
+          <div className="flex items-center mb-2">
+            <span className="text-red-400 mr-2">❌</span>
+            <h4 className="text-md font-semibold text-red-400">Processing Error</h4>
+          </div>
+          <p className="text-red-300 text-sm">{reportError}</p>
+          <button 
+            onClick={() => setCurrentPage(AppPage.SETTINGS)}
+            className="mt-3 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm transition-colors"
+          >
+            Go Back & Try Again
+          </button>
+        </div>
+      )}
+
+      {/* AI Insights */}
+      {(isFetchingReport || masteringReportNotes) && !reportError && (
         <div className="mt-6 p-4 bg-slate-800/60 backdrop-blur-md border border-slate-700/50 rounded-lg text-left animate-fadeIn">
           <div className="flex items-center mb-2">
-            <IconSparkles className="w-5 h-5 text-yellow-400 mr-2" />
-            <h4 className="text-md font-semibold text-primary-focus transition-colors">AI Mastering Insights</h4>
+            <span className="text-primary-focus mr-2">💡</span>
+            <h4 className="text-md font-semibold text-primary-focus">AI Mastering Insights</h4>
           </div>
           {isFetchingReport && <LoadingSpinner size="sm" text="Generating insights..." />}
-          {reportError && !isFetchingReport && <p className="text-red-400 text-sm">{reportError}</p>}
-          {masteringReportNotes && !isFetchingReport && !reportError && (
+          {masteringReportNotes && !isFetchingReport && (
             <p className="text-slate-300 text-sm whitespace-pre-wrap">{masteringReportNotes}</p>
           )}
         </div>

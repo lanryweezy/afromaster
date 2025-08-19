@@ -1,11 +1,10 @@
-
 import React, { useEffect, useState } from 'react';
 import { useAppContext } from '../contexts/AppContext';
 import TrackCard from '../components/TrackCard';
 import Button from '../components/Button';
 import { AppPage, MasteredTrackInfo } from '../types';
 import { IconUpload, IconMusicNote, IconLockClosed } from '../constants';
-import { db } from '../firebaseConfig';
+import { db } from '../src/firebaseConfig';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 
 const UserDashboardPage: React.FC = () => {

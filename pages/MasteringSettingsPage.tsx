@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAppContext } from '../contexts/AppContext';
 import { AppPage, MasteringSettings } from '../types';
@@ -9,6 +8,7 @@ import FileUpload from '../components/FileUpload';
 import Slider from '../components/Slider';
 import { fetchAIChainSettings } from '../services/geminiService';
 import { Genre, LoudnessTarget, TonePreference, StereoWidth, GENRE_OPTIONS, LOUDNESS_TARGET_OPTIONS, TONE_PREFERENCE_OPTIONS, STEREO_WIDTH_OPTIONS, IconArrowRight, IconSparkles, IconArrowLeft } from '../constants';
+
 const MasteringSettingsPage: React.FC = () => {
   const {
     setCurrentPage,
@@ -45,11 +45,12 @@ const MasteringSettingsPage: React.FC = () => {
     };
     return masteringSettings || initialSettings;
   });
+
   const [aiSettings, setAiSettings] = useState<Partial<MasteringSettings> | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [aiStrength, setAiStrength] = useState(100);
-  const [referenceAnalysis, setReferenceAnalysis] = useState(null);
+  const [referenceAnalysis, setReferenceAnalysis] = useState<any>(null);
 
   useEffect(() => {
     if (!uploadedTrack) {
@@ -69,12 +70,12 @@ const MasteringSettingsPage: React.FC = () => {
       setCurrentSettings(prev => ({
         ...prev,
         [mainKey]: {
-          ...prev[mainKey],
+          ...(prev as any)[mainKey],
           [subKey]: isNumberInput ? parseFloat(value) : value,
         },
       }));
     } else {
-      setCurrentSettings(prev => ({ ...prev, [name]: isNumberInput ? parseFloat(value) : value }));
+      setCurrentSettings(prev => ({ ...prev, [name]: isNumberInput ? parseFloat(value) : value } as MasteringSettings));
     }
   };
 
@@ -82,17 +83,31 @@ const MasteringSettingsPage: React.FC = () => {
     setCurrentSettings(prev => ({ ...prev, referenceTrackFile: file }));
     const audioContext = new AudioContext();
     const reader = new FileReader();
+
+    const cleanup = (worker?: Worker) => {
+      try { worker?.terminate(); } catch {}
+      try { audioContext.close(); } catch {}
+    };
+
     reader.onload = async (e) => {
-      if (e.target?.result instanceof ArrayBuffer) {
-        const buffer = await audioContext.decodeAudioData(e.target.result);
-        const worker = new Worker(new URL('../analysis.worker.ts', import.meta.url), { type: 'module' });
-        worker.onmessage = (event) => {
-          setReferenceAnalysis(event.data);
-          worker.terminate();
-        };
-        worker.postMessage({ buffer });
+      try {
+        if (e.target?.result instanceof ArrayBuffer) {
+          const buffer = await audioContext.decodeAudioData(e.target.result);
+          const worker = new Worker(new URL('../src/analysis.worker.ts', import.meta.url), { type: 'module' });
+          worker.onmessage = (event) => {
+            setReferenceAnalysis(event.data);
+            cleanup(worker);
+          };
+          worker.onerror = () => cleanup(worker);
+          worker.postMessage({ buffer });
+        } else {
+          cleanup();
+        }
+      } catch {
+        cleanup();
       }
     };
+    reader.onerror = () => cleanup();
     reader.readAsArrayBuffer(file);
   };
 
@@ -167,6 +182,7 @@ const MasteringSettingsPage: React.FC = () => {
 
     if (aiSettings.saturation) {
       newSettings.saturation = {
+        ...newSettings.saturation,
         amount: blend(baseSettings.saturation.amount, aiSettings.saturation.amount),
       };
     }
@@ -191,7 +207,7 @@ const MasteringSettingsPage: React.FC = () => {
       const newSettings = applyAIStrength(currentSettings, aiSettings, aiStrength);
       setCurrentSettings(newSettings);
     }
-  }, [aiStrength, aiSettings, applyAIStrength]);
+  }, [aiStrength, aiSettings, applyAIStrength, currentSettings]);
 
   const handleSubmit = () => {
     setMasteringSettings(currentSettings);

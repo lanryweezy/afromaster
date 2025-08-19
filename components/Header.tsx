@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useAppContext } from '../contexts/AppContext';
 import { AppPage } from '../types';
@@ -50,7 +49,7 @@ const Header: React.FC = () => {
                     >
                       Dashboard
                     </button>
-                    <button 
+                    <button
                       onClick={() => navigate(AppPage.BUY_CREDITS)}
                       className="text-slate-300 hover:bg-slate-800 hover:text-white transition-colors px-4 py-2 rounded-md text-sm font-medium"
                     >
