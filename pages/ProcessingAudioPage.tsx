@@ -43,21 +43,25 @@ const ProcessingAudioPage: React.FC = () => {
       setMasteredAudioBuffer(masteredBuffer);
 
       if (user) {
-        setStatusMessage("Uploading files to cloud...");
-        const wavBlob = new Blob([toWav(masteredBuffer)], { type: 'audio/wav' });
-        const storageRef = ref(storage, `users/${user.uid}/tracks/${Date.now()}_mastered.wav`);
-        await uploadBytes(storageRef, wavBlob);
-        const downloadURL = await getDownloadURL(storageRef);
+        try {
+          setStatusMessage("Uploading files to cloud...");
+          const wavBlob = new Blob([toWav(masteredBuffer)], { type: 'audio/wav' });
+          const storageRef = ref(storage, `users/${user.uid}/tracks/${Date.now()}_mastered.wav`);
+          await uploadBytes(storageRef, wavBlob);
+          const downloadURL = await getDownloadURL(storageRef);
 
-        const projectData = {
-          userId: user.uid,
-          trackName: uploadedTrack.name,
-          masteredFileUrl: downloadURL,
-          settings: masteringSettings,
-          createdAt: new Date(),
-        };
-        };
-        await addDoc(collection(db, "projects"), projectData);
+          const projectData = {
+            userId: user.uid,
+            trackName: uploadedTrack.name,
+            masteredFileUrl: downloadURL,
+            settings: masteringSettings,
+            createdAt: new Date(),
+          };
+          await addDoc(collection(db, "projects"), projectData);
+        } catch (e) {
+          console.error("Cloud upload failed:", e);
+          setStatusMessage("Upload failed, continuing to preview...");
+        }
       }
 
       setProgress(100);
