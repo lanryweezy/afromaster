@@ -93,30 +93,30 @@ const FileUpload: React.FC<FileUploadProps> = ({
       {!currentDisplayFile ? (
         <div
           {...getRootProps()}
-          className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all duration-300 ease-in-out bg-slate-800/50
+          className={`border-2 border-dashed rounded-xl p-4 sm:p-8 text-center cursor-pointer transition-all duration-300 ease-in-out bg-slate-800/50
             ${isDragActive ? 'border-sky-400 bg-slate-800' : 'border-slate-700 hover:border-sky-500 hover:bg-slate-800'}`}
         >
           <input {...getInputProps()} id={id} />
-          <IconUpload className="w-12 h-12 mx-auto text-slate-500 mb-3" />
+          <IconUpload className="w-8 h-8 sm:w-12 sm:h-12 mx-auto text-slate-500 mb-2 sm:mb-3" />
           {isDragActive ? (
-            <p className="text-md font-semibold text-primary">Drop the track here ...</p>
+            <p className="text-sm sm:text-md font-semibold text-primary">Drop the track here ...</p>
           ) : (
-            <p className="text-md text-white">Drag 'n' drop audio file, or click to select</p>
+            <p className="text-sm sm:text-md text-white">Drag 'n' drop audio file, or <span className="text-primary underline">click to select</span></p>
           )}
-          <p className="text-xs text-white mt-2">Supported: MP3, WAV, AIFF, FLAC</p>
+          <p className="text-xs text-slate-400 mt-2">Supported: MP3, WAV, AIFF, FLAC</p>
         </div>
       ) : (
         <div className="p-4 bg-slate-800 border border-slate-700 rounded-xl text-center relative">
           <button 
             onClick={clearFile} 
-            className="absolute top-2 right-2 text-slate-400 hover:text-red-400 transition-colors z-10"
+            className="absolute top-2 right-2 text-slate-400 hover:text-red-400 transition-colors z-10 p-1"
             aria-label="Remove file"
           >
-            <IconXCircle className="w-6 h-6" />
+            <IconXCircle className="w-5 h-5 sm:w-6 sm:h-6" />
           </button>
-          <IconMusicNote className="w-10 h-10 mx-auto text-sky-400 mb-2" />
-          <p className="text-md font-medium text-white truncate px-8" title={currentDisplayFile.name}>{currentDisplayFile.name}</p>
-          <p className="text-xs text-white">
+          <IconMusicNote className="w-8 h-8 sm:w-10 sm:h-10 mx-auto text-sky-400 mb-2" />
+          <p className="text-sm sm:text-md font-medium text-white truncate px-4 sm:px-8" title={currentDisplayFile.name}>{currentDisplayFile.name}</p>
+          <p className="text-xs text-slate-300">
             {(currentDisplayFile.size / (1024 * 1024)).toFixed(2)} MB
             {currentDisplayFile.duration ? ` / ${formatDuration(currentDisplayFile.duration)}` : ''}
           </p>

@@ -14,6 +14,9 @@ import UserDashboardPage from './pages/UserDashboardPage';
 import AuthPage from './pages/AuthPage';
 import BuyCreditsPage from './pages/BuyCreditsPage';
 import ParticleBackground from './components/ParticleBackground';
+import ErrorBoundary from './components/ErrorBoundary';
+import Breadcrumbs from './components/Breadcrumbs';
+import WorkflowProgress from './components/WorkflowProgress';
 
 const App: React.FC = () => {
   const { currentPage } = useAppContext();
@@ -75,14 +78,18 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-transparent font-sans relative transition-colors duration-500 z-0">
-       <ParticleBackground />
-      <Header />
-      <main key={currentPage} className="flex-grow container mx-auto px-4 py-8 md:py-12 animate-fadeIn z-10">
-        {renderPage()}
-      </main>
-      <Footer />
-    </div>
+    <ErrorBoundary>
+      <div className="min-h-screen flex flex-col bg-transparent font-sans relative transition-colors duration-500 z-0">
+        <ParticleBackground />
+        <Header />
+        <main key={currentPage} className="flex-grow container mx-auto px-4 py-8 md:py-12 animate-fadeIn z-10">
+          <Breadcrumbs />
+          <WorkflowProgress />
+          {renderPage()}
+        </main>
+        <Footer />
+      </div>
+    </ErrorBoundary>
   );
 };
 

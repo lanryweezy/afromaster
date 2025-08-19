@@ -3,6 +3,7 @@ import { AppPage, UploadedTrack, MasteringSettings, MasteredTrackInfo, Theme } f
 import { Genre, LoudnessTarget, TonePreference, StereoWidth } from '../constants';
 import { auth } from '../src/firebaseConfig';
 import { User, onAuthStateChanged } from 'firebase/auth';
+import { useLocalStorage, useAutoSave } from '../hooks/useLocalStorage';
 
 interface AppContextType {
   currentPage: AppPage;
@@ -32,9 +33,9 @@ interface AppContextType {
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [currentPage, setCurrentPage] = useState<AppPage>(AppPage.LANDING);
+  const [currentPage, setCurrentPage] = useLocalStorage<AppPage>('afromaster-current-page', AppPage.LANDING);
   const [uploadedTrack, setUploadedTrack] = useState<UploadedTrack | null>(null);
-  const [masteringSettings, setMasteringSettings] = useState<MasteringSettings | null>({
+  const [masteringSettings, setMasteringSettings] = useLocalStorage<MasteringSettings | null>('afromaster-settings', {
     genre: Genre.POP,
     loudnessTarget: LoudnessTarget.STREAMING_STANDARD,
     tonePreference: TonePreference.BALANCED,
@@ -49,13 +50,13 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   });
   const [masteredTrackInfo, setMasteredTrackInfo] = useState<MasteredTrackInfo | null>(null);
   const [userProjects, setUserProjects] = useState<MasteredTrackInfo[]>([]);
-  const [apiKey, setApiKey] = useState<string | undefined>(process.env.API_KEY);
+  const [apiKey, setApiKey] = useLocalStorage<string | undefined>('afromaster-api-key', process.env.API_KEY);
   const [originalAudioBuffer, setOriginalAudioBuffer] = useState<AudioBuffer | null>(null);
   const [masteredAudioBuffer, setMasteredAudioBuffer] = useState<AudioBuffer | null>(null);
   const [isMusicPlaying, setIsMusicPlaying] = useState(false);
   const [user, setUser] = useState<User | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [theme, setTheme] = useState<Theme>('solar-flare');
+  const [theme, setTheme] = useLocalStorage<Theme>('afromaster-theme', 'solar-flare');
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
