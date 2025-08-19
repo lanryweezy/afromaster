@@ -19,7 +19,7 @@ const ProcessingAudioPage: React.FC = () => {
   } = useAppContext();
 
   const [progress, setProgress] = useState(0);
-  const [statusMessage, setStatusMessage] = useState("Initializing...");
+  const [statusMessage, setStatusMessage] = useState("Initializing audio engine...");
   const [masteringReportNotes, setMasteringReportNotes] = useState<string | null>(null);
   const [isFetchingReport, setIsFetchingReport] = useState(false);
   const [reportError, setReportError] = useState<string | null>(null);
@@ -33,34 +33,36 @@ const ProcessingAudioPage: React.FC = () => {
       }
 
       try {
-        // Simulate processing steps with better feedback
+        // Faster processing steps with better feedback
         const steps = [
-          { message: "🔍 Analyzing audio characteristics...", progress: 15 },
-          { message: "🎚️ Applying EQ and dynamics processing...", progress: 35 },
-          { message: "🎛️ Processing stereo enhancement...", progress: 55 },
-          { message: "⚡ Finalizing mastering chain...", progress: 75 },
-          { message: "🎵 Generating final master...", progress: 90 },
-          { message: "✨ Quality check and optimization...", progress: 100 }
+          { message: "🔍 Analyzing audio characteristics...", progress: 20, delay: 800 },
+          { message: "🎚️ Applying EQ and dynamics processing...", progress: 40, delay: 600 },
+          { message: "🎛️ Processing stereo enhancement...", progress: 60, delay: 600 },
+          { message: "⚡ Finalizing mastering chain...", progress: 80, delay: 500 },
+          { message: "🎵 Generating final master...", progress: 95, delay: 400 },
+          { message: "✨ Quality check and optimization...", progress: 100, delay: 300 }
         ];
 
         for (const step of steps) {
           setStatusMessage(step.message);
           setProgress(step.progress);
           
-          // Simulate some processing time
-          await new Promise(resolve => setTimeout(resolve, 2000));
+          // Shorter processing time for better UX
+          await new Promise(resolve => setTimeout(resolve, step.delay));
         }
 
-        // Generate AI insights
+        // Generate AI insights (non-blocking)
         setIsFetchingReport(true);
-        try {
-          const report = await generateMasteringReport(uploadedTrack.name, masteringSettings);
-          setMasteringReportNotes(report);
-        } catch (error) {
-          console.log("AI report generation failed, continuing without it");
-        } finally {
-          setIsFetchingReport(false);
-        }
+        generateMasteringReport(uploadedTrack.name, masteringSettings)
+          .then(report => {
+            setMasteringReportNotes(report);
+          })
+          .catch(error => {
+            console.log("AI report generation failed, continuing without it");
+          })
+          .finally(() => {
+            setIsFetchingReport(false);
+          });
 
         // Create mastered track info
         const masteredTrack: MasteredTrackInfo = {
@@ -77,11 +79,11 @@ const ProcessingAudioPage: React.FC = () => {
         setMasteredTrackInfo(masteredTrack);
         addUserProject(masteredTrack);
 
-        // Show completion message and navigate
+        // Show completion message and navigate quickly
         setStatusMessage("🎉 Processing complete! Preparing your preview...");
         setTimeout(() => {
           setCurrentPage(AppPage.PREVIEW);
-        }, 2000);
+        }, 1000);
 
       } catch (error) {
         console.error("Processing error:", error);
@@ -137,8 +139,8 @@ const ProcessingAudioPage: React.FC = () => {
       {(isFetchingReport || masteringReportNotes) && !reportError && (
         <div className="mt-6 p-4 bg-slate-800/60 backdrop-blur-md border border-slate-700/50 rounded-lg text-left animate-fadeIn">
           <div className="flex items-center mb-2">
-            <IconSparkles className="w-5 h-5 text-yellow-400 mr-2" />
-            <h4 className="text-md font-semibold text-primary-focus transition-colors">AI Mastering Insights</h4>
+            <span className="text-primary-focus mr-2">💡</span>
+            <h4 className="text-md font-semibold text-primary-focus">AI Mastering Insights</h4>
           </div>
           {isFetchingReport && <LoadingSpinner size="sm" text="Generating insights..." />}
           {masteringReportNotes && !isFetchingReport && (
