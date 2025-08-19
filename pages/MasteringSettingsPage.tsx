@@ -76,7 +76,7 @@ const MasteringSettingsPage: React.FC = () => {
       try {
         if (e.target?.result instanceof ArrayBuffer) {
           const buffer = await audioContext.decodeAudioData(e.target.result);
-          const worker = new Worker(new URL('../analysis.worker.ts', import.meta.url), { type: 'module' });
+          const worker = new Worker(new URL('../src/analysis.worker.ts', import.meta.url), { type: 'module' });
           worker.onmessage = (event) => {
             setReferenceAnalysis(event.data);
             cleanup(worker);
@@ -232,9 +232,6 @@ const MasteringSettingsPage: React.FC = () => {
                 onChange={handleInputChange}
                 unit="%"
               />
-                onChange={handleInputChange}
-                unit="%"
-              />
               <Slider
                 label="Bass Emphasis"
                 name="bassBoost"
@@ -251,6 +248,7 @@ const MasteringSettingsPage: React.FC = () => {
                 onChange={handleInputChange}
                 unit="dB"
               />
+            </div>
           </div>
         </div>
 

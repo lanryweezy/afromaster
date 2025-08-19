@@ -243,14 +243,23 @@
           transition: background 0.5s ease;
       }
       .text-gradient-primary {
+          color: var(--color-primary);
           background: linear-gradient(to right, var(--color-primary), var(--color-primary-focus), var(--color-accent));
           -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
           background-clip: text;
-          text-fill-color: transparent;
           background-size: 200% auto;
           animation: gradient-move 5s ease-in-out infinite;
           transition: background 0.5s ease;
+          text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+          font-weight: 700;
+      }
+      
+      /* Enhanced gradient text for supporting browsers */
+      @supports (-webkit-background-clip: text) {
+          .text-gradient-primary {
+              -webkit-text-fill-color: transparent;
+              text-fill-color: transparent;
+          }
       }
     </style>
   <script type="importmap">

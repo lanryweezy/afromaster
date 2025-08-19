@@ -25,6 +25,49 @@ const ProcessingAudioPage: React.FC = () => {
   const [reportError, setReportError] = useState<string | null>(null);
 
   useEffect(() => {
+    const runProcessing = async () => {
+      if (!uploadedTrack || !masteringSettings) return;
+
+      // Simulate processing steps
+      const steps = [
+        { message: "Analyzing audio characteristics...", progress: 20 },
+        { message: "Applying EQ and dynamics...", progress: 40 },
+        { message: "Processing stereo enhancement...", progress: 60 },
+        { message: "Finalizing mastering chain...", progress: 80 },
+        { message: "Generating master...", progress: 100 }
+      ];
+
+      for (const step of steps) {
+        setStatusMessage(step.message);
+        setProgress(step.progress);
+        
+        // Wait for 1.5 seconds between steps
+        await new Promise(resolve => setTimeout(resolve, 1500));
+      }
+
+      // Create mock mastered track info
+      const masteredTrack: MasteredTrackInfo = {
+        id: Date.now().toString(),
+        originalName: uploadedTrack.name,
+        masteredName: `${uploadedTrack.name.replace(/\.[^/.]+$/, '')}_mastered.wav`,
+        dateProcessed: new Date().toISOString(),
+        settings: masteringSettings,
+        downloadUrl: '', // Will be set when actual processing is implemented
+        originalDuration: uploadedTrack.duration || 0,
+        masteredDuration: uploadedTrack.duration || 0,
+      };
+
+      setMasteredTrackInfo(masteredTrack);
+      addUserProject(masteredTrack);
+
+      // Navigate to preview page after processing
+      setTimeout(() => {
+        setCurrentPage(AppPage.PREVIEW);
+      }, 1000);
+    };
+
+    runProcessing();
+  }, [uploadedTrack, masteringSettings, setCurrentPage, setMasteredTrackInfo, addUserProject]);
 
   if (!uploadedTrack || !masteringSettings) {
     return <LoadingSpinner text="Loading data..." />;

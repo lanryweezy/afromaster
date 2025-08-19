@@ -4,7 +4,7 @@ import { useAppContext } from '../contexts/AppContext';
 import { AppPage } from '../types';
 import { IconMusicNote, IconLogout, IconMenu, IconX } from '../constants';
 import ThemeSwitcher from './ThemeSwitcher';
-import { auth } from '../firebaseConfig';
+import { auth } from '../src/firebaseConfig';
 import { signOut } from 'firebase/auth';
 
 const Header: React.FC = () => {

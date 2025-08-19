@@ -1,7 +1,7 @@
 import React, { createContext, useState, useContext, ReactNode, useEffect } from 'react';
 import { AppPage, UploadedTrack, MasteringSettings, MasteredTrackInfo, Theme } from '../types';
 import { Genre, LoudnessTarget, TonePreference, StereoWidth } from '../constants';
-import { auth } from '../firebaseConfig';
+import { auth } from '../src/firebaseConfig';
 import { User, onAuthStateChanged } from 'firebase/auth';
 
 interface AppContextType {
