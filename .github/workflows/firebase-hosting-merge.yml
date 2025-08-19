@@ -24,7 +24,7 @@ jobs:
         run: |
           npm cache clean --force
           rm -rf node_modules
-      - run: npm ci
+      - run: npm install --force
       - run: npm run build
       - uses: FirebaseExtended/action-hosting-deploy@v0
         with:
