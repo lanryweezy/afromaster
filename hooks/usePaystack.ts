@@ -19,11 +19,15 @@ const usePaystack = () => {
       return;
     }
 
-    const paystack = new Paystack();
-    paystack.checkout({
-      ...options,
-      email: user.email || '',
+    const paystack = new Paystack({
+      key: options.publicKey,
+      email: options.email,
+      amount: options.amount,
+      currency: options.currency,
+      onSuccess: options.onSuccess,
+      onClose: options.onClose,
     });
+    paystack.checkout();
   };
 
   return payWithPaystack;
