@@ -3,7 +3,19 @@ module.exports = {
   testEnvironment: 'jsdom',
   setupFilesAfterEnv: ['@testing-library/jest-dom', 'whatwg-fetch'],
   moduleDirectories: ['node_modules', 'src'],
+  transform: {
+    '^.+\\.(t|j)sx?$': [
+      'ts-jest',
+      {
+        tsconfig: 'tsconfig.json',
+        useESM: false,
+      },
+    ],
+  },
   moduleNameMapper: {
+    '^../src/firebaseConfig$': '<rootDir>/test/__mocks__/firebaseConfig.ts',
+    '^../hooks/usePaystack$': '<rootDir>/test/__mocks__/usePaystack.ts',
     '\\.(css|less|scss|sass)$': 'identity-obj-proxy',
   },
+  testPathIgnorePatterns: ['/node_modules/'],
 };

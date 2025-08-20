@@ -1,4 +1,4 @@
-import { MasteringSettings } from './types';
+import { MasteringSettings } from '../types';
 
 const createCompressor = (
   context: OfflineAudioContext,
@@ -129,7 +129,8 @@ const processAudio = async (
 
     const saturationNode = context.createWaveShaper();
     if (settings.saturation.amount > 0) {
-        saturationNode.curve = createSaturationCurve(settings.saturation.amount, settings.saturation.flavor);
+        const flavor = (settings as any)?.saturation?.flavor || 'tape';
+        saturationNode.curve = createSaturationCurve(settings.saturation.amount, flavor);
         saturationNode.oversample = '4x';
     }
 

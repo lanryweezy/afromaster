@@ -80,7 +80,13 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     if (storedItem) {
       try {
         const parsedItem = JSON.parse(storedItem);
-        return deepMerge(initialSettings, parsedItem);
+        const merged = deepMerge(initialSettings, parsedItem);
+        // Ensure required nested defaults
+        merged.saturation = {
+          flavor: merged.saturation?.flavor ?? 'tape',
+          amount: merged.saturation?.amount ?? 0,
+        };
+        return merged;
       } catch (error) {
         console.error("Error parsing stored mastering settings:", error);
         return initialSettings;

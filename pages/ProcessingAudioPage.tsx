@@ -83,7 +83,23 @@ const ProcessingAudioPage: React.FC = () => {
           });
         }
 
-        let finalSettings = { ...masteringSettings };
+        // Deep-ish clone with defaults to avoid undefined nested props
+        let finalSettings = {
+          ...masteringSettings,
+          eq: { ...masteringSettings.eq },
+          crossover: { ...masteringSettings.crossover },
+          bands: {
+            low: { ...masteringSettings.bands.low },
+            mid: { ...masteringSettings.bands.mid },
+            high: { ...masteringSettings.bands.high },
+          },
+          limiter: { ...masteringSettings.limiter },
+          reverb: { ...masteringSettings.reverb },
+          saturation: {
+            flavor: masteringSettings.saturation?.flavor ?? 'tape',
+            amount: masteringSettings.saturation?.amount ?? 0,
+          },
+        };
 
         if (finalSettings.aiSettingsApplied) {
           if (!apiKey) {
@@ -97,7 +113,24 @@ const ProcessingAudioPage: React.FC = () => {
               apiKey,
               finalSettings.referenceTrackFile?.name
             );
-            finalSettings = { ...finalSettings, ...aiSettings };
+            // Deep merge AI settings while preserving nested defaults
+            finalSettings = {
+              ...finalSettings,
+              ...(aiSettings as any),
+              eq: { ...finalSettings.eq, ...(aiSettings as any).eq },
+              crossover: { ...finalSettings.crossover, ...(aiSettings as any).crossover },
+              bands: {
+                low: { ...finalSettings.bands.low, ...(aiSettings as any)?.bands?.low },
+                mid: { ...finalSettings.bands.mid, ...(aiSettings as any)?.bands?.mid },
+                high: { ...finalSettings.bands.high, ...(aiSettings as any)?.bands?.high },
+              },
+              limiter: { ...finalSettings.limiter, ...(aiSettings as any).limiter },
+              reverb: { ...finalSettings.reverb, ...(aiSettings as any).reverb },
+              saturation: {
+                flavor: finalSettings.saturation.flavor,
+                amount: (aiSettings as any)?.saturation?.amount ?? finalSettings.saturation.amount,
+              },
+            };
             setIsFetchingReport(true);
             generateMasteringReport(uploadedTrack.name, finalSettings, apiKey)
               .then(report => !cancelled && setMasteringReportNotes(report))
