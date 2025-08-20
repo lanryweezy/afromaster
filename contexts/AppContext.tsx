@@ -22,6 +22,8 @@ interface AppContextType {
   setOriginalAudioBuffer: (buffer: AudioBuffer | null) => void;
   masteredAudioBuffer: AudioBuffer | null;
   setMasteredAudioBuffer: (buffer: AudioBuffer | null) => void;
+  audioBuffersAvailable: boolean;
+  setAudioBuffersAvailable: (available: boolean) => void;
   isMusicPlaying: boolean;
   setIsMusicPlaying: (isPlaying: boolean) => void;
   isAuthenticated: boolean;
@@ -99,7 +101,15 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const [apiKey, setApiKey] = useLocalStorage<string | undefined>('afromaster-api-key', process.env.API_KEY);
   const [originalAudioBuffer, setOriginalAudioBuffer] = useState<AudioBuffer | null>(null);
   const [masteredAudioBuffer, setMasteredAudioBuffer] = useState<AudioBuffer | null>(null);
+  
+  // Add state recovery mechanism for audio buffers
+  const [audioBuffersAvailable, setAudioBuffersAvailable] = useState(false);
   const [isMusicPlaying, setIsMusicPlaying] = useState(false);
+  
+  // Track when both audio buffers are available
+  useEffect(() => {
+    setAudioBuffersAvailable(!!(originalAudioBuffer && masteredAudioBuffer));
+  }, [originalAudioBuffer, masteredAudioBuffer]);
   const [user, setUser] = useState<User | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [theme, setTheme] = useLocalStorage<Theme>('afromaster-theme', 'solar-flare');
@@ -130,6 +140,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       apiKey, setApiKey,
       originalAudioBuffer, setOriginalAudioBuffer,
       masteredAudioBuffer, setMasteredAudioBuffer,
+      audioBuffersAvailable, setAudioBuffersAvailable,
       isMusicPlaying, setIsMusicPlaying,
       isAuthenticated,
       user,
