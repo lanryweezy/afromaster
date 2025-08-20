@@ -78,7 +78,16 @@ export const fetchAIChainSettings = async (
       throw new Error("AI response did not match the expected schema.");
     }
 
-    return parsedData;
+    // Ensure defaults for optional or omitted fields
+    const withDefaults = {
+      ...parsedData,
+      saturation: {
+        flavor: 'tape',
+        amount: typeof parsedData?.saturation?.amount === 'number' ? parsedData.saturation.amount : 0,
+      },
+    };
+
+    return withDefaults;
 
   } catch (error: any) {
     console.error("Error fetching AI chain settings from Gemini:", error);

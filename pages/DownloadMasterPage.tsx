@@ -85,7 +85,7 @@ const DownloadMasterPage: React.FC = () => {
           <p><strong>Tone:</strong> {settings.tonePreference}</p>
           <p><strong>Stereo Width:</strong> {settings.stereoWidth}</p>
           <p><strong>Compression:</strong> {settings.compressionAmount}%</p>
-          <p><strong>Saturation:</strong> {settings.saturationAmount}%</p>
+          <p><strong>Saturation:</strong> {settings.saturation?.amount ?? settings.saturationAmount}%</p>
           <p><strong>Bass/Treble:</strong> {settings.bassBoost.toFixed(1)}dB / {settings.trebleBoost.toFixed(1)}dB</p>
         </div>
         

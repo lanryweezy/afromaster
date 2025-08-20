@@ -43,7 +43,14 @@ const MasteringSettingsPage: React.FC = () => {
       finalGain: 1.0,
       reverb: { impulseResponse: 'none', wetDryMix: 0 },
     };
-    return masteringSettings || initialSettings;
+    const base = masteringSettings || initialSettings;
+    return {
+      ...base,
+      saturation: {
+        flavor: base.saturation?.flavor ?? 'tape',
+        amount: base.saturation?.amount ?? 0,
+      },
+    } as MasteringSettings;
   });
 
   const [aiSettings, setAiSettings] = useState<Partial<MasteringSettings> | null>(null);
@@ -57,7 +64,14 @@ const MasteringSettingsPage: React.FC = () => {
       setCurrentPage(AppPage.UPLOAD);
     }
     if (masteringSettings) {
-      setCurrentSettings(masteringSettings);
+      setCurrentSettings(prev => ({
+        ...prev,
+        ...masteringSettings,
+        saturation: {
+          flavor: masteringSettings.saturation?.flavor ?? prev.saturation.flavor ?? 'tape',
+          amount: masteringSettings.saturation?.amount ?? prev.saturation.amount ?? 0,
+        },
+      }));
     }
   }, [uploadedTrack, setCurrentPage, masteringSettings]);
 
@@ -67,13 +81,17 @@ const MasteringSettingsPage: React.FC = () => {
     const [mainKey, subKey] = name.split('.');
 
     if (subKey) {
-      setCurrentSettings(prev => ({
-        ...prev,
-        [mainKey]: {
-          ...(prev as any)[mainKey],
-          [subKey]: isNumberInput ? parseFloat(value) : value,
-        },
-      }));
+      setCurrentSettings(prev => {
+        const prevAny = prev as any;
+        const existing = typeof prevAny[mainKey] === 'object' && prevAny[mainKey] !== null ? prevAny[mainKey] : {};
+        return {
+          ...prev,
+          [mainKey]: {
+            ...existing,
+            [subKey]: isNumberInput ? parseFloat(value) : value,
+          },
+        } as MasteringSettings;
+      });
     } else {
       setCurrentSettings(prev => ({ ...prev, [name]: isNumberInput ? parseFloat(value) : value } as MasteringSettings));
     }

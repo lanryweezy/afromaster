@@ -1,4 +1,4 @@
-import { MasteringSettings } from './types';
+import { MasteringSettings } from '../types';
 
 const createCompressor = (
   context: OfflineAudioContext,
