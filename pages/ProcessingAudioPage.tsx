@@ -41,6 +41,16 @@ const ProcessingAudioPage: React.FC = () => {
       const { masteredBuffer } = event.data;
       setMasteredAudioBuffer(masteredBuffer);
 
+      // Create masteredTrackInfo to ensure preview page has all required data
+      const trackInfo: MasteredTrackInfo = {
+        id: `track_${Date.now()}`,
+        trackName: uploadedTrack.name,
+        masteredFileUrl: '', // Will be set after upload
+        settings: masteringSettings,
+        createdAt: new Date(),
+        userId: user?.uid || 'anonymous'
+      };
+
       if (user) {
         try {
           setStatusMessage("Uploading files to cloud...");
@@ -49,6 +59,8 @@ const ProcessingAudioPage: React.FC = () => {
           await uploadBytes(storageRef, wavBlob);
           const downloadURL = await getDownloadURL(storageRef);
 
+          trackInfo.masteredFileUrl = downloadURL;
+          
           const projectData = {
             userId: user.uid,
             trackName: uploadedTrack.name,
@@ -57,11 +69,15 @@ const ProcessingAudioPage: React.FC = () => {
             createdAt: new Date(),
           };
           await addDoc(collection(db, "projects"), projectData);
+          addUserProject(trackInfo);
         } catch (e) {
           console.error("Cloud upload failed:", e);
           setStatusMessage("Upload failed, continuing to preview...");
         }
       }
+
+      // Set the track info regardless of upload status
+      setMasteredTrackInfo(trackInfo);
 
       setProgress(100);
       setStatusMessage("Mastering complete!");
