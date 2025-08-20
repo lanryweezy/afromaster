@@ -18,10 +18,15 @@ describe('BuyCreditsPage', () => {
     });
     mockUsePaystack.mockReturnValue(payWithPaystack);
 
+    const originalImportMeta = (global as any).importMeta;
+    (global as any).importMeta = { env: { VITE_PAYSTACK_PUBLIC_KEY: 'pk_test_123' } } as any;
+
     render(<BuyCreditsPage />);
 
     fireEvent.click(screen.getAllByText('Buy Now')[0]);
 
     expect(payWithPaystack).toHaveBeenCalled();
+
+    (global as any).importMeta = originalImportMeta;
   });
 });
