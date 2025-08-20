@@ -287,14 +287,14 @@ const MasteringSettingsPage: React.FC = () => {
                   { value: 'tube', label: 'Tube' },
                   { value: 'fuzz', label: 'Fuzz' },
                 ]}
-                value={currentSettings.saturation.flavor}
+                value={(currentSettings as any)?.saturation?.flavor || 'tape'}
                 onChange={handleInputChange}
               />
               <Slider
                 label="Analog Saturation"
                 name="saturation.amount"
                 min={0} max={100} step={1}
-                value={currentSettings.saturation.amount}
+                value={(currentSettings as any)?.saturation?.amount || 0}
                 onChange={handleInputChange}
                 unit="%"
               />
