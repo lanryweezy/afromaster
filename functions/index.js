@@ -5,11 +5,12 @@ const axios = require("axios");
 admin.initializeApp();
 
 const db = admin.firestore();
-<<<<<<< HEAD
-=======
-// TODO: Replace with your secret key from the Paystack dashboard
-const PAYSTACK_SECRET_KEY = "YOUR_PAYSTACK_SECRET_KEY";
->>>>>>> main
+
+// Resolve Paystack secret from Firebase config or environment variable
+const resolvePaystackSecret = () => {
+  const configSecret = functions.config().paystack && functions.config().paystack.secret;
+  return process.env.PAYSTACK_SECRET_KEY || configSecret;
+};
 
 exports.verifyPaystackTransaction = functions.https.onCall(async (data, context) => {
   if (!context.auth) {
@@ -18,15 +19,15 @@ exports.verifyPaystackTransaction = functions.https.onCall(async (data, context)
 
   const { reference } = data;
   const url = `https://api.paystack.co/transaction/verify/${reference}`;
+  const secret = resolvePaystackSecret();
+  if (!secret) {
+    throw new functions.https.HttpsError("failed-precondition", "Paystack secret not configured.");
+  }
 
   try {
     const response = await axios.get(url, {
       headers: {
-<<<<<<< HEAD
-        Authorization: `Bearer ${functions.config().paystack.secret}`,
-=======
-        Authorization: `Bearer ${PAYSTACK_SECRET_KEY}`,
->>>>>>> main
+        Authorization: `Bearer ${secret}`,
       },
     });
 
@@ -49,8 +50,11 @@ exports.verifyPaystackTransaction = functions.https.onCall(async (data, context)
 
       if (credits > 0) {
         const userRef = db.collection("users").doc(context.auth.uid);
-        await userRef.update({
-          credits: admin.firestore.FieldValue.increment(credits),
+        await db.runTransaction(async (t) => {
+          const snap = await t.get(userRef);
+          const current = (snap.exists && (snap.data().credits || 0)) || 0;
+          const next = current + credits;
+          t.set(userRef, { credits: next }, { merge: true });
         });
         return { success: true, creditsAdded: credits };
       }
