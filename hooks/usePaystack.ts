@@ -14,14 +14,9 @@ const usePaystack = () => {
   const { user } = useAppContext();
 
   const payWithPaystack = (options: PaystackOptions) => {
-    if (!user) {
-      console.error("User is not authenticated");
-      return;
-    }
-
     const paystack = new Paystack({
-      key: options.publicKey,
-      email: options.email,
+      key: options.publicKey || 'pk_test_6146052219e487843de3295e82645371235b2639',
+      email: options.email || 'demo.user@example.com',
       amount: options.amount,
       currency: options.currency,
       onSuccess: options.onSuccess,
