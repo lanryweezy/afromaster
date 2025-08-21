@@ -4,11 +4,7 @@ import { AppPage, MasteredTrackInfo } from '../types';
 import ProgressBar from '../components/ProgressBar';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { fetchAIChainSettings, generateMasteringReport } from '../services/geminiService';
-import { IconSparkles } from '../constants';
-import { db, storage } from '../src/firebaseConfig';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { collection, addDoc, doc, getDoc, updateDoc } from 'firebase/firestore';
-import toWav from 'audiobuffer-to-wav';
+import { uploadMasteredTrack, saveUserProject, checkAndDeductCredits } from '../services/firebaseService';
 
 const ProcessingAudioPage: React.FC = () => {
   const {
@@ -42,7 +38,7 @@ const ProcessingAudioPage: React.FC = () => {
       setMasteredAudioBuffer(masteredBuffer);
 
       // Create masteredTrackInfo to ensure preview page has all required data
-      const trackInfo: MasteredTrackInfo = {
+      let trackInfo: MasteredTrackInfo = {
         id: `track_${Date.now()}`,
         trackName: uploadedTrack.name,
         masteredFileUrl: '', // Will be set after upload
@@ -54,21 +50,11 @@ const ProcessingAudioPage: React.FC = () => {
       if (user) {
         try {
           setStatusMessage("Uploading files to cloud...");
-          const wavBlob = new Blob([toWav(masteredBuffer)], { type: 'audio/wav' });
-          const storageRef = ref(storage, `users/${user.uid}/tracks/${Date.now()}_mastered.wav`);
-          await uploadBytes(storageRef, wavBlob);
-          const downloadURL = await getDownloadURL(storageRef);
-
+          const downloadURL = await uploadMasteredTrack(user, masteredBuffer, uploadedTrack.name);
           trackInfo.masteredFileUrl = downloadURL;
           
-          const projectData = {
-            userId: user.uid,
-            trackName: uploadedTrack.name,
-            masteredFileUrl: downloadURL,
-            settings: masteringSettings,
-            createdAt: new Date(),
-          };
-          await addDoc(collection(db, "projects"), projectData);
+          const savedProject = await saveUserProject(user, uploadedTrack.name, downloadURL, masteringSettings);
+          trackInfo = { ...trackInfo, ...savedProject }; // Update trackInfo with ID from Firestore
           addUserProject(trackInfo);
         } catch (e) {
           console.error("Cloud upload failed:", e);
@@ -87,16 +73,12 @@ const ProcessingAudioPage: React.FC = () => {
     const performMastering = async () => {
       try {
         if (user) {
-          const userRef = doc(db, "users", user.uid);
-          const userDoc = await getDoc(userRef);
-          if (!userDoc.exists() || userDoc.data().credits < 1) {
+          const hasCredits = await checkAndDeductCredits(user);
+          if (!hasCredits) {
             setStatusMessage("You don't have enough credits to master a track.");
             setTimeout(() => setCurrentPage(AppPage.BUY_CREDITS), 3000);
             return;
           }
-          await updateDoc(userRef, {
-            credits: userDoc.data().credits - 1,
-          });
         }
 
         // Deep-ish clone with defaults to avoid undefined nested props
@@ -132,19 +114,19 @@ const ProcessingAudioPage: React.FC = () => {
             // Deep merge AI settings while preserving nested defaults
             finalSettings = {
               ...finalSettings,
-              ...(aiSettings as any),
-              eq: { ...finalSettings.eq, ...(aiSettings as any).eq },
-              crossover: { ...finalSettings.crossover, ...(aiSettings as any).crossover },
+              ...aiSettings,
+              eq: { ...finalSettings.eq, ...aiSettings.eq },
+              crossover: { ...finalSettings.crossover, ...aiSettings.crossover },
               bands: {
-                low: { ...finalSettings.bands.low, ...(aiSettings as any)?.bands?.low },
-                mid: { ...finalSettings.bands.mid, ...(aiSettings as any)?.bands?.mid },
-                high: { ...finalSettings.bands.high, ...(aiSettings as any)?.bands?.high },
+                low: { ...finalSettings.bands.low, ...aiSettings.bands?.low },
+                mid: { ...finalSettings.bands.mid, ...aiSettings.bands?.mid },
+                high: { ...finalSettings.bands.high, ...aiSettings.bands?.high },
               },
-              limiter: { ...finalSettings.limiter, ...(aiSettings as any).limiter },
-              reverb: { ...finalSettings.reverb, ...(aiSettings as any).reverb },
+              limiter: { ...finalSettings.limiter, ...aiSettings.limiter },
+              reverb: { ...finalSettings.reverb, ...aiSettings.reverb },
               saturation: {
                 flavor: finalSettings.saturation.flavor,
-                amount: (aiSettings as any)?.saturation?.amount ?? finalSettings.saturation.amount,
+                amount: aiSettings.saturation?.amount ?? finalSettings.saturation.amount,
               },
             };
             setIsFetchingReport(true);

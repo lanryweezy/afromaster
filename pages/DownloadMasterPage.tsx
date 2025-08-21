@@ -144,7 +144,7 @@ const DownloadMasterPage: React.FC = () => {
             <div className="text-center">
                 <IconCheckCircle className="w-16 h-16 text-green-400 mx-auto mb-4" />
                 <h3 className="text-2xl font-bold text-primary mb-2">Payment Successful!</h3>
-                <p className="text-slate-300 mb-6">You've unlocked Pro features. You can now download MP3 and FLAC formats.</p>
+                <p className="text-slate-300 mb-6">You&apos;ve unlocked Pro features. You can now download MP3 and FLAC formats.</p>
                 <Button size="lg" onClick={closeModal}>
                     Awesome!
                 </Button>
@@ -154,7 +154,7 @@ const DownloadMasterPage: React.FC = () => {
                 <IconSparkles className="w-16 h-16 text-yellow-300 mx-auto mb-4" />
                 <p className="text-lg text-slate-200 mb-4">Unlock high-quality downloads and advanced features for just <span className="font-bold text-white">₦5,000</span>.</p>
                 <ul className="text-left space-y-2 text-slate-400 mb-6 list-disc list-inside">
-                    <li>Download lossless WAV & FLAC files</li>
+                    <li>Download lossless WAV &amp; FLAC files</li>
                     <li>Download high-bitrate MP3 files</li>
                     <li>Advanced AI models</li>
                     <li>Priority support</li>

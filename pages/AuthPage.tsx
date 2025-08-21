@@ -29,8 +29,10 @@ const AuthPage: React.FC = () => {
       }
       // Redirect to dashboard after successful authentication
       setCurrentPage(AppPage.DASHBOARD);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      if (err instanceof Error) {
+        setError(err.message);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -44,8 +46,10 @@ const AuthPage: React.FC = () => {
       await signInWithPopup(auth, provider);
       // Redirect to dashboard after successful authentication
       setCurrentPage(AppPage.DASHBOARD);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      if (err instanceof Error) {
+        setError(err.message);
+      }
     } finally {
       setIsLoading(false);
     }

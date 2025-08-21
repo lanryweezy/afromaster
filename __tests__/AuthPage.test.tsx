@@ -2,11 +2,20 @@ import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import AuthPage from '../pages/AuthPage';
 import * as firebaseAuth from 'firebase/auth';
+import * as AppContextModule from '../contexts/AppContext';
 
 jest.mock('firebase/auth');
 jest.mock('../src/firebaseConfig', () => ({
   auth: {},
 }));
+
+jest.spyOn(AppContextModule, 'useAppContext').mockReturnValue({
+  setCurrentPage: jest.fn(),
+  isAuthenticated: false,
+  user: null,
+});
+
+jest.spyOn(firebaseAuth, 'onAuthStateChanged').mockReturnValue(jest.fn());
 
 describe('AuthPage', () => {
   it('should call createUserWithEmailAndPassword when signing up', () => {

@@ -2,12 +2,11 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useAppContext } from '../contexts/AppContext';
 import { AppPage, MasteringSettings } from '../types';
 import Button from '../components/Button';
-import Dropdown from '../components/Dropdown';
 import LoadingSpinner from '../components/LoadingSpinner';
-import FileUpload from '../components/FileUpload';
-import Slider from '../components/Slider';
 import { fetchAIChainSettings } from '../services/geminiService';
-import { Genre, LoudnessTarget, TonePreference, StereoWidth, GENRE_OPTIONS, LOUDNESS_TARGET_OPTIONS, TONE_PREFERENCE_OPTIONS, STEREO_WIDTH_OPTIONS, IconArrowRight, IconSparkles, IconArrowLeft } from '../constants';
+import { IconArrowRight, IconArrowLeft } from '../constants';
+import ManualMasteringControls from '../components/ManualMasteringControls';
+import AIMasteringSuggestions from '../components/AIMasteringSuggestions';
 
 const MasteringSettingsPage: React.FC = () => {
   const {
@@ -20,10 +19,10 @@ const MasteringSettingsPage: React.FC = () => {
 
   const [currentSettings, setCurrentSettings] = useState<MasteringSettings>(() => {
     const initialSettings = {
-      genre: Genre.POP,
-      loudnessTarget: LoudnessTarget.STREAMING_STANDARD,
-      tonePreference: TonePreference.BALANCED,
-      stereoWidth: StereoWidth.STANDARD,
+      genre: 'Pop',
+      loudnessTarget: 'Streaming Standard',
+      tonePreference: 'Balanced',
+      stereoWidth: 'Standard',
       customLoudnessValue: -14,
       referenceTrackFile: null,
       compressionAmount: 50,
@@ -57,7 +56,7 @@ const MasteringSettingsPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [aiStrength, setAiStrength] = useState(100);
-  const [referenceAnalysis, setReferenceAnalysis] = useState<any>(null);
+  const [referenceAnalysis, setReferenceAnalysis] = useState<Record<string, unknown> | null>(null);
 
   useEffect(() => {
     if (!uploadedTrack) {
@@ -78,12 +77,11 @@ const MasteringSettingsPage: React.FC = () => {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
     const isNumberInput = type === 'number' || type === 'range';
-    const [mainKey, subKey] = name.split('.');
+    const [mainKey, subKey] = name.split('.') as [keyof MasteringSettings, string | undefined];
 
     if (subKey) {
       setCurrentSettings(prev => {
-        const prevAny = prev as any;
-        const existing = typeof prevAny[mainKey] === 'object' && prevAny[mainKey] !== null ? prevAny[mainKey] : {};
+        const existing = typeof prev[mainKey] === 'object' && prev[mainKey] !== null ? prev[mainKey] : {};
         return {
           ...prev,
           [mainKey]: {
@@ -145,8 +143,10 @@ const MasteringSettingsPage: React.FC = () => {
       const settings = await fetchAIChainSettings(currentSettings.genre, uploadedTrack.name, apiKey, referenceAnalysis);
       setAiSettings(settings);
       setCurrentSettings(prev => ({ ...prev, aiSettingsApplied: true }));
-    } catch (err: any) {
-      setError(err.message || "Failed to fetch AI settings.");
+    } catch (err) {
+      if (err instanceof Error) {
+        setError(err.message || "Failed to fetch AI settings.");
+      }
     } finally {
       setIsLoading(false);
     }
@@ -163,58 +163,58 @@ const MasteringSettingsPage: React.FC = () => {
     if (aiSettings.bands) {
       newSettings.bands = {
         low: {
-          threshold: blend(baseSettings.bands.low.threshold, aiSettings.bands.low.threshold),
-          knee: blend(baseSettings.bands.low.knee, aiSettings.bands.low.knee),
-          ratio: blend(baseSettings.bands.low.ratio, aiSettings.bands.low.ratio),
-          attack: blend(baseSettings.bands.low.attack, aiSettings.bands.low.attack),
-          release: blend(baseSettings.bands.low.release, aiSettings.bands.low.release),
-          makeupGain: blend(baseSettings.bands.low.makeupGain, aiSettings.bands.low.makeupGain),
+          threshold: blend(baseSettings.bands.low.threshold, aiSettings.bands.low.threshold || 0),
+          knee: blend(baseSettings.bands.low.knee, aiSettings.bands.low.knee || 0),
+          ratio: blend(baseSettings.bands.low.ratio, aiSettings.bands.low.ratio || 0),
+          attack: blend(baseSettings.bands.low.attack, aiSettings.bands.low.attack || 0),
+          release: blend(baseSettings.bands.low.release, aiSettings.bands.low.release || 0),
+          makeupGain: blend(baseSettings.bands.low.makeupGain, aiSettings.bands.low.makeupGain || 0),
         },
         mid: {
-          threshold: blend(baseSettings.bands.mid.threshold, aiSettings.bands.mid.threshold),
-          knee: blend(baseSettings.bands.mid.knee, aiSettings.bands.mid.knee),
-          ratio: blend(baseSettings.bands.mid.ratio, aiSettings.bands.mid.ratio),
-          attack: blend(baseSettings.bands.mid.attack, aiSettings.bands.mid.attack),
-          release: blend(baseSettings.bands.mid.release, aiSettings.bands.mid.release),
-          makeupGain: blend(baseSettings.bands.mid.makeupGain, aiSettings.bands.mid.makeupGain),
+          threshold: blend(baseSettings.bands.mid.threshold, aiSettings.bands.mid.threshold || 0),
+          knee: blend(baseSettings.bands.mid.knee, aiSettings.bands.mid.knee || 0),
+          ratio: blend(baseSettings.bands.mid.ratio, aiSettings.bands.mid.ratio || 0),
+          attack: blend(baseSettings.bands.mid.attack, aiSettings.bands.mid.attack || 0),
+          release: blend(baseSettings.bands.mid.release, aiSettings.bands.mid.release || 0),
+          makeupGain: blend(baseSettings.bands.mid.makeupGain, aiSettings.bands.mid.makeupGain || 0),
         },
         high: {
-          threshold: blend(baseSettings.bands.high.threshold, aiSettings.bands.high.threshold),
-          knee: blend(baseSettings.bands.high.knee, aiSettings.bands.high.knee),
-          ratio: blend(baseSettings.bands.high.ratio, aiSettings.bands.high.ratio),
-          attack: blend(baseSettings.bands.high.attack, aiSettings.bands.high.attack),
-          release: blend(baseSettings.bands.high.release, aiSettings.bands.high.release),
-          makeupGain: blend(baseSettings.bands.high.makeupGain, aiSettings.bands.high.makeupGain),
+          threshold: blend(baseSettings.bands.high.threshold, aiSettings.bands.high.threshold || 0),
+          knee: blend(baseSettings.bands.high.knee, aiSettings.bands.high.knee || 0),
+          ratio: blend(baseSettings.bands.high.ratio, aiSettings.bands.high.ratio || 0),
+          attack: blend(baseSettings.bands.high.attack, aiSettings.bands.high.attack || 0),
+          release: blend(baseSettings.bands.high.release, aiSettings.bands.high.release || 0),
+          makeupGain: blend(baseSettings.bands.high.makeupGain, aiSettings.bands.high.makeupGain || 0),
         },
       };
     }
 
     if (aiSettings.eq) {
       newSettings.eq = {
-        bassFreq: blend(baseSettings.eq.bassFreq, aiSettings.eq.bassFreq),
-        trebleFreq: blend(baseSettings.eq.trebleFreq, aiSettings.eq.trebleFreq),
-        bassGain: blend(baseSettings.eq.bassGain, aiSettings.eq.bassGain),
-        trebleGain: blend(baseSettings.eq.trebleGain, aiSettings.eq.trebleGain),
+        bassFreq: blend(baseSettings.eq.bassFreq, aiSettings.eq.bassFreq || 0),
+        trebleFreq: blend(baseSettings.eq.trebleFreq, aiSettings.eq.trebleFreq || 0),
+        bassGain: blend(baseSettings.eq.bassGain, aiSettings.eq.bassGain || 0),
+        trebleGain: blend(baseSettings.eq.trebleGain, aiSettings.eq.trebleGain || 0),
       };
     }
 
     if (aiSettings.saturation) {
       newSettings.saturation = {
         ...newSettings.saturation,
-        amount: blend(baseSettings.saturation.amount, aiSettings.saturation.amount),
+        amount: blend(baseSettings.saturation.amount, aiSettings.saturation.amount || 0),
       };
     }
 
     if (aiSettings.limiter) {
       newSettings.limiter = {
-        threshold: blend(baseSettings.limiter.threshold, aiSettings.limiter.threshold),
-        attack: blend(baseSettings.limiter.attack, aiSettings.limiter.attack),
-        release: blend(baseSettings.limiter.release, aiSettings.limiter.release),
+        threshold: blend(baseSettings.limiter.threshold, aiSettings.limiter.threshold || 0),
+        attack: blend(baseSettings.limiter.attack, aiSettings.limiter.attack || 0),
+        release: blend(baseSettings.limiter.release, aiSettings.limiter.release || 0),
       };
     }
 
     if (aiSettings.finalGain) {
-      newSettings.finalGain = blend(baseSettings.finalGain, aiSettings.finalGain);
+      newSettings.finalGain = blend(baseSettings.finalGain, aiSettings.finalGain || 0);
     }
 
     return newSettings;
@@ -247,134 +247,21 @@ const MasteringSettingsPage: React.FC = () => {
       </div>
 
       <div className="grid lg:grid-cols-2 gap-8">
-        <div>
-          <h3 className="text-2xl font-heading text-primary-focus transition-colors mb-4 border-b-2 border-slate-700 pb-2">Manual Controls</h3>
-          <div className="space-y-4">
-            <Dropdown label="Genre" name="genre" options={GENRE_OPTIONS} value={currentSettings.genre} onChange={handleInputChange} />
-            <Dropdown label="Target Loudness" name="loudnessTarget" options={LOUDNESS_TARGET_OPTIONS} value={currentSettings.loudnessTarget as LoudnessTarget} onChange={handleInputChange} />
-            {currentSettings.loudnessTarget === LoudnessTarget.CUSTOM && (
-              <div className="pl-4 border-l-2 border-slate-700">
-                <label htmlFor="customLoudnessValue" className="block text-sm font-medium text-slate-300 mb-2">Custom LUFS Value (e.g. -12)</label>
-                <input
-                  type="number"
-                  name="customLoudnessValue"
-                  id="customLoudnessValue"
-                  value={currentSettings.customLoudnessValue || ''}
-                  onChange={handleInputChange}
-                  placeholder="-14"
-                  step="0.1"
-                  className="w-full bg-slate-800 border border-slate-700 text-slate-100 rounded-lg shadow-sm focus:ring-primary focus:border-primary transition-colors"
-                />
-              </div>
-            )}
-            <Dropdown label="Tone Preference" name="tonePreference" options={TONE_PREFERENCE_OPTIONS} value={currentSettings.tonePreference} onChange={handleInputChange} />
-            <Dropdown label="Stereo Width" name="stereoWidth" options={STEREO_WIDTH_OPTIONS} value={currentSettings.stereoWidth} onChange={handleInputChange} />
+        <ManualMasteringControls
+          currentSettings={currentSettings}
+          handleInputChange={handleInputChange}
+          handleReferenceFileAccepted={handleReferenceFileAccepted}
+          handleReferenceFileCleared={handleReferenceFileCleared}
+        />
 
-            <div className="pt-4 space-y-6">
-              <Slider
-                label="Compression Intensity"
-                name="compressionAmount"
-                min={0} max={100} step={1}
-                value={currentSettings.compressionAmount}
-                onChange={handleInputChange}
-                unit="%"
-              />
-              <Dropdown
-                label="Saturation Flavor"
-                name="saturation.flavor"
-                options={[
-                  { value: 'tape', label: 'Warm Tape' },
-                  { value: 'tube', label: 'Tube' },
-                  { value: 'fuzz', label: 'Fuzz' },
-                ]}
-                value={(currentSettings as any)?.saturation?.flavor || 'tape'}
-                onChange={handleInputChange}
-              />
-              <Slider
-                label="Analog Saturation"
-                name="saturation.amount"
-                min={0} max={100} step={1}
-                value={(currentSettings as any)?.saturation?.amount || 0}
-                onChange={handleInputChange}
-                unit="%"
-              />
-              <Slider
-                label="Bass Emphasis"
-                name="bassBoost"
-                min={-6} max={6} step={0.5}
-                value={currentSettings.bassBoost}
-                onChange={handleInputChange}
-                unit="dB"
-              />
-              <Slider
-                label="Treble Emphasis"
-                name="trebleBoost"
-                min={-6} max={6} step={0.5}
-                value={currentSettings.trebleBoost}
-                onChange={handleInputChange}
-                unit="dB"
-              />
-            </div>
-
-            <div className="pt-4">
-              <h4 className="text-lg font-semibold text-primary-focus mb-2">Creative Effects</h4>
-              <Dropdown
-                label="Reverb"
-                name="reverb.impulseResponse"
-                options={[
-                  { value: 'none', label: 'None' },
-                  { value: 'small_drum_room.wav', label: 'Small Drum Room' },
-                  { value: 'nice_drum_room.wav', label: 'Nice Drum Room' },
-                  { value: 'large_long_echo_hall.wav', label: 'Large Hall' },
-                  { value: 'masonic_lodge.wav', label: 'Masonic Lodge' },
-                ]}
-                value={currentSettings.reverb.impulseResponse}
-                onChange={handleInputChange}
-              />
-              <Slider
-                label="Reverb Mix"
-                name="reverb.wetDryMix"
-                min={0} max={1} step={0.01}
-                value={currentSettings.reverb.wetDryMix}
-                onChange={handleInputChange}
-                unit="%"
-              />
-            </div>
-
-            <div className="pt-4">
-              <FileUpload
-                label="Match a Reference Track (Optional)"
-                onFileAccepted={handleReferenceFileAccepted}
-                onFileCleared={handleReferenceFileCleared}
-                existingFile={currentSettings.referenceTrackFile || null}
-                id="reference-track-upload"
-              />
-            </div>
-          </div>
-        </div>
-
-        <div>
-          <h3 className="text-2xl font-heading text-primary mb-4 border-b-2 border-slate-700 pb-2">AI Suggestions</h3>
-          <div className="mb-6 text-center bg-slate-800/50 p-4 rounded-lg">
-            <Button onClick={handleGetAISettings} isLoading={isLoading} disabled={isLoading || !apiKey} leftIcon={<IconSparkles className="w-5 h-5" />}>
-              {apiKey ? 'Generate AI Settings' : 'Configure API Key for AI'}
-            </Button>
-            {error && <p className="text-red-400 text-sm mt-2">{error}</p>}
-          </div>
-
-          {isLoading && <LoadingSpinner text="Generating AI Settings..." className="my-6" />}
-
-          <div className="pt-4 space-y-6">
-            <Slider
-              label="AI Strength"
-              name="aiStrength"
-              min={0} max={100} step={1}
-              value={aiStrength}
-              onChange={(e) => setAiStrength(parseInt(e.target.value))}
-              unit="%"
-            />
-          </div>
-        </div>
+        <AIMasteringSuggestions
+          isLoading={isLoading}
+          apiKey={apiKey}
+          error={error}
+          handleGetAISettings={handleGetAISettings}
+          aiStrength={aiStrength}
+          setAiStrength={setAiStrength}
+        />
       </div>
 
       <div className="mt-10 pt-6 border-t border-slate-800 text-right">

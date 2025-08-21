@@ -129,7 +129,7 @@ const processAudio = async (
 
     const saturationNode = context.createWaveShaper();
     if (settings.saturation.amount > 0) {
-        const flavor = (settings as any)?.saturation?.flavor || 'tape';
+        const flavor = settings.saturation.flavor || 'tape';
         saturationNode.curve = createSaturationCurve(settings.saturation.amount, flavor);
         saturationNode.oversample = '4x';
     }

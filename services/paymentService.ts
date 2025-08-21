@@ -5,8 +5,8 @@ interface PaystackConfig {
   currency?: string;
   ref: string;
   onClose: () => void;
-  callback: (response: any) => void;
-  metadata?: Record<string, any>;
+  callback: (response: { reference: string; status: string; message: string }) => void;
+  metadata?: Record<string, unknown>;
 }
 
 // This tells TypeScript that PaystackPop is a global variable provided by the script
@@ -16,7 +16,7 @@ declare const PaystackPop: {
   };
 };
 
-export const initiatePaystackPayment = (onSuccess: (response: any) => void, onCancel: () => void) => {
+export const initiatePaystackPayment = (onSuccess: (response: { reference: string; status: string; message: string }) => void, onCancel: () => void) => {
   // IMPORTANT: In a real application, the public key should be stored securely in environment variables
   // and accessed via a backend endpoint. For this front-end only demo, we are using a public test key.
   const paystackTestPublicKey = 'pk_test_6146052219e487843de3295e82645371235b2639';

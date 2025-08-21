@@ -3,7 +3,6 @@ import { useAppContext } from '../contexts/AppContext';
 import { AppPage } from '../types';
 import Button from '../components/Button';
 import { IconArrowRight, IconMusicNote, IconSparkles, IconUpload, IconPlay, IconCog, IconDownload, IconCheckCircle, IconXCircle } from '../constants';
-import DemoAudioPlayer from '../components/DemoAudioPlayer';
 
 // Staggered Text Animation Component
 const StaggeredText: React.FC<{ text: string; className?: string }> = ({ text, className }) => {
@@ -85,7 +84,7 @@ const LandingPage: React.FC = () => {
                     <div className="flex text-yellow-400">
                         <span>★</span><span>★</span><span>★</span><span>★</span><span>★</span>
                     </div>
-                    <span>Trusted by <strong>10,000+</strong> producers & artists</span>
+                    <span>Trusted by <strong>10,000+</strong> producers &amp; artists</span>
                 </div>
             </div>
         </div>
@@ -113,7 +112,7 @@ const LandingPage: React.FC = () => {
                 <h3 className="text-2xl font-heading font-semibold text-red-400 mb-4">The Old Way</h3>
                 <ul className="space-y-3 text-slate-300">
                     <li className="flex items-start"><IconXCircle className="w-5 h-5 text-red-400 mr-3 mt-0.5 flex-shrink-0"/>Muddy mixes that lack punch and clarity.</li>
-                    <li className="flex items-start"><IconXCircle className="w-5 h-5 text-red-400 mr-3 mt-0.5 flex-shrink-0"/>Tracks aren't loud enough for Spotify or Apple Music.</li>
+                    <li className="flex items-start"><IconXCircle className="w-5 h-5 text-red-400 mr-3 mt-0.5 flex-shrink-0"/>Tracks aren&apos;t loud enough for Spotify or Apple Music.</li>
                     <li className="flex items-start"><IconXCircle className="w-5 h-5 text-red-400 mr-3 mt-0.5 flex-shrink-0"/>Hours wasted tweaking complex mastering plugins.</li>
                     <li className="flex items-start"><IconXCircle className="w-5 h-5 text-red-400 mr-3 mt-0.5 flex-shrink-0"/>Paying expensive engineers for every single track.</li>
                 </ul>
@@ -140,7 +139,7 @@ const LandingPage: React.FC = () => {
             <HowItWorksStep icon={<IconUpload className="w-6 h-6"/>} title="Upload Your Mix" description="Drag and drop your final mix in WAV, MP3, AIFF, or FLAC format. Our system will analyze it instantly." delay={0.1}/>
             <HowItWorksStep icon={<IconCog className="w-6 h-6"/>} title="Define Your Sound" description="Choose a genre, select an AI-suggested preset, or fine-tune the parameters manually for your perfect sound." delay={0.2}/>
             <HowItWorksStep icon={<IconSparkles className="w-6 h-6"/>} title="AI Masters Your Track" description="Our engine applies intelligent EQ, compression, and limiting to optimize your track for streaming and broadcast." delay={0.3}/>
-            <HowItWorksStep icon={<IconDownload className="w-6 h-6"/>} title="Preview and Download" description="A/B compare your original mix with the new master. Once you're happy, download your high-resolution audio file." delay={0.4}/>
+            <HowItWorksStep icon={<IconDownload className="w-6 h-6"/>} title="Preview and Download" description="A/B compare your original mix with the new master. Once you&apos;re happy, download your high-resolution audio file." delay={0.4}/>
         </div>
       </section>
       

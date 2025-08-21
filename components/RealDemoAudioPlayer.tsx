@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef } from 'react';
-import Button from './Button';
 import { IconPlay, IconPause } from '../constants';
 import LoadingSpinner from './LoadingSpinner';
 import WaveformCanvas from './WaveformCanvas';
@@ -29,7 +28,7 @@ const RealDemoAudioPlayer: React.FC<RealDemoAudioPlayerProps> = ({ unmasteredUrl
 
     const setupAudio = async () => {
       try {
-        audioCtxRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+        audioCtxRef.current = new (window.AudioContext || (window as typeof window.webkitAudioContext)).webkitAudioContext();
 
         // Fetch and decode unmastered track
         const originalResponse = await fetch(unmasteredUrl);

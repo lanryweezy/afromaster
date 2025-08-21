@@ -1,9 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { MasteringSettings } from '../types';
-import { Genre, LoudnessTarget, StereoWidth, TonePreference, BACKGROUND_MUSIC_URL, IconPlay, IconPause } from '../constants';
+import { BACKGROUND_MUSIC_URL, IconPlay, IconPause } from '../constants';
 import LoadingSpinner from './LoadingSpinner';
 import WaveformCanvas from './WaveformCanvas';
-import ToggleSwitch from './ToggleSwitch';
 
 const DemoAudioPlayer: React.FC = () => {
     const [isLoading, setIsLoading] = useState(true);
@@ -30,7 +28,7 @@ const DemoAudioPlayer: React.FC = () => {
 
         const setupAudio = async () => {
             try {
-                audioCtxRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+                audioCtxRef.current = new (window.AudioContext || (window as typeof window.webkitAudioContext)).webkitAudioContext();
                 const arrayBuffer = dataUriToArrayBuffer(BACKGROUND_MUSIC_URL);
                 const decodedBuffer = await audioCtxRef.current.decodeAudioData(arrayBuffer);
                 if (!isMountedRef.current) return;
@@ -104,7 +102,7 @@ const DemoAudioPlayer: React.FC = () => {
         <div className="bg-slate-800/50 backdrop-blur-lg border border-slate-700/50 rounded-2xl p-6 md:p-8 shadow-2xl shadow-black/20 card-accent">
             <div className="flex flex-col sm:flex-row items-center justify-between mb-4 gap-4">
                 <div>
-                    <p className="font-bold text-white">"Future Funk" - Demo Track</p>
+                    <p className="font-bold text-white">Future Funk - Demo Track</p>
                     <p className="text-sm text-white">Electronic Pop</p>
                 </div>
             </div>

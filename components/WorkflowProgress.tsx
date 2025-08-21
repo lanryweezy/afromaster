@@ -34,7 +34,7 @@ const WorkflowProgress: React.FC = () => {
           {steps.map((step, index) => {
             const isActive = index === currentStepIndex;
             const isCompleted = index < currentStepIndex;
-            const isUpcoming = index > currentStepIndex;
+
 
             return (
               <div key={index} className="flex items-center space-x-3">
@@ -77,7 +77,7 @@ const WorkflowProgress: React.FC = () => {
           {steps.map((step, index) => {
             const isActive = index === currentStepIndex;
             const isCompleted = index < currentStepIndex;
-            const isUpcoming = index > currentStepIndex;
+
 
             return (
               <div key={index} className="flex items-center">

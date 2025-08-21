@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { useDropzone } from 'react-dropzone';
+import { useDropzone, FileRejection } from 'react-dropzone';
 import { IconUpload, IconMusicNote, IconXCircle } from '../constants';
 
 interface FileUploadProps {
@@ -46,7 +46,7 @@ const FileUpload: React.FC<FileUploadProps> = ({
   }, [externalFile]);
 
 
-  const onDrop = useCallback((acceptedFiles: File[], fileRejections: any[]) => {
+  const onDrop = useCallback((acceptedFiles: File[], fileRejections: FileRejection[]) => {
     setError(null);
     if (fileRejections.length > 0) {
       const rejectionError = fileRejections[0].errors[0]?.message || `File type not supported. Please upload: ${acceptedMimeTypes.join(', ')}.`;
@@ -101,7 +101,7 @@ const FileUpload: React.FC<FileUploadProps> = ({
           {isDragActive ? (
             <p className="text-sm sm:text-md font-semibold text-primary">Drop the track here ...</p>
           ) : (
-            <p className="text-sm sm:text-md text-white">Drag 'n' drop audio file, or <span className="text-primary underline">click to select</span></p>
+            <p className="text-sm sm:text-md text-white">Drag &apos;n&apos; drop audio file, or <span className="text-primary underline">click to select</span></p>
           )}
           <p className="text-xs text-slate-400 mt-2">Supported: MP3, WAV, AIFF, FLAC</p>
         </div>

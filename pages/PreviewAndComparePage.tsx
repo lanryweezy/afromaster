@@ -17,8 +17,7 @@ const PreviewAndComparePage: React.FC = () => {
     originalAudioBuffer, 
     masteredAudioBuffer,
     audioBuffersAvailable,
-    setOriginalAudioBuffer,
-    setMasteredAudioBuffer
+    setOriginalAudioBuffer
   } = useAppContext();
 
   const audioCtxRef = useRef<AudioContext | null>(null);
@@ -33,11 +32,6 @@ const PreviewAndComparePage: React.FC = () => {
   const [isMastered, setIsMastered] = useState(true);
   const [isRecoveringAudio, setIsRecoveringAudio] = useState(false);
   const [recoveryError, setRecoveryError] = useState<string | null>(null);
-
-  useEffect(() => {
-    console.log("originalAudioBuffer", originalAudioBuffer);
-    console.log("masteredAudioBuffer", masteredAudioBuffer);
-  }, [originalAudioBuffer, masteredAudioBuffer]);
 
   // Audio recovery mechanism
   const attemptAudioRecovery = async () => {
@@ -104,7 +98,8 @@ const PreviewAndComparePage: React.FC = () => {
   useEffect(() => {
       const initAudio = async () => {
           if (originalAudioBuffer && masteredAudioBuffer && !audioCtxRef.current) {
-              const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+              const AudioContext = window.AudioContext || window.webkitAudioContext;
+              const ctx = new AudioContext();
               audioCtxRef.current = ctx;
               gainNodeRef.current = ctx.createGain();
               gainNodeRef.current.connect(ctx.destination);

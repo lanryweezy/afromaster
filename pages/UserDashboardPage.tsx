@@ -3,7 +3,7 @@ import { useAppContext } from '../contexts/AppContext';
 import TrackCard from '../components/TrackCard';
 import Button from '../components/Button';
 import { AppPage, MasteredTrackInfo } from '../types';
-import { IconUpload, IconMusicNote, IconLockClosed } from '../constants';
+import { IconUpload, IconMusicNote } from '../constants';
 import { db } from '../src/firebaseConfig';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 
@@ -51,7 +51,7 @@ const UserDashboardPage: React.FC = () => {
         <div className="text-center py-20 bg-slate-900/60 backdrop-blur-lg border border-slate-800/50 rounded-xl shadow-lg card-accent">
           <IconMusicNote className="w-16 h-16 text-slate-600 mx-auto mb-4" />
           <h3 className="text-2xl font-bold text-primary">No Projects Yet</h3>
-          <p className="text-slate-300 mt-2">Click "Master New Track" to get started!</p>
+          <p className="text-slate-300 mt-2">Click &quot;Master New Track&quot; to get started!</p>
         </div>
       ) : (
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">

@@ -1,7 +1,7 @@
 import React from 'react';
 import { AIPreset, MasteringSettings } from '../types';
 import Button from './Button';
-import { IconSparkles, LoudnessTarget, TonePreference, StereoWidth, GENRE_OPTIONS, LOUDNESS_TARGET_OPTIONS, TONE_PREFERENCE_OPTIONS, STEREO_WIDTH_OPTIONS } from '../constants';
+import { IconSparkles, LoudnessTarget, TonePreference, StereoWidth, LOUDNESS_TARGET_OPTIONS, TONE_PREFERENCE_OPTIONS, STEREO_WIDTH_OPTIONS } from '../constants';
 
 interface AIPresetCardProps {
   preset: AIPreset;

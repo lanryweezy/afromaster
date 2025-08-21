@@ -1,12 +1,12 @@
 import { GoogleGenAI, GenerateContentResponse } from "@google/genai";
-import { AIPreset, MasteringSettings } from '../types';
+import { MasteringSettings } from '../types';
 
 export const fetchAIChainSettings = async (
   genre: string,
   trackName: string,
   apiKey: string,
-  referenceAnalysis?: any
-): Promise<any> => {
+  referenceAnalysis?: Record<string, unknown> | null
+): Promise<Partial<MasteringSettings>> => {
   if (!apiKey) {
     throw new Error("Gemini API key is not provided.");
   }
@@ -89,21 +89,25 @@ export const fetchAIChainSettings = async (
 
     return withDefaults;
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error fetching AI chain settings from Gemini:", error);
-    if (error.message && error.message.includes("API key not valid")) {
+    let errorMessage = "Unknown error";
+    if (error instanceof Error) {
+      errorMessage = error.message;
+    }
+    if (errorMessage.includes("API key not valid")) {
         throw new Error("Invalid API Key for Gemini. Please check your configuration.");
     }
-    if (error.message && (error.message.toLowerCase().includes("quota") || error.message.toLowerCase().includes("rate limit"))) {
+    if (errorMessage.toLowerCase().includes("quota") || errorMessage.toLowerCase().includes("rate limit")) {
         throw new Error("API quota exceeded or rate limit hit. Please try again later.");
     }
-    throw new Error(`Failed to fetch AI chain settings: ${error.message || 'Unknown error'}`);
+    throw new Error(`Failed to fetch AI chain settings: ${errorMessage}`);
   }
 };
 
-const validateAIChainSettings = (data: any): boolean => {
+const validateAIChainSettings = (data: Partial<MasteringSettings>): boolean => {
   if (typeof data !== 'object' || data === null) return false;
-  const has = (prop: string) => Object.prototype.hasOwnProperty.call(data, prop);
+      const has = (prop: keyof Partial<MasteringSettings>) => Object.prototype.hasOwnProperty.call(data, prop);
   if (!has('crossover') || !has('eq') || !has('saturation') || !has('preGain') || !has('bands') || !has('limiter') || !has('finalGain')) {
     return false;
   }
@@ -113,7 +117,7 @@ const validateAIChainSettings = (data: any): boolean => {
   if (typeof data.preGain !== 'number') return false;
   if (typeof data.finalGain !== 'number') return false;
   if (typeof data.limiter.threshold !== 'number' || typeof data.limiter.attack !== 'number' || typeof data.limiter.release !== 'number') return false;
-  const bandSchema = (band: any) => typeof band.threshold === 'number' && typeof band.knee === 'number' && typeof band.ratio === 'number' && typeof band.attack === 'number' && typeof band.release === 'number' && typeof band.makeupGain === 'number';
+      const bandSchema = (band: { threshold: number; knee: number; ratio: number; attack: number; release: number; makeupGain: number }) => typeof band.threshold === 'number' && typeof band.knee === 'number' && typeof band.ratio === 'number' && typeof band.attack === 'number' && typeof band.release === 'number' && typeof band.makeupGain === 'number';
   if (!bandSchema(data.bands.low) || !bandSchema(data.bands.mid) || !bandSchema(data.bands.high)) return false;
   return true;
 };
@@ -157,7 +161,7 @@ export const generateMasteringReport = async (
       },
     });
     return response.text;
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error generating mastering report from Gemini:", error);
     return "AI insights temporarily unavailable.";
   }
