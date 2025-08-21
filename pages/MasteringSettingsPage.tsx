@@ -18,7 +18,7 @@ const MasteringSettingsPage: React.FC = () => {
   } = useAppContext();
 
   const [currentSettings, setCurrentSettings] = useState<MasteringSettings>(() => {
-    const initialSettings = {
+    const initialSettings: MasteringSettings = {
       genre: 'Pop',
       loudnessTarget: 'Streaming Standard',
       tonePreference: 'Balanced',
@@ -41,15 +41,28 @@ const MasteringSettingsPage: React.FC = () => {
       limiter: { threshold: -1.5, attack: 0.002, release: 0.05 },
       finalGain: 1.0,
       reverb: { impulseResponse: 'none', wetDryMix: 0 },
+      aiSettingsApplied: false, // Add this default
+      useDynamicEQ: false, // Add this default
     };
+
     const base = masteringSettings || initialSettings;
     return {
+      ...initialSettings, // Start with all defaults
       ...base,
+      crossover: { ...initialSettings.crossover, ...base.crossover },
+      eq: { ...initialSettings.eq, ...base.eq },
       saturation: {
-        flavor: base.saturation?.flavor ?? 'tape',
-        amount: base.saturation?.amount ?? 0,
+        ...initialSettings.saturation,
+        ...base.saturation,
       },
-    } as MasteringSettings;
+      bands: {
+        low: { ...initialSettings.bands.low, ...base.bands?.low },
+        mid: { ...initialSettings.bands.mid, ...base.bands?.mid },
+        high: { ...initialSettings.bands.high, ...base.bands?.high },
+      },
+      limiter: { ...initialSettings.limiter, ...base.limiter },
+      reverb: { ...initialSettings.reverb, ...base.reverb },
+    };
   });
 
   const [aiSettings, setAiSettings] = useState<Partial<MasteringSettings> | null>(null);
