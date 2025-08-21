@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useAppContext } from '../contexts/AppContext';
 import TrackCard from '../components/TrackCard';
 import Button from '../components/Button';
+import ReferralShare from '../components/ReferralShare';
 import { AppPage, MasteredTrackInfo } from '../types';
 import { IconUpload } from '../constants';
 import { db } from '../src/firebaseConfig';
@@ -54,11 +55,18 @@ const UserDashboardPage: React.FC = () => {
       </div>
 
       {displayStatus || (
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {projects.map(track => (
-            <TrackCard key={track.id} track={track} />
-          ))}
-        </div>
+        <>
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+            {projects.map(track => (
+              <TrackCard key={track.id} track={track} />
+            ))}
+          </div>
+          
+          {/* Referral Section */}
+          <div className="mt-12">
+            <ReferralShare />
+          </div>
+        </>
       )}
     </div>
   );

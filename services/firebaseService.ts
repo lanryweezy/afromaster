@@ -1,9 +1,71 @@
 import { db, storage } from '../src/firebaseConfig';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { collection, addDoc, doc, runTransaction, query, orderBy, getDocs, getDoc, setDoc } from 'firebase/firestore';
+import { collection, addDoc, doc, runTransaction, query, orderBy, getDocs, getDoc, setDoc, where, writeBatch } from 'firebase/firestore';
 import { User } from 'firebase/auth';
 import { MasteringSettings, MasteredTrackInfo } from '../types';
 import toWav from 'audiobuffer-to-wav';
+
+// Generate a unique referral code for users
+const generateReferralCode = (userId: string): string => {
+  // Create a short, unique code based on user ID
+  const hash = userId.split('').reduce((a, b) => {
+    a = ((a << 5) - a) + b.charCodeAt(0);
+    return a & a;
+  }, 0);
+  return Math.abs(hash).toString(36).substring(0, 6).toUpperCase();
+};
+
+// Get user by referral code
+export const getUserByReferralCode = async (referralCode: string): Promise<User | null> => {
+  try {
+    const usersRef = collection(db, 'users');
+    const q = query(usersRef, where('referralCode', '==', referralCode.toUpperCase()));
+    const querySnapshot = await getDocs(q);
+    
+    if (!querySnapshot.empty) {
+      const userDoc = querySnapshot.docs[0];
+      return userDoc.data() as User;
+    }
+    return null;
+  } catch (error) {
+    console.error('Error getting user by referral code:', error);
+    return null;
+  }
+};
+
+// Process referral when new user signs up
+export const processReferral = async (referrerId: string, newUserId: string): Promise<void> => {
+  try {
+    const batch = writeBatch(db);
+    
+    // Get referrer's document
+    const referrerRef = doc(db, 'users', referrerId);
+    const referrerDoc = await getDoc(referrerRef);
+    
+    if (referrerDoc.exists()) {
+      const referrerData = referrerDoc.data();
+      const newReferralCount = (referrerData.referralCount || 0) + 1;
+      
+      // Update referrer's referral count and add credits if they reach milestones
+      const updates: any = { referralCount: newReferralCount };
+      
+      // Give credits for referrals (1 credit per referral, up to 5)
+      if (newReferralCount <= 5) {
+        updates.credits = (referrerData.credits || 0) + 1;
+      }
+      
+      batch.update(referrerRef, updates);
+      
+      // Update new user's referredBy field
+      const newUserRef = doc(db, 'users', newUserId);
+      batch.update(newUserRef, { referredBy: referrerId });
+      
+      await batch.commit();
+    }
+  } catch (error) {
+    console.error('Error processing referral:', error);
+  }
+};
 
 export const uploadMasteredTrack = async (user: User, masteredBuffer: AudioBuffer, setIsLoading: (loading: boolean) => void, setErrorMessage: (message: string | null) => void): Promise<string | undefined> => {
   setIsLoading(true);
@@ -139,11 +201,14 @@ export const getUserCredits = async (user: User): Promise<number> => {
     } else {
       // Create user document with initial credits
       await setDoc(userRef, { 
-        credits: 3, // Give new users 3 free credits
+        credits: 1, // Give new users 1 free credit
         email: user.email,
-        createdAt: new Date()
+        createdAt: new Date(),
+        referralCode: generateReferralCode(user.uid),
+        referredBy: null,
+        referralCount: 0
       });
-      return 3;
+      return 1;
     }
   } catch (error) {
     console.error('Error getting user credits:', error);

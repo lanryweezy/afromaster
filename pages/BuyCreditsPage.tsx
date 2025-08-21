@@ -33,6 +33,9 @@ const BuyCreditsPage: React.FC = () => {
       <h2 className="text-3xl sm:text-4xl font-heading font-semibold text-gradient-primary mb-4 text-center">
         Purchase Mastering Credits
       </h2>
+      <p className="text-slate-300 mb-8 text-center">
+        Mastering is FREE! Credits are only needed to download your mastered tracks.
+      </p>
       <CurrencyToggle currency={currency} setCurrency={setCurrency} />
       <div className="grid md:grid-cols-3 gap-8">
         {creditPackages[currency].map((pkg) => (

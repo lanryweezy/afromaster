@@ -49,16 +49,9 @@ const ProcessingAudioPage: React.FC = () => {
       setErrorMessage(null);
       
       try {
-        // Step 1: Check and deduct credits
-        setStatusMessage("Checking credits...");
+        // Step 1: Mastering is now FREE! No credit deduction needed
+        setStatusMessage("Starting free mastering process...");
         setProgress(10);
-        
-        const creditsDeducted = await checkAndDeductCredits(user, setIsLoading, setErrorMessage);
-        if (!creditsDeducted) {
-          setErrorMessage("Insufficient credits. Please purchase more credits to continue.");
-          setTimeout(() => setCurrentPage(AppPage.BUY_CREDITS), 3000);
-          return;
-        }
 
         // Step 2: Prepare mastering settings
         let finalSettings = {

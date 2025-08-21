@@ -27,12 +27,7 @@ const DownloadMasterPage: React.FC = () => {
       return;
     }
 
-    // For premium formats, direct users to purchase credits
-    if (format !== 'wav') {
-      setIsModalOpen(true);
-      return;
-    }
-
+    // All downloads now require credits
     setIsDownloading(true);
     try {
       const hasEnoughCredits = await checkAndDeductCredits(user, setIsLoading, setErrorMessage);
@@ -46,7 +41,7 @@ const DownloadMasterPage: React.FC = () => {
         const url = URL.createObjectURL(wavBlob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `${masteredTrackInfo.name.replace(/\.[^/.]+$/, '')}_mastered.wav`;
+        a.download = `${masteredTrackInfo.masteredName.replace(/\.[^/.]+$/, '')}_mastered.wav`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
@@ -70,7 +65,7 @@ const DownloadMasterPage: React.FC = () => {
     setIsModalOpen(false);
   };
 
-  const { name, settings } = masteredTrackInfo;
+  const { masteredName, settings } = masteredTrackInfo;
 
   return (
     <>
@@ -80,7 +75,7 @@ const DownloadMasterPage: React.FC = () => {
         </div>
         <h2 className="text-3xl sm:text-4xl font-heading font-semibold mb-3 text-gradient-primary">Your Master is Ready!</h2>
         <p className="text-slate-200 mb-6 text-lg">
-          <span className="font-semibold text-primary-focus transition-colors">{name}</span> has been successfully Afromastered.
+          <span className="font-semibold text-primary-focus transition-colors">{masteredName}</span> has been successfully Afromastered.
         </p>
 
         <div className="bg-slate-800/60 backdrop-blur-md p-4 rounded-lg mb-8 text-sm text-left text-slate-300 space-y-1.5 border border-slate-700/50">
@@ -111,23 +106,23 @@ const DownloadMasterPage: React.FC = () => {
               onClick={() => handleDownload('mp3')}
               size="lg"
               variant="ghost"
-              leftIcon={paymentStatus === 'success' ? <IconDownload className="w-5 h-5" /> : <IconLockClosed className="w-5 h-5" />}
+              leftIcon={<IconLockClosed className="w-5 h-5" />}
               className="w-full relative"
               isLoading={isDownloading}
             >
-              Download MP3 (Standard)
-              {paymentStatus !== 'success' && <span className="absolute -top-2 -right-2 text-xs font-bold bg-yellow-400 text-yellow-900 px-2 py-0.5 rounded-full">PRO</span>}
+              Download MP3 (1 Credit)
+              <span className="absolute -top-2 -right-2 text-xs font-bold bg-yellow-400 text-yellow-900 px-2 py-0.5 rounded-full">1 CREDIT</span>
             </Button>
             <Button
               onClick={() => handleDownload('flac')}
               size="lg"
               variant="ghost"
-              leftIcon={paymentStatus === 'success' ? <IconDownload className="w-5 h-5" /> : <IconLockClosed className="w-5 h-5" />}
+              leftIcon={<IconLockClosed className="w-5 h-5" />}
               className="w-full relative"
               isLoading={isDownloading}
             >
-              Download FLAC (Lossless)
-              {paymentStatus !== 'success' && <span className="absolute -top-2 -right-2 text-xs font-bold bg-yellow-400 text-yellow-900 px-2 py-0.5 rounded-full">PRO</span>}
+              Download FLAC (1 Credit)
+              <span className="absolute -top-2 -right-2 text-xs font-bold bg-yellow-400 text-yellow-900 px-2 py-0.5 rounded-full">1 CREDIT</span>
             </Button>
           </div>
         </div>
@@ -144,32 +139,21 @@ const DownloadMasterPage: React.FC = () => {
         </div>
       </PageContainer>
 
-      <Modal isOpen={isModalOpen} onClose={closeModal} title="Upgrade to Pro">
-        {paymentStatus === 'success' ? (
-          <div className="text-center">
-            <IconCheckCircle className="w-16 h-16 text-green-400 mx-auto mb-4" />
-            <h3 className="text-2xl font-bold text-primary mb-2">Payment Successful!</h3>
-            <p className="text-slate-300 mb-6">You&apos;ve unlocked Pro features. You can now download MP3 and FLAC formats.</p>
-            <Button size="lg" onClick={closeModal}>
-              Awesome!
-            </Button>
-          </div>
-        ) : (
-          <div className="text-center">
-            <IconSparkles className="w-16 h-16 text-yellow-300 mx-auto mb-4" />
-            <p className="text-lg text-slate-200 mb-4">Unlock high-quality downloads and advanced features for just <span className="font-bold text-white">₦5,000</span>.</p>
-            <ul className="text-left space-y-2 text-slate-400 mb-6 list-disc list-inside">
-              <li>Download lossless WAV &amp; FLAC files</li>
-              <li>Download high-bitrate MP3 files</li>
-              <li>Advanced AI models</li>
-              <li>Priority support</li>
-            </ul>
-            <Button size="lg" onClick={handleUpgrade} isLoading={paymentStatus === 'processing'}>
-              {paymentStatus === 'processing' ? 'Processing...' : 'Upgrade Now with Paystack'}
-            </Button>
-            <p className="text-xs text-slate-500 mt-4">This will open the Paystack payment gateway.</p>
-          </div>
-        )}
+      <Modal isOpen={isModalOpen} onClose={closeModal} title="Buy Credits">
+        <div className="text-center">
+          <IconSparkles className="w-16 h-16 text-yellow-300 mx-auto mb-4" />
+          <p className="text-lg text-slate-200 mb-4">Get credits to download your mastered tracks!</p>
+          <ul className="text-left space-y-2 text-slate-400 mb-6 list-disc list-inside">
+            <li>Download WAV, MP3 &amp; FLAC files</li>
+            <li>High-quality mastered audio</li>
+            <li>Unlimited mastering (FREE)</li>
+            <li>Share with friends to earn more credits</li>
+          </ul>
+          <Button size="lg" onClick={handleUpgrade}>
+            Buy Credits
+          </Button>
+          <p className="text-xs text-slate-500 mt-4">This will take you to the credits purchase page.</p>
+        </div>
       </Modal>
 
       <Modal isOpen={isCreditModalOpen} onClose={() => setIsCreditModalOpen(false)} title="Insufficient Credits">
