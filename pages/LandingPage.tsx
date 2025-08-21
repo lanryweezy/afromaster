@@ -3,6 +3,8 @@ import { useAppContext } from '../contexts/AppContext';
 import { AppPage } from '../types';
 import Button from '../components/Button';
 import { IconArrowRight, IconMusicNote, IconSparkles, IconUpload, IconPlay, IconCog, IconDownload, IconCheckCircle, IconXCircle } from '../constants';
+import SectionHeader from '../components/SectionHeader';
+import Card from '../components/Card';
 
 // Staggered Text Animation Component
 const StaggeredText: React.FC<{ text: string; className?: string }> = ({ text, className }) => {
@@ -26,13 +28,13 @@ const StaggeredText: React.FC<{ text: string; className?: string }> = ({ text, c
 
 // Redesigned Feature Card
 const Feature: React.FC<{ icon: React.ReactNode; title: string; description: string; className?: string; style?: React.CSSProperties }> = ({ icon, title, description, className, style }) => (
-  <div className={`bg-slate-900/40 backdrop-blur-md p-6 rounded-lg border border-slate-800/50 text-center transform hover:-translate-y-2 hover:border-primary/50 hover:shadow-lg hover:shadow-primary/20 transition-all duration-300 card-accent ${className ?? ''}`} style={style}>
+  <Card className={`text-center transform hover:-translate-y-2 hover:border-primary/50 hover:shadow-lg hover:shadow-primary/20 transition-all duration-300 ${className ?? ''}`} style={style}>
     <div className="inline-flex items-center justify-center w-12 h-12 mb-4 bg-slate-800 rounded-full text-primary-focus transition-colors">
       {icon}
     </div>
     <h3 className="text-xl font-heading font-semibold text-primary">{title}</h3>
     <p className="text-slate-300 mt-1">{description}</p>
-  </div>
+  </Card>
 );
 
 // How It Works Step
@@ -92,10 +94,10 @@ const LandingPage: React.FC = () => {
 
       {/* "Hear the Difference" A/B Demo Section */}
       <section id="demo-section" className="max-w-4xl mx-auto">
-        <div className="text-center mb-12 animate-on-scroll">
-            <h2 className="text-3xl sm:text-4xl font-heading font-bold text-gradient-primary">Feel The Bounce</h2>
-            <p className="mt-3 text-slate-300 max-w-2xl mx-auto">Toggle between the raw mix and the Afromastered version. Hear the punch, clarity, and loudness our AI adds, tailored for Afrobeats and Trap.</p>
-        </div>
+        <SectionHeader 
+          title="Feel The Bounce"
+          description="Toggle between the raw mix and the Afromastered version. Hear the punch, clarity, and loudness our AI adds, tailored for Afrobeats and Trap."
+        />
         <div className="animate-on-scroll" style={{ transitionDelay: '200ms' }}>
           {/* <DemoAudioPlayer /> */}
         </div>
@@ -103,12 +105,12 @@ const LandingPage: React.FC = () => {
       
       {/* Why Afromaster Section */}
       <section className="max-w-5xl mx-auto">
-        <div className="text-center mb-12 animate-on-scroll">
-            <h2 className="text-3xl sm:text-4xl font-heading font-bold text-gradient-primary">Stop Guessing, Start Finishing</h2>
-            <p className="mt-3 text-slate-300 max-w-3xl mx-auto">Afromaster bridges the gap between your final mix and a professional, release-ready track, so you can focus on creating.</p>
-        </div>
-        <div className="grid md:grid-cols-2 gap-8 p-6 bg-slate-900/40 border border-slate-800/50 rounded-2xl">
-            <div className="p-6 bg-red-900/20 border border-red-500/30 rounded-lg animate-on-scroll card-accent" style={{ transitionDelay: '200ms' }}>
+        <SectionHeader 
+          title="Stop Guessing, Start Finishing"
+          description="Afromaster bridges the gap between your final mix and a professional, release-ready track, so you can focus on creating."
+        />
+        <div className="grid md:grid-cols-2 gap-8">
+            <Card className="bg-red-900/20 border border-red-500/30 animate-on-scroll" style={{ transitionDelay: '200ms' }}>
                 <h3 className="text-2xl font-heading font-semibold text-red-400 mb-4">The Old Way</h3>
                 <ul className="space-y-3 text-slate-300">
                     <li className="flex items-start"><IconXCircle className="w-5 h-5 text-red-400 mr-3 mt-0.5 flex-shrink-0"/>Muddy mixes that lack punch and clarity.</li>
@@ -116,8 +118,8 @@ const LandingPage: React.FC = () => {
                     <li className="flex items-start"><IconXCircle className="w-5 h-5 text-red-400 mr-3 mt-0.5 flex-shrink-0"/>Hours wasted tweaking complex mastering plugins.</li>
                     <li className="flex items-start"><IconXCircle className="w-5 h-5 text-red-400 mr-3 mt-0.5 flex-shrink-0"/>Paying expensive engineers for every single track.</li>
                 </ul>
-            </div>
-            <div className="p-6 bg-green-900/20 border border-green-500/30 rounded-lg animate-on-scroll card-accent" style={{ transitionDelay: '300ms' }}>
+            </Card>
+            <Card className="bg-green-900/20 border border-green-500/30 animate-on-scroll" style={{ transitionDelay: '300ms' }}>
                 <h3 className="text-2xl font-heading font-semibold text-green-400 mb-4">The Afromaster Way</h3>
                  <ul className="space-y-3 text-slate-300">
                     <li className="flex items-start"><IconCheckCircle className="w-5 h-5 text-green-400 mr-3 mt-0.5 flex-shrink-0"/>Punchy, clear, and perfectly balanced masters.</li>
@@ -125,16 +127,16 @@ const LandingPage: React.FC = () => {
                     <li className="flex items-start"><IconCheckCircle className="w-5 h-5 text-green-400 mr-3 mt-0.5 flex-shrink-0"/>A professional master in under 5 minutes.</li>
                     <li className="flex items-start"><IconCheckCircle className="w-5 h-5 text-green-400 mr-3 mt-0.5 flex-shrink-0"/>An affordable solution for unlimited tracks.</li>
                 </ul>
-            </div>
+            </Card>
         </div>
       </section>
 
       {/* How It Works Section */}
       <section className="max-w-4xl mx-auto">
-        <div className="text-center mb-12 animate-on-scroll">
-            <h2 className="text-3xl sm:text-4xl font-heading font-bold text-gradient-primary">Your Studio, Simplified</h2>
-            <p className="mt-3 text-slate-300">Get a release-ready master in 4 simple steps.</p>
-        </div>
+        <SectionHeader 
+          title="Your Studio, Simplified"
+          description="Get a release-ready master in 4 simple steps."
+        />
         <div className="grid md:grid-cols-2 gap-x-8 gap-y-12">
             <HowItWorksStep icon={<IconUpload className="w-6 h-6"/>} title="Upload Your Mix" description="Drag and drop your final mix in WAV, MP3, AIFF, or FLAC format. Our system will analyze it instantly." delay={0.1}/>
             <HowItWorksStep icon={<IconCog className="w-6 h-6"/>} title="Define Your Sound" description="Choose a genre, select an AI-suggested preset, or fine-tune the parameters manually for your perfect sound." delay={0.2}/>
@@ -145,10 +147,10 @@ const LandingPage: React.FC = () => {
       
       {/* Features Section */}
       <section className="max-w-5xl mx-auto">
-        <div className="text-center mb-12 animate-on-scroll">
-          <h2 className="text-3xl sm:text-4xl font-heading font-bold text-gradient-primary">Built for the Culture</h2>
-          <p className="mt-3 text-slate-300">Features designed to make your Afrobeats and Trap tracks hit harder.</p>
-        </div>
+        <SectionHeader 
+          title="Built for the Culture"
+          description="Features designed to make your Afrobeats and Trap tracks hit harder."
+        />
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
           <Feature 
             icon={<IconUpload className="w-6 h-6"/>}

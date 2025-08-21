@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useAppContext } from '../contexts/AppContext';
 import { AppPage, MasteringSettings } from '../types';
 import Button from '../components/Button';
@@ -7,6 +7,7 @@ import { fetchAIChainSettings } from '../services/geminiService';
 import { IconArrowRight, IconArrowLeft } from '../constants';
 import ManualMasteringControls from '../components/ManualMasteringControls';
 import AIMasteringSuggestions from '../components/AIMasteringSuggestions';
+import Card from '../components/Card';
 
 const MasteringSettingsPage: React.FC = () => {
   const {
@@ -14,7 +15,11 @@ const MasteringSettingsPage: React.FC = () => {
     uploadedTrack,
     masteringSettings,
     setMasteringSettings,
-    apiKey
+    apiKey,
+    isLoading, // Get global isLoading
+    setIsLoading, // Get global setIsLoading
+    setErrorMessage, // Get global setErrorMessage
+    // updateMasteringSettings will be used in future updates
   } = useAppContext();
 
   const [currentSettings, setCurrentSettings] = useState<MasteringSettings>(() => {
@@ -62,12 +67,11 @@ const MasteringSettingsPage: React.FC = () => {
       },
       limiter: { ...initialSettings.limiter, ...base.limiter },
       reverb: { ...initialSettings.reverb, ...base.reverb },
-    };
+    } as MasteringSettings;
   });
 
   const [aiSettings, setAiSettings] = useState<Partial<MasteringSettings> | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  // Removed local isLoading and error states
   const [aiStrength, setAiStrength] = useState(100);
   const [referenceAnalysis, setReferenceAnalysis] = useState<Record<string, unknown> | null>(null);
 
@@ -108,7 +112,7 @@ const MasteringSettingsPage: React.FC = () => {
     }
   };
 
-  const handleReferenceFileAccepted = async (file: File) => {
+  const handleReferenceFileAccepted = useCallback(async (file: File) => {
     setCurrentSettings(prev => ({ ...prev, referenceTrackFile: file }));
     const audioContext = new AudioContext();
     const reader = new FileReader();
@@ -138,32 +142,41 @@ const MasteringSettingsPage: React.FC = () => {
     };
     reader.onerror = () => cleanup();
     reader.readAsArrayBuffer(file);
-  };
+  }, []);
 
-  const handleReferenceFileCleared = () => {
+  const handleReferenceFileCleared = useCallback(() => {
     setCurrentSettings(prev => ({ ...prev, referenceTrackFile: null }));
     setReferenceAnalysis(null);
-  };
+  }, []);
 
   const handleGetAISettings = useCallback(async () => {
     if (!uploadedTrack || !apiKey) {
-      setError(apiKey ? "No track uploaded to analyze." : "API Key is not configured.");
+      // Use global error message here
+      setErrorMessage(apiKey ? "No track uploaded to analyze." : "API Key is not configured.");
       return;
     }
+    // Use global loading and error states
     setIsLoading(true);
-    setError(null);
+    setErrorMessage(null);
     try {
-      const settings = await fetchAIChainSettings(currentSettings.genre, uploadedTrack.name, apiKey, referenceAnalysis);
+      const settings = await fetchAIChainSettings(
+        currentSettings.genre,
+        uploadedTrack.name,
+        apiKey,
+        referenceAnalysis,
+        setIsLoading, // Pass global setIsLoading
+        setErrorMessage // Pass global setErrorMessage
+      );
       setAiSettings(settings);
       setCurrentSettings(prev => ({ ...prev, aiSettingsApplied: true }));
-    } catch (err) {
-      if (err instanceof Error) {
-        setError(err.message || "Failed to fetch AI settings.");
-      }
+    } catch (err: unknown) { // Catch any type of error
+      console.error("Failed to fetch AI settings:", err);
+      // The fetchAIChainSettings already sets the error message, so no need to set it again here
+      // setErrorMessage(err.message || "Failed to fetch AI settings.");
     } finally {
       setIsLoading(false);
     }
-  }, [uploadedTrack, currentSettings, apiKey, referenceAnalysis]);
+  }, [uploadedTrack, currentSettings, apiKey, referenceAnalysis, setIsLoading, setErrorMessage]); // Add to dependencies
 
   const applyAIStrength = useCallback((baseSettings: MasteringSettings, aiSettings: Partial<MasteringSettings> | null, strength: number): MasteringSettings => {
     if (!aiSettings) return baseSettings;
@@ -240,15 +253,36 @@ const MasteringSettingsPage: React.FC = () => {
     }
   }, [aiStrength, aiSettings, applyAIStrength, currentSettings]);
 
-  const handleSubmit = () => {
+  const handleSubmit = useCallback(() => {
     setMasteringSettings(currentSettings);
     setCurrentPage(AppPage.PROCESSING);
-  };
+  }, [currentSettings, setMasteringSettings, setCurrentPage]);
+
+  // Memoize components to prevent unnecessary re-renders
+  const manualControls = useMemo(() => (
+    <ManualMasteringControls
+      currentSettings={currentSettings}
+      handleInputChange={handleInputChange}
+      handleReferenceFileAccepted={handleReferenceFileAccepted}
+      handleReferenceFileCleared={handleReferenceFileCleared}
+    />
+  ), [currentSettings, handleInputChange, handleReferenceFileAccepted, handleReferenceFileCleared]);
+
+  const aiSuggestions = useMemo(() => (
+    <AIMasteringSuggestions
+      isLoading={isLoading}
+      apiKey={apiKey}
+      // error={error}
+      handleGetAISettings={handleGetAISettings}
+      aiStrength={aiStrength}
+      setAiStrength={setAiStrength}
+    />
+  ), [isLoading, apiKey, handleGetAISettings, aiStrength, setAiStrength]);
 
   if (!uploadedTrack) return <LoadingSpinner text="Loading track data..." />;
 
   return (
-    <div className="max-w-5xl mx-auto p-6 md:p-8 bg-slate-900/60 backdrop-blur-lg border border-slate-700/50 rounded-xl shadow-2xl card-accent">
+    <Card maxWidth="max-w-5xl">
       <div className="flex flex-col sm:flex-row justify-between sm:items-center mb-6 gap-4">
         <div>
           <h2 className="text-3xl sm:text-4xl font-heading font-semibold text-gradient-primary">Craft Your Signature Sound</h2>
@@ -260,21 +294,8 @@ const MasteringSettingsPage: React.FC = () => {
       </div>
 
       <div className="grid lg:grid-cols-2 gap-8">
-        <ManualMasteringControls
-          currentSettings={currentSettings}
-          handleInputChange={handleInputChange}
-          handleReferenceFileAccepted={handleReferenceFileAccepted}
-          handleReferenceFileCleared={handleReferenceFileCleared}
-        />
-
-        <AIMasteringSuggestions
-          isLoading={isLoading}
-          apiKey={apiKey}
-          error={error}
-          handleGetAISettings={handleGetAISettings}
-          aiStrength={aiStrength}
-          setAiStrength={setAiStrength}
-        />
+        {manualControls}
+        {aiSuggestions}
       </div>
 
       <div className="mt-10 pt-6 border-t border-slate-800 text-right">
@@ -282,7 +303,7 @@ const MasteringSettingsPage: React.FC = () => {
           Start Mastering
         </Button>
       </div>
-    </div>
+    </Card>
   );
 };
 

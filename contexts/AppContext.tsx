@@ -1,9 +1,11 @@
-import React, { createContext, useState, useContext, ReactNode, useEffect } from 'react';
+import React, { createContext, useState, useContext, ReactNode, useEffect, useCallback } from 'react';
 import { AppPage, UploadedTrack, MasteringSettings, MasteredTrackInfo, Theme } from '../types';
 import { Genre, LoudnessTarget, TonePreference, StereoWidth } from '../constants';
 import { auth } from '../src/firebaseConfig';
 import { User, onAuthStateChanged } from 'firebase/auth';
 import { useLocalStorage } from '../hooks/useLocalStorage';
+import LoadingSpinner from '../components/LoadingSpinner';
+import StatusMessage from '../components/StatusMessage';
 
 interface AppContextType {
   currentPage: AppPage;
@@ -30,6 +32,13 @@ interface AppContextType {
   user: User | null;
   theme: Theme;
   setTheme: (theme: Theme) => void;
+  isLoading: boolean;
+  setIsLoading: (loading: boolean) => void;
+  errorMessage: string | null;
+  setErrorMessage: (message: string | null) => void;
+  clearError: () => void;
+  // New function for optimized state updates
+  updateMasteringSettings: (updater: (prev: MasteringSettings) => MasteringSettings) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -98,7 +107,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   });
   const [masteredTrackInfo, setMasteredTrackInfo] = useState<MasteredTrackInfo | null>(null);
   const [userProjects, setUserProjects] = useState<MasteredTrackInfo[]>([]);
-  const [apiKey, setApiKey] = useLocalStorage<string | undefined>('afromaster-api-key', process.env.API_KEY);
+  const [apiKey, setApiKey] = useLocalStorage<string | undefined>('afromaster-api-key', import.meta.env.VITE_GEMINI_API_KEY);
   const [originalAudioBuffer, setOriginalAudioBuffer] = useState<AudioBuffer | null>(null);
   const [masteredAudioBuffer, setMasteredAudioBuffer] = useState<AudioBuffer | null>(null);
   
@@ -113,6 +122,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const [user, setUser] = useState<User | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [theme, setTheme] = useLocalStorage<Theme>('afromaster-theme', 'solar-flare');
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -130,6 +141,16 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     document.documentElement.setAttribute('data-theme', theme);
   }, [theme]);
 
+  const clearError = () => setErrorMessage(null);
+  
+  // Optimized state update function to prevent unnecessary re-renders
+  const updateMasteringSettings = useCallback((updater: (prev: MasteringSettings) => MasteringSettings) => {
+    setMasteringSettings(prev => {
+      if (!prev) return prev;
+      return updater(prev);
+    });
+  }, [setMasteringSettings]);
+
   return (
     <AppContext.Provider value={{
       currentPage, setCurrentPage,
@@ -144,9 +165,15 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       isMusicPlaying, setIsMusicPlaying,
       isAuthenticated,
       user,
-      theme, setTheme
+      theme, setTheme,
+      isLoading, setIsLoading,
+      errorMessage, setErrorMessage,
+      clearError,
+      updateMasteringSettings
     }}>
       {children}
+      {isLoading && <LoadingSpinner />}
+      {errorMessage && <StatusMessage type="error" message={errorMessage} onClose={clearError} />}
     </AppContext.Provider>
   );
 };

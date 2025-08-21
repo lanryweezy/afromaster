@@ -3,13 +3,12 @@ import usePaystack from '../hooks/usePaystack';
 import Paystack from '@paystack/inline-js';
 import { useAppContext } from '../contexts/AppContext';
 
-jest.mock('@paystack/inline-js', () => {
-  const mockCheckout = jest.fn();
-  const mockPaystack = jest.fn(() => ({
-    checkout: mockCheckout,
-  }));
-  return mockPaystack;
-});
+jest.mock('@paystack/inline-js', () => ({
+  __esModule: true,
+  default: jest.fn(() => ({
+    checkout: jest.fn(),
+  })),
+}));
 jest.mock('../contexts/AppContext');
 
 const mockUseAppContext = useAppContext as jest.Mock;

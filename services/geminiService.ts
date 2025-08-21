@@ -5,49 +5,53 @@ export const fetchAIChainSettings = async (
   genre: string,
   trackName: string,
   apiKey: string,
-  referenceAnalysis?: Record<string, unknown> | null
-): Promise<Partial<MasteringSettings>> => {
-  if (!apiKey) {
-    throw new Error("Gemini API key is not provided.");
-  }
-  const ai = new GoogleGenAI({ apiKey });
+  referenceAnalysis: Record<string, unknown> | null | undefined,
+  setIsLoading: (loading: boolean) => void,
+  setErrorMessage: (message: string | null) => void
+): Promise<Partial<MasteringSettings> | undefined> => {
+  setIsLoading(true);
+  setErrorMessage(null);
+  try {
+    if (!apiKey) {
+      throw new Error("Gemini API key is not provided.");
+    }
+    const ai = new GoogleGenAI({ apiKey });
 
-  let prompt = `
-    You are 'Afromaster', an expert AI mastering engineer specializing in Afrobeats, Amapiano, Hip Hop, and Trap music.
-    Generate a detailed mastering chain configuration for a track with the following details:
-    - Genre: ${genre}
-    - Tentative Name / Keywords: ${trackName}`;
+    let prompt = `
+      You are 'Afromaster', an expert AI mastering engineer specializing in Afrobeats, Amapiano, Hip Hop, and Trap music.
+      Generate a detailed mastering chain configuration for a track with the following details:
+      - Genre: ${genre}
+      - Tentative Name / Keywords: ${trackName}`;
 
-  if (referenceAnalysis) {
-    prompt += `
-    - Reference Track Analysis:
-      - Loudness: ${referenceAnalysis.loudness?.toFixed(2) || 'N/A'} dB
-      - Spectral Balance: Bass: ${(referenceAnalysis.spectralBalance?.bass * 100)?.toFixed(1) || 'N/A'}%, Mid: ${(referenceAnalysis.spectralBalance?.mid * 100)?.toFixed(1) || 'N/A'}%, Treble: ${(referenceAnalysis.spectralBalance?.treble * 100)?.toFixed(1) || 'N/A'}%
-      - Peak: ${referenceAnalysis.peak?.toFixed(2) || 'N/A'} dB`;
-  }
-
-  prompt += `
-
-    Your task is to return a JSON object representing the mastering chain settings.
-    The structure of the JSON object should be as follows:
-    {
-      "crossover": { "lowPass": number, "highPass": number },
-      "eq": { "bassFreq": number, "trebleFreq": number, "bassGain": number, "trebleGain": number },
-      "saturation": { "amount": number },
-      "preGain": number,
-      "bands": {
-        "low": { "threshold": number, "knee": number, "ratio": number, "attack": number, "release": number, "makeupGain": number },
-        "mid": { "threshold": number, "knee": number, "ratio": number, "attack": number, "release": number, "makeupGain": number },
-        "high": { "threshold": number, "knee": number, "ratio": number, "attack": number, "release": number, "makeupGain": number }
-      },
-      "limiter": { "threshold": number, "attack": number, "release": number },
-      "finalGain": number
+    if (referenceAnalysis) {
+      prompt += `
+      - Reference Track Analysis:
+        - Loudness: ${referenceAnalysis.loudness?.toFixed(2) || 'N/A'} dB
+        - Spectral Balance: Bass: ${(referenceAnalysis.spectralBalance?.bass * 100)?.toFixed(1) || 'N/A'}%, Mid: ${(referenceAnalysis.spectralBalance?.mid * 100)?.toFixed(1) || 'N/A'}%, Treble: ${(referenceAnalysis.spectralBalance?.treble * 100)?.toFixed(1) || 'N/A'}%
+        - Peak: ${referenceAnalysis.peak?.toFixed(2) || 'N/A'} dB`;
     }
 
-    Respond ONLY with a valid JSON object. Do not include any other text, markdown, or explanations outside the JSON object.
-  `;
+    prompt += `
 
-  try {
+      Your task is to return a JSON object representing the mastering chain settings.
+      The structure of the JSON object should be as follows:
+      {
+        "crossover": { "lowPass": number, "highPass": number },
+        "eq": { "bassFreq": number, "trebleFreq": number, "bassGain": number, "trebleGain": number },
+        "saturation": { "amount": number },
+        "preGain": number,
+        "bands": {
+          "low": { "threshold": number, "knee": number, "ratio": number, "attack": number, "release": number, "makeupGain": number },
+          "mid": { "threshold": number, "knee": number, "ratio": number, "attack": number, "release": number, "makeupGain": number },
+          "high": { "threshold": number, "knee": number, "ratio": number, "attack": number, "release": number, "makeupGain": number }
+        },
+        "limiter": { "threshold": number, "attack": number, "release": number },
+        "finalGain": number
+      }
+
+      Respond ONLY with a valid JSON object. Do not include any other text, markdown, or explanations outside the JSON object.
+    `;
+
     const response: GenerateContentResponse = await ai.models.generateContent({
       model: 'gemini-2.5-flash',
       contents: prompt,
@@ -78,7 +82,6 @@ export const fetchAIChainSettings = async (
       throw new Error("AI response did not match the expected schema.");
     }
 
-    // Ensure defaults for optional or omitted fields
     const withDefaults = {
       ...parsedData,
       saturation: {
@@ -91,17 +94,20 @@ export const fetchAIChainSettings = async (
 
   } catch (error: unknown) {
     console.error("Error fetching AI chain settings from Gemini:", error);
-    let errorMessage = "Unknown error";
+    let message = "Unknown error";
     if (error instanceof Error) {
-      errorMessage = error.message;
+      message = error.message;
     }
-    if (errorMessage.includes("API key not valid")) {
-        throw new Error("Invalid API Key for Gemini. Please check your configuration.");
+    if (message.includes("API key not valid")) {
+        message = "Invalid API Key for Gemini. Please check your configuration.";
     }
-    if (errorMessage.toLowerCase().includes("quota") || errorMessage.toLowerCase().includes("rate limit")) {
-        throw new Error("API quota exceeded or rate limit hit. Please try again later.");
+    if (message.toLowerCase().includes("quota") || message.toLowerCase().includes("rate limit")) {
+        message = "API quota exceeded or rate limit hit. Please try again later.";
     }
-    throw new Error(`Failed to fetch AI chain settings: ${errorMessage}`);
+    setErrorMessage(`Failed to fetch AI chain settings: ${message}`);
+    return undefined;
+  } finally {
+    setIsLoading(false);
   }
 };
 
@@ -125,34 +131,38 @@ const validateAIChainSettings = (data: Partial<MasteringSettings>): boolean => {
 export const generateMasteringReport = async (
   trackName: string,
   settings: MasteringSettings,
-  apiKey?: string
+  apiKey: string | undefined,
+  setIsLoading: (loading: boolean) => void,
+  setErrorMessage: (message: string | null) => void
 ): Promise<string> => {
-  if (!apiKey) {
-    return "AI insights unavailable - API key not configured.";
-  }
-  
-  const ai = new GoogleGenAI({ apiKey });
-
-  const loudnessTargetString = typeof settings.loudnessTarget === 'string' 
-    ? settings.loudnessTarget 
-    : `${settings.customLoudnessValue} LUFS`;
-
-  const prompt = `
-    You are 'Afromaster', an expert AI mastering engineer specializing in Afrobeats, Amapiano, Hip Hop, and Trap music.
-    A track named "${trackName}" is being submitted for mastering with the following preferences:
-    - Genre: ${settings.genre}
-    - Target Loudness: ${loudnessTargetString}
-    - Tone Preference: ${settings.tonePreference}
-    - Stereo Width: ${settings.stereoWidth}
-    ${settings.referenceTrackFile ? `- Inspired by reference track: ${settings.referenceTrackFile.name}` : ''}
-
-    Briefly describe the key processing steps you would take to achieve these mastering goals.
-    Focus on 2-4 main actions or considerations (e.g., "Gentle low-end boost for warmth", "Subtle high-frequency lift for clarity", "Overall dynamic range control to meet loudness target", "Careful stereo widening to enhance immersion without phase issues").
-    Keep the description concise and suitable for a user to understand as a quick insight into the AI's 'thinking' process.
-    Respond with a short paragraph or a few bullet points. Do not use markdown formatting like backticks or #. Just plain text.
-  `;
-
+  setIsLoading(true);
+  setErrorMessage(null);
   try {
+    if (!apiKey) {
+      return "AI insights unavailable - API key not configured.";
+    }
+    
+    const ai = new GoogleGenAI({ apiKey });
+
+    const loudnessTargetString = typeof settings.loudnessTarget === 'string' 
+      ? settings.loudnessTarget 
+      : `${settings.customLoudnessValue} LUFS`;
+
+    const prompt = `
+      You are 'Afromaster', an expert AI mastering engineer specializing in Afrobeats, Amapiano, Hip Hop, and Trap music.
+      A track named "${trackName}" is being submitted for mastering with the following preferences:
+      - Genre: ${settings.genre}
+      - Target Loudness: ${loudnessTargetString}
+      - Tone Preference: ${settings.tonePreference}
+      - Stereo Width: ${settings.stereoWidth}
+      ${settings.referenceTrackFile ? `- Inspired by reference track: ${settings.referenceTrackFile.name}` : ''}
+
+      Briefly describe the key processing steps you would take to achieve these mastering goals.
+      Focus on 2-4 main actions or considerations (e.g., "Gentle low-end boost for warmth", "Subtle high-frequency lift for clarity", "Overall dynamic range control to meet loudness target", "Careful stereo widening to enhance immersion without phase issues").
+      Keep the description concise and suitable for a user to understand as a quick insight into the AI's 'thinking' process.
+      Respond with a short paragraph or a few bullet points. Do not use markdown formatting like backticks or #. Just plain text.
+    `;
+
     const response: GenerateContentResponse = await ai.models.generateContent({
       model: 'gemini-2.5-flash',
       contents: prompt,
@@ -163,6 +173,13 @@ export const generateMasteringReport = async (
     return response.text;
   } catch (error: unknown) {
     console.error("Error generating mastering report from Gemini:", error);
-    return "AI insights temporarily unavailable.";
+    let message = "AI insights temporarily unavailable.";
+    if (error instanceof Error) {
+      message = error.message;
+    }
+    setErrorMessage(`Failed to generate AI report: ${message}`);
+    return message;
+  } finally {
+    setIsLoading(false);
   }
 };

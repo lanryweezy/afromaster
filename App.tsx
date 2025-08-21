@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { AppPage } from './types';
 import { useAppContext } from './contexts/AppContext';
 
@@ -20,6 +20,7 @@ import WorkflowProgress from './components/WorkflowProgress';
 
 const App: React.FC = () => {
   const { currentPage } = useAppContext();
+  const observedElementsRef = useRef<Set<Element>>(new Set());
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
@@ -38,19 +39,27 @@ const App: React.FC = () => {
         if (entry.isIntersecting) {
           entry.target.classList.add('is-visible');
           observer.unobserve(entry.target);
+          observedElementsRef.current.delete(entry.target);
         }
       });
     }, {
-      threshold: 0.1, // Trigger when 10% of the element is visible
+      threshold: 0.1,
     });
 
     const elementsToAnimate = document.querySelectorAll('.animate-on-scroll');
-    elementsToAnimate.forEach(el => observer.observe(el));
+    elementsToAnimate.forEach(el => {
+      // Only observe elements that haven't been observed yet
+      if (!observedElementsRef.current.has(el) && !el.classList.contains('is-visible')) {
+        observer.observe(el);
+        observedElementsRef.current.add(el);
+      }
+    });
 
     return () => {
-      elementsToAnimate.forEach(el => observer.unobserve(el));
+      observer.disconnect();
+      observedElementsRef.current.clear();
     };
-  }, [currentPage]); // Rerun observer logic when the page/view changes
+  }, [currentPage]);
 
   const renderPage = () => {
     switch (currentPage) {

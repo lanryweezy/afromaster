@@ -16,36 +16,45 @@ declare const PaystackPop: {
   };
 };
 
-export const initiatePaystackPayment = (onSuccess: (response: { reference: string; status: string; message: string }) => void, onCancel: () => void) => {
-  // IMPORTANT: In a real application, the public key should be stored securely in environment variables
-  // and accessed via a backend endpoint. For this front-end only demo, we are using a public test key.
-  const paystackTestPublicKey = 'pk_test_6146052219e487843de3295e82645371235b2639';
+// Real Paystack payment integration (this is now handled by usePaystack hook)
+// This service is now deprecated in favor of the hook-based approach
 
-  const handler = PaystackPop.setup({
-    key: paystackTestPublicKey,
-    email: 'demo.user@example.com', // In a real app, get this from the logged-in user context
-    amount: 500000, // 5000 NGN in kobo
-    currency: 'NGN',
-    ref: `ai_mastering_${Date.now()}`,
-    onClose: () => {
-      // This is called when the user closes the payment pop-up
-      onCancel();
-    },
-    callback: (response) => {
-      // This callback is called after a successful transaction
-      // In a real application, you should send the `response.reference` to your backend for verification
-      onSuccess(response);
-    },
-    metadata: {
-      custom_fields: [
-        {
-          display_name: "Service",
-          variable_name: "service",
-          value: "AI Mastering Studio - Pro Upgrade"
-        }
-      ]
-    }
-  });
+// Real credit deduction using Firebase
+import { User } from 'firebase/auth';
+import { doc, runTransaction } from 'firebase/firestore';
+import { db } from '../src/firebaseConfig';
 
-  handler.openIframe();
+export const deductCredits = async (user: User, amount: number = 1): Promise<boolean> => {
+  try {
+    const userRef = doc(db, 'users', user.uid);
+    
+    const success = await runTransaction(db, async (transaction) => {
+      const userDoc = await transaction.get(userRef);
+      
+      if (!userDoc.exists()) {
+        // Create user with 0 credits if they don't exist
+        transaction.set(userRef, { 
+          credits: 0, 
+          email: user.email,
+          createdAt: new Date()
+        });
+        return false; // Not enough credits
+      }
+      
+      const currentCredits = userDoc.data()?.credits || 0;
+      
+      if (currentCredits < amount) {
+        return false; // Not enough credits
+      }
+      
+      const newCredits = currentCredits - amount;
+      transaction.update(userRef, { credits: newCredits });
+      return true;
+    });
+    
+    return success;
+  } catch (error) {
+    console.error('Error deducting credits:', error);
+    return false;
+  }
 };

@@ -208,7 +208,18 @@ const createReverb = async (context: OfflineAudioContext, settings: { impulseRes
 };
 
 self.onmessage = async (event) => {
-  const { originalBuffer, settings } = event.data;
+  const { originalBufferData, numberOfChannels, sampleRate, length, settings } = event.data;
+
+  // Reconstruct AudioBuffer from transferred ArrayBuffer data
+  const audioContext = new OfflineAudioContext(numberOfChannels, length, sampleRate);
+  const originalBuffer = audioContext.createBuffer(numberOfChannels, length, sampleRate);
+
+  for (let i = 0; i < numberOfChannels; i++) {
+    // Create Float32Array from the received ArrayBuffer
+    const channelFloat32Array = new Float32Array(originalBufferData[i]);
+    originalBuffer.copyToChannel(channelFloat32Array, i);
+  }
+
   const masteredBuffer = await processAudio(originalBuffer, settings);
   self.postMessage({ masteredBuffer });
 };

@@ -54,11 +54,12 @@ const ManualMasteringControls: React.FC<ManualMasteringControlsProps> = ({
           <Dropdown
             label="Saturation Flavor"
             name="saturation.flavor"
-            options={[
-              { value: 'tape', label: 'Warm Tape' },
-              { value: 'tube', label: 'Tube' },
-              { value: 'fuzz', label: 'Fuzz' },
-            ]}
+            options={['tape', 'tube', 'fuzz']} // Array of string values
+            optionDisplayNames={{ // Map values to labels
+              'tape': 'Warm Tape',
+              'tube': 'Tube',
+              'fuzz': 'Fuzz',
+            }}
             value={currentSettings.saturation?.flavor || 'tape'}
             onChange={handleInputChange}
           />
@@ -93,13 +94,14 @@ const ManualMasteringControls: React.FC<ManualMasteringControlsProps> = ({
           <Dropdown
             label="Reverb"
             name="reverb.impulseResponse"
-            options={[
-              { value: 'none', label: 'None' },
-              { value: 'small_drum_room.wav', label: 'Small Drum Room' },
-              { value: 'nice_drum_room.wav', label: 'Nice Drum Room' },
-              { value: 'large_long_echo_hall.wav', label: 'Large Hall' },
-              { value: 'masonic_lodge.wav', label: 'Masonic Lodge' },
-            ]}
+            options={['none', 'small_drum_room.wav', 'nice_drum_room.wav', 'large_long_echo_hall.wav', 'masonic_lodge.wav']} // Array of string values
+            optionDisplayNames={{ // Map values to labels
+              'none': 'None',
+              'small_drum_room.wav': 'Small Drum Room',
+              'nice_drum_room.wav': 'Nice Drum Room',
+              'large_long_echo_hall.wav': 'Large Hall',
+              'masonic_lodge.wav': 'Masonic Lodge',
+            }}
             value={currentSettings.reverb.impulseResponse}
             onChange={handleInputChange}
           />

@@ -3,9 +3,10 @@ import { useAppContext } from '../contexts/AppContext';
 import TrackCard from '../components/TrackCard';
 import Button from '../components/Button';
 import { AppPage, MasteredTrackInfo } from '../types';
-import { IconUpload, IconMusicNote } from '../constants';
+import { IconUpload } from '../constants';
 import { db } from '../src/firebaseConfig';
 import { collection, query, where, getDocs } from 'firebase/firestore';
+import ListStatusDisplay from '../components/ListStatusDisplay';
 
 const UserDashboardPage: React.FC = () => {
   const { user, setCurrentPage, isAuthenticated } = useAppContext();
@@ -32,6 +33,15 @@ const UserDashboardPage: React.FC = () => {
     return null; // or a loading spinner
   }
 
+  const displayStatus = (
+    <ListStatusDisplay
+      isLoading={isLoading}
+      isEmpty={projects.length === 0}
+      loadingMessage="Loading projects..."
+      emptyMessage="Click 'Master New Track' to get started!"
+    />
+  );
+
   return (
     <div className="max-w-6xl mx-auto">
       <div className="flex flex-col sm:flex-row justify-between sm:items-center mb-8 gap-4">
@@ -43,17 +53,7 @@ const UserDashboardPage: React.FC = () => {
         )}
       </div>
 
-      {isLoading ? (
-        <div className="text-center py-20">
-          <p>Loading projects...</p>
-        </div>
-      ) : projects.length === 0 ? (
-        <div className="text-center py-20 bg-slate-900/60 backdrop-blur-lg border border-slate-800/50 rounded-xl shadow-lg card-accent">
-          <IconMusicNote className="w-16 h-16 text-slate-600 mx-auto mb-4" />
-          <h3 className="text-2xl font-bold text-primary">No Projects Yet</h3>
-          <p className="text-slate-300 mt-2">Click &quot;Master New Track&quot; to get started!</p>
-        </div>
-      ) : (
+      {displayStatus || (
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {projects.map(track => (
             <TrackCard key={track.id} track={track} />

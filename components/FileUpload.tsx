@@ -47,6 +47,7 @@ const FileUpload: React.FC<FileUploadProps> = ({
 
 
   const onDrop = useCallback((acceptedFiles: File[], fileRejections: FileRejection[]) => {
+    console.log('onDrop called with:', { acceptedFiles, fileRejections });
     setError(null);
     if (fileRejections.length > 0) {
       const rejectionError = fileRejections[0].errors[0]?.message || `File type not supported. Please upload: ${acceptedMimeTypes.join(', ')}.`;
@@ -64,25 +65,21 @@ const FileUpload: React.FC<FileUploadProps> = ({
     }
   }, [onFileAccepted, acceptedMimeTypes, onFileCleared]);
 
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+  const { getRootProps, getInputProps, isDragActive, open } = useDropzone({
     onDrop,
     accept: acceptedMimeTypes.reduce((acc, type) => ({ ...acc, [type]: [] }), {}),
     multiple: false,
+    noClick: true, // Disable click on the dropzone itself
   });
 
-  const clearFile = () => {
+  const clearFile = useCallback(() => {
     setInternalFile(null);
     setFileInfo(null);
     setError(null);
     if (onFileCleared) {
       onFileCleared();
     }
-    // If the input element holds a reference, this might be needed for some browsers
-    const inputElement = document.getElementById(id) as HTMLInputElement;
-    if (inputElement) {
-        inputElement.value = "";
-    }
-  };
+  }, [onFileCleared]);
   
   const currentDisplayFile = internalFile ? {name: internalFile.name, size: internalFile.size, duration: fileInfo?.duration} : fileInfo;
 
@@ -97,13 +94,15 @@ const FileUpload: React.FC<FileUploadProps> = ({
             ${isDragActive ? 'border-sky-400 bg-slate-800' : 'border-slate-700 hover:border-sky-500 hover:bg-slate-800'}`}
         >
           <input {...getInputProps()} id={id} />
-          <IconUpload className="w-8 h-8 sm:w-12 sm:h-12 mx-auto text-slate-500 mb-2 sm:mb-3" />
-          {isDragActive ? (
-            <p className="text-sm sm:text-md font-semibold text-primary">Drop the track here ...</p>
-          ) : (
-            <p className="text-sm sm:text-md text-white">Drag &apos;n&apos; drop audio file, or <span className="text-primary underline">click to select</span></p>
-          )}
-          <p className="text-xs text-slate-400 mt-2">Supported: MP3, WAV, AIFF, FLAC</p>
+          <div onClick={open} className="w-full h-full"> {/* Wrapper to capture clicks */}
+            <IconUpload className="w-8 h-8 sm:w-12 sm:h-12 mx-auto text-slate-500 mb-2 sm:mb-3" />
+            {isDragActive ? (
+              <p className="text-sm sm:text-md font-semibold text-primary">Drop the track here ...</p>
+            ) : (
+              <p className="text-sm sm:text-md text-white">Drag &apos;n&apos; drop audio file, or <span className="text-primary underline">click to select</span></p>
+            )}
+            <p className="text-xs text-slate-400 mt-2">Supported: MP3, WAV, AIFF, FLAC</p>
+          </div>
         </div>
       ) : (
         <div className="p-4 bg-slate-800 border border-slate-700 rounded-xl text-center relative">
