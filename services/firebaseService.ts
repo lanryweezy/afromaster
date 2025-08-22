@@ -69,22 +69,80 @@ export const processReferral = async (referrerId: string, newUserId: string): Pr
 
 export const uploadMasteredTrack = async (user: User, masteredBuffer: AudioBuffer, setIsLoading: (loading: boolean) => void, setErrorMessage: (message: string | null) => void): Promise<string | undefined> => {
   setIsLoading(true);
-  try {
-    const wavBlob = new Blob([toWav(masteredBuffer)], { type: 'audio/wav' });
-    const storageRef = ref(storage, `users/${user.uid}/tracks/${Date.now()}_mastered.wav`);
-    await uploadBytes(storageRef, wavBlob);
-    return getDownloadURL(storageRef);
-  } catch (error: unknown) {
-    console.error('Error uploading mastered track:', error);
-    if (error instanceof Error) {
-      setErrorMessage(`Failed to upload track: ${error.message}`);
-    } else {
-      setErrorMessage("Failed to upload track: Unknown error");
+  setErrorMessage(null);
+  
+  const maxRetries = 3;
+  let lastError: Error | null = null;
+  
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      console.log(`Upload attempt ${attempt}/${maxRetries}`);
+      
+      // Convert audio buffer to WAV blob
+      const wavBlob = new Blob([toWav(masteredBuffer)], { type: 'audio/wav' });
+      
+      // Check file size (Firebase Storage has limits)
+      if (wavBlob.size > 100 * 1024 * 1024) { // 100MB limit
+        throw new Error('File size too large. Please use a shorter audio file.');
+      }
+      
+      // Create unique filename
+      const timestamp = Date.now();
+      const filename = `mastered_${timestamp}.wav`;
+      const storageRef = ref(storage, `users/${user.uid}/tracks/${filename}`);
+      
+      // Upload with progress tracking
+      setErrorMessage(`Uploading track (attempt ${attempt}/${maxRetries})...`);
+      
+      const uploadResult = await uploadBytes(storageRef, wavBlob, {
+        cacheControl: 'public, max-age=31536000', // 1 year cache
+      });
+      
+      console.log('Upload successful:', uploadResult);
+      
+      // Get download URL
+      const downloadURL = await getDownloadURL(storageRef);
+      console.log('Download URL obtained:', downloadURL);
+      
+      setErrorMessage(null);
+      return downloadURL;
+      
+    } catch (error: unknown) {
+      lastError = error instanceof Error ? error : new Error('Unknown upload error');
+      console.error(`Upload attempt ${attempt} failed:`, lastError);
+      
+      // Don't retry for certain errors
+      if (lastError.message.includes('unauthorized') || 
+          lastError.message.includes('permission') ||
+          lastError.message.includes('quota') ||
+          lastError.message.includes('size')) {
+        break;
+      }
+      
+      // Wait before retrying (exponential backoff)
+      if (attempt < maxRetries) {
+        const delay = Math.min(1000 * Math.pow(2, attempt - 1), 5000); // Max 5 seconds
+        console.log(`Waiting ${delay}ms before retry...`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
     }
-    return undefined;
-  } finally {
-    setIsLoading(false);
   }
+  
+  // All retries failed
+  console.error('All upload attempts failed:', lastError);
+  const errorMessage = lastError?.message || 'Unknown error';
+  
+  if (errorMessage.includes('retry-limit-exceeded')) {
+    setErrorMessage('Upload failed due to network issues. Please check your connection and try again.');
+  } else if (errorMessage.includes('quota')) {
+    setErrorMessage('Storage quota exceeded. Please contact support.');
+  } else if (errorMessage.includes('unauthorized')) {
+    setErrorMessage('Upload failed: Please log in again.');
+  } else {
+    setErrorMessage(`Upload failed: ${errorMessage}`);
+  }
+  
+  return undefined;
 };
 
 export const saveUserProject = async (user: User, uploadedTrackName: string, masteredFileUrl: string, masteringSettings: MasteringSettings, setIsLoading: (loading: boolean) => void, setErrorMessage: (message: string | null) => void): Promise<MasteredTrackInfo | undefined> => {

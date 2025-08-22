@@ -37,6 +37,7 @@ const DownloadMasterPage: React.FC = () => {
       }
 
       if (format === 'wav') {
+        // Always use local buffer for download (more reliable)
         const wavBlob = encodeWAV(masteredAudioBuffer);
         const url = URL.createObjectURL(wavBlob);
         const a = document.createElement('a');
@@ -46,11 +47,14 @@ const DownloadMasterPage: React.FC = () => {
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
+        
+        console.log('Download completed successfully');
       } else {
         alert(`Simulating download of ${format.toUpperCase()} file. This would be enabled for Pro users.`);
       }
     } catch (error) {
       console.error('An error occurred during download preparation:', error);
+      setErrorMessage('Download failed. Please try again.');
     } finally {
       setIsDownloading(false);
     }

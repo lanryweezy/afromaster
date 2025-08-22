@@ -135,11 +135,21 @@ const ProcessingAudioPage: React.FC = () => {
             trackInfo = { ...trackInfo, ...savedProject };
             addUserProject(trackInfo);
           }
+        } else {
+          // Upload failed - still save the project locally but without download URL
+          console.warn("Upload failed, saving project locally only");
+          trackInfo.downloadUrl = '';
+          addUserProject(trackInfo);
         }
 
         setMasteredTrackInfo(trackInfo);
         setProgress(100);
-        setStatusMessage("Mastering complete!");
+        
+        if (downloadURL) {
+          setStatusMessage("Mastering complete!");
+        } else {
+          setStatusMessage("Mastering complete! (Local download only)");
+        }
         
         setTimeout(() => setCurrentPage(AppPage.PREVIEW), 2000);
       } catch (error: unknown) {
