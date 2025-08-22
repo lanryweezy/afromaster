@@ -57,7 +57,8 @@ export const fetchAIChainSettings = async (
       contents: prompt,
       config: {
         responseMimeType: "application/json",
-        temperature: 0.8,
+        temperature: 0.7,
+        maxOutputTokens: 2048,
       },
     });
 

@@ -71,44 +71,10 @@ const ProcessingAudioPage: React.FC = () => {
           },
         };
 
-        // Step 3: Apply AI settings if enabled
-        if (finalSettings.aiSettingsApplied && apiKey) {
-          setStatusMessage("Generating AI mastering plan...");
-          setProgress(25);
-          
-          try {
-            const aiSettings = await fetchAIChainSettings(
-              finalSettings.genre,
-              uploadedTrack.name,
-              apiKey,
-              finalSettings.referenceTrackFile ? { name: finalSettings.referenceTrackFile.name } : null,
-              setIsLoading,
-              setErrorMessage
-            );
-            
-            if (aiSettings && !cancelledRef.current) {
-              finalSettings = {
-                ...finalSettings,
-                ...aiSettings,
-                eq: { ...finalSettings.eq, ...aiSettings.eq },
-                crossover: { ...finalSettings.crossover, ...aiSettings.crossover },
-                bands: {
-                  low: { ...finalSettings.bands.low, ...aiSettings.bands?.low },
-                  mid: { ...finalSettings.bands.mid, ...aiSettings.bands?.mid },
-                  high: { ...finalSettings.bands.high, ...aiSettings.bands?.high },
-                },
-                limiter: { ...finalSettings.limiter, ...aiSettings.limiter },
-                reverb: { ...finalSettings.reverb, ...aiSettings.reverb },
-                saturation: {
-                  flavor: finalSettings.saturation.flavor,
-                  amount: aiSettings.saturation?.amount ?? finalSettings.saturation.amount,
-                },
-              };
-            }
-          } catch (err) {
-            console.warn("AI settings failed, using manual settings:", err);
-          }
-        }
+        // Step 3: AI settings should already be applied from the settings page
+        // No need to fetch them again during processing
+        setStatusMessage("Preparing mastering chain...");
+        setProgress(25);
 
         if (cancelledRef.current) return;
         
@@ -121,23 +87,26 @@ const ProcessingAudioPage: React.FC = () => {
 
         if (cancelledRef.current) return;
 
-        // Step 5: Generate AI report (non-blocking)
+        // Step 5: Generate AI report (non-blocking, simplified)
         if (apiKey && !cancelledRef.current) {
           setIsFetchingReport(true);
-          generateMasteringReport(uploadedTrack.name, finalSettings, apiKey, setIsLoading, setErrorMessage)
-            .then((report) => {
-              if (!cancelledRef.current) {
-                setMasteringReportNotes(report);
-              }
-            })
-            .catch((err) => {
-              console.warn("AI report generation failed:", err);
-            })
-            .finally(() => {
-              if (!cancelledRef.current) {
-                setIsFetchingReport(false);
-              }
-            });
+          // Use a simple timeout to prevent blocking
+          setTimeout(() => {
+            generateMasteringReport(uploadedTrack.name, finalSettings, apiKey, () => {}, setErrorMessage)
+              .then((report) => {
+                if (!cancelledRef.current) {
+                  setMasteringReportNotes(report);
+                }
+              })
+              .catch((err) => {
+                console.warn("AI report generation failed:", err);
+              })
+              .finally(() => {
+                if (!cancelledRef.current) {
+                  setIsFetchingReport(false);
+                }
+              });
+          }, 100);
         }
 
         // Step 6: Create track info

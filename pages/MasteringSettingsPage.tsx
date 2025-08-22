@@ -151,32 +151,40 @@ const MasteringSettingsPage: React.FC = () => {
 
   const handleGetAISettings = useCallback(async () => {
     if (!uploadedTrack || !apiKey) {
-      // Use global error message here
       setErrorMessage(apiKey ? "No track uploaded to analyze." : "API Key is not configured.");
       return;
     }
-    // Use global loading and error states
+    
     setIsLoading(true);
     setErrorMessage(null);
+    
     try {
+      console.log("Fetching AI settings for:", uploadedTrack.name, "Genre:", currentSettings.genre);
+      
       const settings = await fetchAIChainSettings(
         currentSettings.genre,
         uploadedTrack.name,
         apiKey,
         referenceAnalysis,
-        setIsLoading, // Pass global setIsLoading
-        setErrorMessage // Pass global setErrorMessage
+        setIsLoading,
+        setErrorMessage
       );
-      setAiSettings(settings);
-      setCurrentSettings(prev => ({ ...prev, aiSettingsApplied: true }));
-    } catch (err: unknown) { // Catch any type of error
+      
+      if (settings) {
+        console.log("AI settings received:", settings);
+        setAiSettings(settings);
+        setCurrentSettings(prev => ({ ...prev, aiSettingsApplied: true }));
+        setErrorMessage(null); // Clear any previous errors
+      } else {
+        setErrorMessage("Failed to generate AI settings. Please try again.");
+      }
+    } catch (err: unknown) {
       console.error("Failed to fetch AI settings:", err);
-      // The fetchAIChainSettings already sets the error message, so no need to set it again here
-      // setErrorMessage(err.message || "Failed to fetch AI settings.");
+      setErrorMessage("Failed to generate AI settings. Please check your connection and try again.");
     } finally {
       setIsLoading(false);
     }
-  }, [uploadedTrack, currentSettings, apiKey, referenceAnalysis, setIsLoading, setErrorMessage]); // Add to dependencies
+  }, [uploadedTrack, currentSettings.genre, apiKey, referenceAnalysis, setIsLoading, setErrorMessage]);
 
   const applyAIStrength = useCallback((baseSettings: MasteringSettings, aiSettings: Partial<MasteringSettings> | null, strength: number): MasteringSettings => {
     if (!aiSettings) return baseSettings;
