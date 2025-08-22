@@ -15,11 +15,11 @@ export const fetchAIChainSettings = async (
   try {
     console.log("Starting AI settings generation for:", genre, trackName);
     
-    if (!apiKey) {
-      throw new Error("Gemini API key is not provided.");
-    }
+  if (!apiKey) {
+    throw new Error("Gemini API key is not provided.");
+  }
     
-    const ai = new GoogleGenAI({ apiKey });
+  const ai = new GoogleGenAI({ apiKey });
     console.log("Gemini AI initialized");
 
     // Simplified prompt for better reliability
@@ -31,7 +31,7 @@ Return ONLY a JSON object with this exact structure:
   "eq": {"bassFreq": 200, "trebleFreq": 5000, "bassGain": 0, "trebleGain": 0},
   "saturation": {"amount": 0},
   "preGain": 1.0,
-  "bands": {
+      "bands": {
     "low": {"threshold": -35, "knee": 15, "ratio": 4, "attack": 0.05, "release": 0.3, "makeupGain": 2.0},
     "mid": {"threshold": -30, "knee": 10, "ratio": 3, "attack": 0.01, "release": 0.25, "makeupGain": 2.0},
     "high": {"threshold": -25, "knee": 5, "ratio": 3, "attack": 0.005, "release": 0.15, "makeupGain": 1.5}
@@ -75,7 +75,7 @@ Adjust the values based on the genre. For ${genre}, focus on appropriate frequen
 
     let parsedData;
     try {
-      parsedData = JSON.parse(jsonStr);
+        parsedData = JSON.parse(jsonStr);
       console.log("Parsed data:", parsedData);
     } catch(e) {
       console.error("JSON parse failed:", e);
@@ -236,30 +236,30 @@ export const generateMasteringReport = async (
   setIsLoading(true);
   setErrorMessage(null);
   try {
-    if (!apiKey) {
+  if (!apiKey) {
       return "AI insights unavailable - API key not configured.";
-    }
+  }
     
-    const ai = new GoogleGenAI({ apiKey });
+  const ai = new GoogleGenAI({ apiKey });
 
-    const loudnessTargetString = typeof settings.loudnessTarget === 'string' 
-      ? settings.loudnessTarget 
-      : `${settings.customLoudnessValue} LUFS`;
+  const loudnessTargetString = typeof settings.loudnessTarget === 'string' 
+    ? settings.loudnessTarget 
+    : `${settings.customLoudnessValue} LUFS`;
 
-    const prompt = `
-      You are 'Afromaster', an expert AI mastering engineer specializing in Afrobeats, Amapiano, Hip Hop, and Trap music.
-      A track named "${trackName}" is being submitted for mastering with the following preferences:
-      - Genre: ${settings.genre}
-      - Target Loudness: ${loudnessTargetString}
-      - Tone Preference: ${settings.tonePreference}
-      - Stereo Width: ${settings.stereoWidth}
-      ${settings.referenceTrackFile ? `- Inspired by reference track: ${settings.referenceTrackFile.name}` : ''}
+  const prompt = `
+    You are 'Afromaster', an expert AI mastering engineer specializing in Afrobeats, Amapiano, Hip Hop, and Trap music.
+    A track named "${trackName}" is being submitted for mastering with the following preferences:
+    - Genre: ${settings.genre}
+    - Target Loudness: ${loudnessTargetString}
+    - Tone Preference: ${settings.tonePreference}
+    - Stereo Width: ${settings.stereoWidth}
+    ${settings.referenceTrackFile ? `- Inspired by reference track: ${settings.referenceTrackFile.name}` : ''}
 
-      Briefly describe the key processing steps you would take to achieve these mastering goals.
-      Focus on 2-4 main actions or considerations (e.g., "Gentle low-end boost for warmth", "Subtle high-frequency lift for clarity", "Overall dynamic range control to meet loudness target", "Careful stereo widening to enhance immersion without phase issues").
-      Keep the description concise and suitable for a user to understand as a quick insight into the AI's 'thinking' process.
-      Respond with a short paragraph or a few bullet points. Do not use markdown formatting like backticks or #. Just plain text.
-    `;
+    Briefly describe the key processing steps you would take to achieve these mastering goals.
+    Focus on 2-4 main actions or considerations (e.g., "Gentle low-end boost for warmth", "Subtle high-frequency lift for clarity", "Overall dynamic range control to meet loudness target", "Careful stereo widening to enhance immersion without phase issues").
+    Keep the description concise and suitable for a user to understand as a quick insight into the AI's 'thinking' process.
+    Respond with a short paragraph or a few bullet points. Do not use markdown formatting like backticks or #. Just plain text.
+  `;
 
     const response: GenerateContentResponse = await ai.models.generateContent({
       model: 'gemini-2.5-flash',

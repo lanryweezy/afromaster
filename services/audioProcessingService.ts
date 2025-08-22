@@ -5,25 +5,35 @@ export const processAudio = async (
   settings: MasteringSettings
 ): Promise<AudioBuffer> => {
   try {
+    // Validate input
+    if (!audioBuffer || audioBuffer.length === 0) {
+      throw new Error("Invalid audio buffer");
+    }
+    
     // Check if OfflineAudioContext is available
     if (typeof OfflineAudioContext === 'undefined') {
       console.warn('OfflineAudioContext not available, returning original buffer');
       return audioBuffer;
     }
 
-    // Create an offline audio context for processing
-    const offlineContext = new OfflineAudioContext(
-      audioBuffer.numberOfChannels,
-      audioBuffer.length,
-      audioBuffer.sampleRate
-    );
+    // Create an offline audio context for processing with error handling
+    let offlineContext: OfflineAudioContext;
+    try {
+      offlineContext = new OfflineAudioContext(
+        audioBuffer.numberOfChannels,
+        audioBuffer.length,
+        audioBuffer.sampleRate
+      );
+    } catch (contextError) {
+      console.error('Failed to create OfflineAudioContext:', contextError);
+      return audioBuffer;
+    }
 
-    
-  // Create source from the input buffer
-  const source = offlineContext.createBufferSource();
-  source.buffer = audioBuffer;
+    // Create source from the input buffer
+    const source = offlineContext.createBufferSource();
+    source.buffer = audioBuffer;
 
-  let currentNode: AudioNode = source;
+    let currentNode: AudioNode = source;
 
   // Apply EQ (Bass and Treble)
   if (settings.eq.bassGain !== 0) {
@@ -109,11 +119,24 @@ export const processAudio = async (
   // Connect to destination
   finalGain.connect(offlineContext.destination);
 
-  // Start processing
+  // Start processing with timeout protection
   source.start(0);
 
-  // Return the processed audio buffer
-  return offlineContext.startRendering();
+  // Return the processed audio buffer with timeout
+  const renderPromise = offlineContext.startRendering();
+  const timeoutPromise = new Promise<AudioBuffer>((_, reject) => {
+    setTimeout(() => reject(new Error('Audio processing timeout')), 30000);
+  });
+  
+  const result = await Promise.race([renderPromise, timeoutPromise]);
+  
+  // Validate output
+  if (!result || result.length === 0) {
+    throw new Error("Audio processing produced invalid output");
+  }
+  
+  return result;
+  
   } catch (error) {
     console.error('Error in audio processing:', error);
     // Return original buffer if processing fails

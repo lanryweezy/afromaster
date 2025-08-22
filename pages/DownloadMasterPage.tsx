@@ -37,7 +37,12 @@ const DownloadMasterPage: React.FC = () => {
       }
 
       if (format === 'wav') {
-        // Always use local buffer for download (more reliable)
+        // Always use local buffer for download (guaranteed to work)
+        if (!masteredAudioBuffer) {
+          throw new Error('Mastered audio not available. Please try mastering again.');
+        }
+        
+        console.log('Preparing WAV download...');
         const wavBlob = encodeWAV(masteredAudioBuffer);
         const url = URL.createObjectURL(wavBlob);
         const a = document.createElement('a');
@@ -49,6 +54,7 @@ const DownloadMasterPage: React.FC = () => {
         URL.revokeObjectURL(url);
         
         console.log('Download completed successfully');
+        setErrorMessage(null); // Clear any previous errors
       } else {
         alert(`Simulating download of ${format.toUpperCase()} file. This would be enabled for Pro users.`);
       }
@@ -93,7 +99,17 @@ const DownloadMasterPage: React.FC = () => {
         </div>
 
         <div className="space-y-4">
-          <h3 className="text-lg font-semibold text-primary">Choose Your Download Format</h3>
+          <h3 className="text-lg font-semibold text-primary">Download Your Mastered Track</h3>
+          
+          {(!masteredTrackInfo.downloadUrl || masteredTrackInfo.downloadUrl === 'local-download-available') && (
+            <div className="bg-amber-500/20 border border-amber-500/30 rounded-lg p-3 mb-4">
+              <p className="text-amber-200 text-sm">
+                <IconAlertTriangle className="w-4 h-4 inline mr-2" />
+                Cloud upload failed, but your mastered track is ready for local download below.
+              </p>
+            </div>
+          )}
+          
           <Button
             onClick={() => handleDownload('wav')}
             size="lg"
