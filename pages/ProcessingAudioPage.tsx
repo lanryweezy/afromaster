@@ -70,7 +70,7 @@ const ProcessingAudioPage: React.FC = () => {
         setProgress(15);
         
         // Use genre-based optimization
-        let finalSettings = { ...masteringSettings };
+        const finalSettings = { ...masteringSettings };
         
         // Apply genre-specific optimizations
         switch (masteringSettings.genre) {
