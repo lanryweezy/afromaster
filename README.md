@@ -1,6 +1,6 @@
-# 🎵 Afromaster - AI-Powered Audio Mastering
+# 🎵 Afromaster - Global AI-Powered Audio Mastering
 
-**Professional AI-powered audio mastering for Afrobeats, Hip Hop, and African music. Get studio-quality masters with WebAssembly processing and machine learning algorithms.**
+**Professional AI-powered audio mastering for artists worldwide. Specially trained on Afrobeats, Amapiano, and Trap music with expertise in 50+ global genres. Get studio-quality masters with WebAssembly processing and machine learning algorithms.**
 
 ## 🚀 Features
 
@@ -10,11 +10,12 @@
 - **8-Stage Processing Pipeline** - Professional-grade mastering workflow
 - **Real-time Audio Analysis** - LUFS calculation, spectral analysis, dynamic range measurement
 
-### 🎯 **Genre-Specific Optimization**
-- **Afrobeats** - Optimized for African rhythms and percussion
+### 🎯 **Global Genre Intelligence**
+- **Afrobeats** - Optimized for African rhythms and percussion patterns
+- **Amapiano** - Deep understanding of South African house nuances
+- **Trap** - Perfect for modern trap and drill music styles
 - **Hip Hop** - Bass-heavy mastering with punchy drums
-- **EDM** - High-energy mastering with wide stereo field
-- **Pop/Rock** - Balanced mastering for commercial release
+- **50+ Genres** - From Reggaeton to K-Pop, trained on global music styles
 
 ### ☁️ **Bulletproof Cloud Storage**
 - **Multi-Cloud Upload** - Firebase Storage + Cloudflare R2 backup

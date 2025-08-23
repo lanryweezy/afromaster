@@ -199,8 +199,8 @@ const LandingPage: React.FC = () => {
     },
     {
       icon: <IconFire />,
-      title: "Genre-Specific Processing",
-      description: "Specialized mastering profiles for Afrobeats, Hip Hop, EDM, and more musical styles.",
+      title: "Global Genre Intelligence",
+      description: "Specialized mastering for Afrobeats, Amapiano, Trap, and 50+ other genres from around the world.",
       glowColor: "spectrum-2"
     },
     {
@@ -211,8 +211,8 @@ const LandingPage: React.FC = () => {
     },
     {
       icon: <IconHeart />,
-      title: "Artist-Friendly Interface",
-      description: "Intuitive design that makes professional mastering accessible to creators at every level.",
+      title: "Universal Accessibility",
+      description: "Intuitive design that makes professional mastering accessible to creators from every corner of the globe.",
       glowColor: "spectrum-4"
     }
   ];
@@ -241,29 +241,29 @@ const LandingPage: React.FC = () => {
   ];
 
   const stats = [
-    { value: "50K+", label: "Tracks Mastered", icon: <IconMusicNote /> },
-    { value: "15K+", label: "Happy Artists", icon: <IconUsers /> },
+    { value: "500K+", label: "Global Tracks Mastered", icon: <IconMusicNote /> },
+    { value: "195+", label: "Countries Served", icon: <IconUsers /> },
     { value: "99.8%", label: "Success Rate", icon: <IconAward /> },
-    { value: "4.9★", label: "User Rating", icon: <IconStar /> }
+    { value: "4.9★", label: "Artist Rating", icon: <IconStar /> }
   ];
 
   const testimonials = [
     {
       name: "Kwame Asante",
-      role: "Afrobeats Producer",
-      content: "Afromaster transformed my sound completely. The AI knows exactly how to make Afrobeats hit different!",
+      role: "Afrobeats Producer • Ghana",
+      content: "Afromaster transformed my sound completely. The AI knows exactly how to make Afrobeats hit different on global charts!",
       rating: 5
     },
     {
-      name: "Maya Johnson",
-      role: "Hip Hop Artist",
-      content: "I've tried every mastering service out there. Nothing comes close to the quality and speed of Afromaster.",
+      name: "Maya Johnson", 
+      role: "Trap Artist • Atlanta",
+      content: "From local clubs to worldwide streaming - Afromaster gets my trap beats ready for any platform, anywhere.",
       rating: 5
     },
     {
-      name: "David Okafor",
-      role: "Music Producer",
-      content: "The genre-specific processing is incredible. My clients' tracks sound radio-ready every single time.",
+      name: "Thabo Molefe",
+      role: "Amapiano Producer • South Africa", 
+      content: "Finally, an AI that understands the soul of Amapiano while meeting international standards. Pure magic!",
       rating: 5
     }
   ];
@@ -288,8 +288,8 @@ const LandingPage: React.FC = () => {
           />
           
           <p className="text-xl md:text-2xl text-gray-300 mb-8 max-w-3xl mx-auto leading-relaxed animate-fade-in-up">
-            Transform your music with <span className="text-primary font-semibold">AI-powered mastering</span> designed for 
-            <span className="gradient-text-spectrum font-semibold"> Afrobeats, Hip Hop & African music</span>. 
+            Professional AI mastering for <span className="gradient-text-spectrum font-semibold">artists worldwide</span>. 
+            Specially trained on <span className="text-primary font-semibold">Afrobeats, Amapiano & Trap</span> but perfected for every genre.
             Get studio-quality masters in minutes, not hours.
           </p>
           
@@ -331,10 +331,10 @@ const LandingPage: React.FC = () => {
         <div className="container max-w-6xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-black mb-6 gradient-text-hero">
-              Why Artists Choose Afromaster
+              Why Global Artists Choose Afromaster
             </h2>
             <p className="text-xl text-gray-300 max-w-3xl mx-auto">
-              Professional mastering tools powered by AI, designed specifically for modern music production
+              AI mastering technology trained on cultural music nuances, perfected for worldwide success
             </p>
           </div>
           
