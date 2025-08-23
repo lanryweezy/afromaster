@@ -1,17 +1,17 @@
 import React from 'react';
 import { useAppContext } from '../contexts/AppContext';
 import { AppPage } from '../types';
-import { IconUpload, IconCog, IconPlay, IconDownload, IconCheck } from '../constants';
+import { IconUpload, IconCog, IconPlay, IconDownload, IconCheck, IconSparkles } from '../constants';
 
 const WorkflowProgress: React.FC = () => {
   const { currentPage } = useAppContext();
 
   const steps = [
-    { page: AppPage.UPLOAD, label: 'Upload', icon: IconUpload },
-    { page: AppPage.SETTINGS, label: 'Settings', icon: IconCog },
-    { page: AppPage.PROCESSING, label: 'Processing', icon: IconCog },
-    { page: AppPage.PREVIEW, label: 'Preview', icon: IconPlay },
-    { page: AppPage.DOWNLOAD, label: 'Download', icon: IconDownload }
+    { page: AppPage.UPLOAD, label: 'Upload', icon: IconUpload, description: 'Share your creation' },
+    { page: AppPage.SETTINGS, label: 'Settings', icon: IconCog, description: 'Define your sound' },
+    { page: AppPage.PROCESSING, label: 'Processing', icon: IconSparkles, description: 'AI magic happening' },
+    { page: AppPage.PREVIEW, label: 'Preview', icon: IconPlay, description: 'Feel the difference' },
+    { page: AppPage.DOWNLOAD, label: 'Download', icon: IconDownload, description: 'Get your master' }
   ];
 
   const getCurrentStepIndex = () => {
@@ -27,108 +27,170 @@ const WorkflowProgress: React.FC = () => {
   }
 
   return (
-    <div className="mb-6 sm:mb-8">
+    <div className="mb-8 sm:mb-12">
       {/* Mobile: Vertical layout */}
       <div className="block sm:hidden">
-        <div className="flex flex-col space-y-4">
-          {steps.map((step, index) => {
-            const isActive = index === currentStepIndex;
-            const isCompleted = index < currentStepIndex;
+        <div className="bg-slate-900/50 backdrop-blur-xl border border-slate-700/50 rounded-2xl p-4 shadow-xl">
+          <div className="flex flex-col space-y-4">
+            {steps.map((step, index) => {
+              const isActive = index === currentStepIndex;
+              const isCompleted = index < currentStepIndex;
+              const isUpcoming = index > currentStepIndex;
 
-
-            return (
-              <div key={index} className="flex items-center space-x-3">
-                <div
-                  className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 flex-shrink-0 ${
-                    isCompleted
-                      ? 'bg-green-500 text-white'
-                      : isActive
-                      ? 'bg-primary text-white ring-2 ring-primary/30'
-                      : 'bg-slate-700 text-slate-400'
-                  }`}
-                >
-                  {isCompleted ? (
-                    <IconCheck className="w-4 h-4" />
-                  ) : (
-                    <step.icon className="w-4 h-4" />
+              return (
+                <div key={index} className="flex items-center space-x-4 group">
+                  {/* Connection line */}
+                  {index < steps.length - 1 && (
+                    <div className="absolute left-8 mt-8 w-0.5 h-8 bg-gradient-to-b from-slate-600 to-slate-700"></div>
                   )}
-                </div>
-                <div className="flex-1">
-                  <span
-                    className={`text-sm font-medium transition-colors ${
-                      isActive ? 'text-primary' : isCompleted ? 'text-green-400' : 'text-slate-500'
+                  
+                  {/* Step indicator */}
+                  <div
+                    className={`relative w-12 h-12 rounded-full flex items-center justify-center transition-all duration-500 flex-shrink-0 ${
+                      isCompleted
+                        ? 'bg-gradient-to-r from-green-500 to-emerald-600 text-white shadow-lg shadow-green-500/30'
+                        : isActive
+                        ? 'bg-gradient-to-r from-orange-500 to-red-600 text-white ring-4 ring-orange-500/30 shadow-lg shadow-orange-500/30 animate-pulse'
+                        : 'bg-slate-800 text-slate-500 border-2 border-slate-600'
                     }`}
                   >
-                    {step.label}
-                  </span>
-                  {isActive && (
-                    <div className="text-xs text-slate-400 mt-1">Current step</div>
-                  )}
+                    {isCompleted ? (
+                      <IconCheck className="w-6 h-6" />
+                    ) : (
+                      <step.icon className={`w-6 h-6 ${isActive ? 'animate-bounce' : ''}`} />
+                    )}
+                    
+                    {/* Glow effect for active step */}
+                    {isActive && (
+                      <div className="absolute inset-0 rounded-full bg-gradient-to-r from-orange-500 to-red-600 opacity-50 blur-lg animate-pulse"></div>
+                    )}
+                  </div>
+                  
+                  {/* Step content */}
+                  <div className="flex-1 min-w-0">
+                    <div
+                      className={`text-base font-semibold transition-colors ${
+                        isActive ? 'text-orange-400' : isCompleted ? 'text-green-400' : 'text-slate-400'
+                      }`}
+                    >
+                      {step.label}
+                    </div>
+                    <div className={`text-sm mt-1 ${isActive ? 'text-slate-300' : 'text-slate-500'}`}>
+                      {step.description}
+                    </div>
+                    {isActive && (
+                      <div className="text-xs text-orange-500 mt-2 font-medium animate-pulse">
+                        ● Active
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
       </div>
 
       {/* Desktop: Horizontal layout */}
       <div className="hidden sm:block">
-        <div className="flex items-center justify-between">
-          {steps.map((step, index) => {
-            const isActive = index === currentStepIndex;
-            const isCompleted = index < currentStepIndex;
+        <div className="bg-slate-900/50 backdrop-blur-xl border border-slate-700/50 rounded-2xl p-6 shadow-xl">
+          <div className="flex items-center justify-between">
+            {steps.map((step, index) => {
+              const isActive = index === currentStepIndex;
+              const isCompleted = index < currentStepIndex;
 
-
-            return (
-              <div key={index} className="flex items-center">
-                <div className="flex flex-col items-center">
-                  <div
-                    className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 ${
-                      isCompleted
-                        ? 'bg-green-500 text-white'
-                        : isActive
-                        ? 'bg-primary text-white ring-4 ring-primary/30'
-                        : 'bg-slate-700 text-slate-400'
-                    }`}
-                  >
-                    {isCompleted ? (
-                      <IconCheck className="w-5 h-5" />
-                    ) : (
-                      <step.icon className="w-5 h-5" />
-                    )}
+              return (
+                <div key={index} className="flex items-center group">
+                  <div className="flex flex-col items-center">
+                    {/* Step indicator */}
+                    <div
+                      className={`relative w-16 h-16 rounded-full flex items-center justify-center transition-all duration-500 ${
+                        isCompleted
+                          ? 'bg-gradient-to-r from-green-500 to-emerald-600 text-white shadow-lg shadow-green-500/30 scale-110'
+                          : isActive
+                          ? 'bg-gradient-to-r from-orange-500 to-red-600 text-white ring-4 ring-orange-500/30 shadow-lg shadow-orange-500/30 scale-110'
+                          : 'bg-slate-800 text-slate-500 border-2 border-slate-600 hover:border-slate-500 hover:scale-105'
+                      }`}
+                    >
+                      {isCompleted ? (
+                        <IconCheck className="w-8 h-8" />
+                      ) : (
+                        <step.icon className={`w-8 h-8 ${isActive ? 'animate-bounce' : ''}`} />
+                      )}
+                      
+                      {/* Glow effect for active step */}
+                      {isActive && (
+                        <div className="absolute inset-0 rounded-full bg-gradient-to-r from-orange-500 to-red-600 opacity-50 blur-lg animate-pulse"></div>
+                      )}
+                    </div>
+                    
+                    {/* Step label and description */}
+                    <div className="mt-3 text-center">
+                      <div
+                        className={`text-sm font-semibold transition-colors ${
+                          isActive ? 'text-orange-400' : isCompleted ? 'text-green-400' : 'text-slate-400'
+                        }`}
+                      >
+                        {step.label}
+                      </div>
+                      <div className={`text-xs mt-1 ${isActive ? 'text-slate-300' : 'text-slate-500'}`}>
+                        {step.description}
+                      </div>
+                    </div>
                   </div>
-                  <span
-                    className={`text-xs mt-2 font-medium transition-colors ${
-                      isActive ? 'text-primary' : isCompleted ? 'text-green-400' : 'text-slate-500'
-                    }`}
-                  >
-                    {step.label}
-                  </span>
+                  
+                  {/* Connection line */}
+                  {index < steps.length - 1 && (
+                    <div className="flex flex-col items-center mx-4">
+                      <div
+                        className={`w-20 h-1 rounded-full transition-all duration-500 ${
+                          isCompleted ? 'bg-gradient-to-r from-green-500 to-emerald-600 shadow-lg shadow-green-500/30' : 'bg-slate-700'
+                        }`}
+                      >
+                        {/* Animated progress line for active step */}
+                        {index === currentStepIndex - 1 && (
+                          <div className="w-full h-full bg-gradient-to-r from-orange-500 to-red-600 rounded-full animate-pulse shadow-lg shadow-orange-500/30"></div>
+                        )}
+                      </div>
+                    </div>
+                  )}
                 </div>
-                
-                {index < steps.length - 1 && (
-                  <div
-                    className={`w-16 h-0.5 mx-4 transition-colors ${
-                      isCompleted ? 'bg-green-500' : 'bg-slate-700'
-                    }`}
-                  />
-                )}
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
       </div>
       
-      {/* Progress percentage */}
-      <div className="mt-4 text-center">
-        <div className="text-sm text-slate-400">
-          Step {currentStepIndex + 1} of {steps.length}
+      {/* Progress stats */}
+      <div className="mt-6 text-center">
+        <div className="flex items-center justify-center space-x-8 text-sm">
+          <div className="flex items-center space-x-2">
+            <div className="w-3 h-3 bg-gradient-to-r from-green-500 to-emerald-600 rounded-full"></div>
+            <span className="text-slate-400">Completed: {currentStepIndex}</span>
+          </div>
+          <div className="flex items-center space-x-2">
+            <div className="w-3 h-3 bg-gradient-to-r from-orange-500 to-red-600 rounded-full animate-pulse"></div>
+            <span className="text-slate-400">Current: {steps[currentStepIndex]?.label}</span>
+          </div>
+          <div className="flex items-center space-x-2">
+            <div className="w-3 h-3 bg-slate-600 rounded-full"></div>
+            <span className="text-slate-400">Remaining: {steps.length - currentStepIndex - 1}</span>
+          </div>
         </div>
-        <div className="w-full bg-slate-700 rounded-full h-2 mt-2">
+        
+        {/* Overall progress bar */}
+        <div className="w-full max-w-md mx-auto bg-slate-800 rounded-full h-2 mt-4 overflow-hidden shadow-inner">
           <div
-            className="bg-gradient-to-r from-primary to-secondary h-2 rounded-full transition-all duration-500"
+            className="bg-gradient-to-r from-orange-500 to-red-600 h-2 rounded-full transition-all duration-700 ease-out shadow-lg relative overflow-hidden"
             style={{ width: `${((currentStepIndex + 1) / steps.length) * 100}%` }}
-          />
+          >
+            {/* Animated shine effect */}
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent transform -skew-x-12 animate-shimmer"></div>
+          </div>
+        </div>
+        
+        <div className="mt-2 text-xs text-slate-500">
+          {Math.round(((currentStepIndex + 1) / steps.length) * 100)}% Complete
         </div>
       </div>
     </div>

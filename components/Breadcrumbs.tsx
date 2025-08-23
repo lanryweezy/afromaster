@@ -1,7 +1,7 @@
 import React from 'react';
 import { useAppContext } from '../contexts/AppContext';
 import { AppPage } from '../types';
-import { IconHome, IconUpload, IconCog, IconPlay, IconDownload } from '../constants';
+import { IconHome, IconUpload, IconCog, IconPlay, IconDownload, IconSparkles } from '../constants';
 
 const Breadcrumbs: React.FC = () => {
   const { currentPage, setCurrentPage } = useAppContext();
@@ -25,14 +25,14 @@ const Breadcrumbs: React.FC = () => {
         items.push(
           { page: AppPage.UPLOAD, label: 'Upload Track', icon: IconUpload, clickable: true },
           { page: AppPage.SETTINGS, label: 'Mastering Settings', icon: IconCog, clickable: true },
-          { page: AppPage.PROCESSING, label: 'Processing', icon: IconCog, clickable: false }
+          { page: AppPage.PROCESSING, label: 'Processing', icon: IconSparkles, clickable: false }
         );
         break;
       case AppPage.PREVIEW:
         items.push(
           { page: AppPage.UPLOAD, label: 'Upload Track', icon: IconUpload, clickable: true },
           { page: AppPage.SETTINGS, label: 'Mastering Settings', icon: IconCog, clickable: true },
-          { page: AppPage.PROCESSING, label: 'Processing', icon: IconCog, clickable: true },
+          { page: AppPage.PROCESSING, label: 'Processing', icon: IconSparkles, clickable: true },
           { page: AppPage.PREVIEW, label: 'Preview & Compare', icon: IconPlay, clickable: false }
         );
         break;
@@ -40,7 +40,7 @@ const Breadcrumbs: React.FC = () => {
         items.push(
           { page: AppPage.UPLOAD, label: 'Upload Track', icon: IconUpload, clickable: true },
           { page: AppPage.SETTINGS, label: 'Mastering Settings', icon: IconCog, clickable: true },
-          { page: AppPage.PROCESSING, label: 'Processing', icon: IconCog, clickable: true },
+          { page: AppPage.PROCESSING, label: 'Processing', icon: IconSparkles, clickable: true },
           { page: AppPage.PREVIEW, label: 'Preview & Compare', icon: IconPlay, clickable: true },
           { page: AppPage.DOWNLOAD, label: 'Download', icon: IconDownload, clickable: false }
         );
@@ -56,27 +56,36 @@ const Breadcrumbs: React.FC = () => {
 
   return (
     <nav className="mb-6" aria-label="Breadcrumb">
-      <ol className="flex items-center space-x-2 text-sm">
-        {breadcrumbItems.map((item, index) => (
-          <li key={index} className="flex items-center">
-            {index > 0 && (
-              <span className="mx-2 text-slate-500">/</span>
-            )}
-            <button
-              onClick={() => item.clickable && setCurrentPage(item.page)}
-              disabled={!item.clickable}
-              className={`flex items-center space-x-1 px-2 py-1 rounded-md transition-colors ${
-                item.clickable
-                  ? 'text-slate-300 hover:text-primary hover:bg-slate-800/50 cursor-pointer'
-                  : 'text-primary font-medium cursor-default'
-              }`}
-            >
-              <item.icon className="w-4 h-4" />
-              <span className="hidden sm:inline">{item.label}</span>
-            </button>
-          </li>
-        ))}
-      </ol>
+      <div className="bg-slate-900/30 backdrop-blur-sm border border-slate-700/30 rounded-xl p-3 shadow-lg">
+        <ol className="flex items-center space-x-1 text-sm">
+          {breadcrumbItems.map((item, index) => (
+            <li key={index} className="flex items-center">
+              {index > 0 && (
+                <svg className="mx-2 w-4 h-4 text-slate-600" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                </svg>
+              )}
+              <button
+                onClick={() => item.clickable && setCurrentPage(item.page)}
+                disabled={!item.clickable}
+                className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-all duration-300 group ${
+                  item.clickable
+                    ? 'text-slate-400 hover:text-orange-400 hover:bg-slate-800/50 cursor-pointer transform hover:scale-105'
+                    : 'text-orange-400 bg-orange-500/10 border border-orange-500/20 cursor-default shadow-lg'
+                }`}
+              >
+                <item.icon className={`w-4 h-4 ${!item.clickable ? 'text-orange-400' : 'group-hover:scale-110 transition-transform'}`} />
+                <span className="hidden sm:inline font-medium">{item.label}</span>
+                
+                {/* Current page indicator */}
+                {!item.clickable && (
+                  <div className="absolute -top-1 -right-1 w-2 h-2 bg-orange-400 rounded-full animate-pulse"></div>
+                )}
+              </button>
+            </li>
+          ))}
+        </ol>
+      </div>
     </nav>
   );
 };
