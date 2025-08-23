@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { useDropzone, FileRejection } from 'react-dropzone';
 import { analyticsService } from '../services/analyticsService';
-import { IconUpload, IconMusicNote, IconXCircle } from '../constants';
+import { IconUpload, IconMusicNote, IconXCircle, IconCheckCircle } from '../constants';
 
 interface FileUploadProps {
   onFileAccepted: (file: File) => void;
@@ -30,6 +30,7 @@ const FileUpload: React.FC<FileUploadProps> = ({
   const [internalFile, setInternalFile] = useState<File | null>(null);
   const [fileInfo, setFileInfo] = useState<{ name: string; size: number; duration?: number } | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
 
   useEffect(() => {
     if (externalFile) {
@@ -50,11 +51,14 @@ const FileUpload: React.FC<FileUploadProps> = ({
   const onDrop = useCallback((acceptedFiles: File[], fileRejections: FileRejection[]) => {
     console.log('onDrop called with:', { acceptedFiles, fileRejections });
     setError(null);
+    setIsUploading(true);
+    
     if (fileRejections.length > 0) {
       const rejectionError = fileRejections[0].errors[0]?.message || `File type not supported. Please upload: ${acceptedMimeTypes.join(', ')}.`;
       setError(rejectionError);
       setInternalFile(null);
       setFileInfo(null);
+      setIsUploading(false);
       if (onFileCleared) onFileCleared();
       
       // Track file upload error
@@ -65,10 +69,15 @@ const FileUpload: React.FC<FileUploadProps> = ({
       const file = acceptedFiles[0];
       setInternalFile(file);
       setFileInfo({ name: file.name, size: file.size }); // Duration will be set by parent after decoding
-      onFileAccepted(file);
       
-      // Track successful file upload
-      analyticsService.trackFileUpload(file.size, file.type);
+      // Simulate upload progress
+      setTimeout(() => {
+        setIsUploading(false);
+        onFileAccepted(file);
+        
+        // Track successful file upload
+        analyticsService.trackFileUpload(file.size, file.type);
+      }, 800);
     }
   }, [onFileAccepted, acceptedMimeTypes, onFileCleared]);
 
@@ -83,6 +92,7 @@ const FileUpload: React.FC<FileUploadProps> = ({
     setInternalFile(null);
     setFileInfo(null);
     setError(null);
+    setIsUploading(false);
     if (onFileCleared) {
       onFileCleared();
     }
@@ -92,43 +102,100 @@ const FileUpload: React.FC<FileUploadProps> = ({
 
 
   return (
-    <div className="w-full p-1">
-      {label && <p className="text-sm text-white mb-2 text-center font-medium">{label}</p>}
+    <div className="w-full">
+      {label && <p className="text-sm text-slate-300 mb-3 text-center font-medium">{label}</p>}
       {!currentDisplayFile ? (
         <div
           {...getRootProps()}
-          className={`border-2 border-dashed rounded-xl p-4 sm:p-8 text-center cursor-pointer transition-all duration-300 ease-in-out bg-slate-800/50
-            ${isDragActive ? 'border-sky-400 bg-slate-800' : 'border-slate-700 hover:border-sky-500 hover:bg-slate-800'}`}
+          className={`relative border-2 border-dashed rounded-2xl p-8 text-center cursor-pointer transition-all duration-300 ease-in-out overflow-hidden group
+            ${isDragActive 
+              ? 'border-orange-400 bg-orange-500/10 shadow-lg shadow-orange-500/20 scale-[1.02]' 
+              : 'border-slate-600 bg-slate-800/30 hover:border-orange-500 hover:bg-slate-700/50 hover:shadow-lg hover:shadow-orange-500/10'
+            }`}
         >
+          {/* Animated background gradient */}
+          <div className="absolute inset-0 bg-gradient-to-br from-orange-500/5 via-transparent to-red-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+          
           <input {...getInputProps()} id={id} />
-          <div onClick={open} className="w-full h-full"> {/* Wrapper to capture clicks */}
-            <IconUpload className="w-8 h-8 sm:w-12 sm:h-12 mx-auto text-slate-500 mb-2 sm:mb-3" />
+          <div onClick={open} className="relative z-10 w-full h-full"> {/* Wrapper to capture clicks */}
+            <div className={`transition-all duration-300 ${isDragActive ? 'scale-110' : 'group-hover:scale-105'}`}>
+              <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-orange-500 to-red-600 rounded-full flex items-center justify-center shadow-lg">
+                <IconUpload className="w-8 h-8 text-white" />
+              </div>
+            </div>
+            
             {isDragActive ? (
-              <p className="text-sm sm:text-md font-semibold text-primary">Drop the track here ...</p>
+              <div className="animate-bounce-in">
+                <p className="text-lg font-semibold text-orange-400 mb-2">Drop your track here!</p>
+                <p className="text-sm text-slate-400">Release to upload</p>
+              </div>
             ) : (
-              <p className="text-sm sm:text-md text-white">Drag &apos;n&apos; drop audio file, or <span className="text-primary underline">click to select</span></p>
+              <div>
+                <p className="text-lg font-medium text-white mb-2">
+                  Drag & drop your audio file here
+                </p>
+                <p className="text-sm text-slate-400 mb-4">
+                  or <span className="text-orange-400 underline font-medium hover:text-orange-300 transition-colors">click to browse</span>
+                </p>
+                <div className="flex flex-wrap justify-center gap-2 text-xs text-slate-500">
+                  <span className="bg-slate-700/50 px-2 py-1 rounded-md">MP3</span>
+                  <span className="bg-slate-700/50 px-2 py-1 rounded-md">WAV</span>
+                  <span className="bg-slate-700/50 px-2 py-1 rounded-md">AIFF</span>
+                  <span className="bg-slate-700/50 px-2 py-1 rounded-md">FLAC</span>
+                </div>
+              </div>
             )}
-            <p className="text-xs text-slate-400 mt-2">Supported: MP3, WAV, AIFF, FLAC</p>
           </div>
         </div>
       ) : (
-        <div className="p-4 bg-slate-800 border border-slate-700 rounded-xl text-center relative">
+        <div className="relative p-6 bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700/50 rounded-2xl text-center shadow-lg hover:shadow-xl transition-all duration-300 group">
+          {/* Success indicator */}
+          <div className="absolute top-3 left-3 text-green-400">
+            <IconCheckCircle className="w-5 h-5" />
+          </div>
+          
           <button 
             onClick={clearFile} 
-            className="absolute top-2 right-2 text-slate-400 hover:text-red-400 transition-colors z-10 p-1"
+            className="absolute top-3 right-3 text-slate-400 hover:text-red-400 hover:bg-red-400/10 transition-all duration-200 p-1.5 rounded-lg hover:scale-110"
             aria-label="Remove file"
           >
-            <IconXCircle className="w-5 h-5 sm:w-6 sm:h-6" />
+            <IconXCircle className="w-5 h-5" />
           </button>
-          <IconMusicNote className="w-8 h-8 sm:w-10 sm:h-10 mx-auto text-sky-400 mb-2" />
-          <p className="text-sm sm:text-md font-medium text-white truncate px-4 sm:px-8" title={currentDisplayFile.name}>{currentDisplayFile.name}</p>
-          <p className="text-xs text-slate-300">
-            {(currentDisplayFile.size / (1024 * 1024)).toFixed(2)} MB
-            {currentDisplayFile.duration ? ` / ${formatDuration(currentDisplayFile.duration)}` : ''}
-          </p>
+          
+          {isUploading ? (
+            <div className="animate-pulse">
+              <div className="w-12 h-12 mx-auto mb-3 bg-gradient-to-br from-orange-500 to-red-600 rounded-full flex items-center justify-center">
+                <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+              </div>
+              <p className="text-sm font-medium text-orange-400">Processing file...</p>
+            </div>
+          ) : (
+            <>
+              <div className="w-12 h-12 mx-auto mb-3 bg-gradient-to-br from-green-500 to-blue-600 rounded-full flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+                <IconMusicNote className="w-6 h-6 text-white" />
+              </div>
+              <p className="text-base font-medium text-white truncate px-4 mb-2" title={currentDisplayFile.name}>
+                {currentDisplayFile.name}
+              </p>
+              <div className="flex items-center justify-center gap-4 text-sm text-slate-400">
+                <span className="bg-slate-700/50 px-2 py-1 rounded-md">
+                  {(currentDisplayFile.size / (1024 * 1024)).toFixed(2)} MB
+                </span>
+                {currentDisplayFile.duration && (
+                  <span className="bg-slate-700/50 px-2 py-1 rounded-md">
+                    {formatDuration(currentDisplayFile.duration)}
+                  </span>
+                )}
+              </div>
+            </>
+          )}
         </div>
       )}
-      {error && <p className="text-red-400 text-sm mt-2 text-center">{error}</p>}
+      {error && (
+        <div className="mt-3 p-3 bg-red-900/20 border border-red-500/30 rounded-xl animate-shake">
+          <p className="text-red-400 text-sm text-center font-medium">{error}</p>
+        </div>
+      )}
     </div>
   );
 };
