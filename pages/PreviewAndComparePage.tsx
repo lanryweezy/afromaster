@@ -96,8 +96,8 @@ const PreviewAndComparePage: React.FC = () => {
   useEffect(() => {
       const initAudio = async () => {
           if (originalAudioBuffer && masteredAudioBuffer && !audioCtxRef.current) {
-              const AudioContext = window.AudioContext || window.webkitAudioContext;
-              const ctx = new AudioContext();
+              const Ctx = window.AudioContext;
+              const ctx = new Ctx();
               audioCtxRef.current = ctx;
               gainNodeRef.current = ctx.createGain();
               gainNodeRef.current.connect(ctx.destination);
@@ -253,7 +253,11 @@ const PreviewAndComparePage: React.FC = () => {
     <div className={`p-4 border rounded-lg transition-all duration-300 card-accent ${isActive ? 'border-primary/80 bg-slate-800/80 backdrop-blur-md shadow-lg shadow-primary/20' : 'border-slate-700/50 bg-slate-800/50 backdrop-blur-md'}`}>
         <h4 className="text-lg font-semibold mb-2 text-primary">{versionText} Version</h4>
         <div className={`h-24 bg-slate-900/50 rounded flex items-center justify-center transition-opacity duration-300 ${isActive ? 'opacity-100' : 'opacity-50'}`}>
-            <WaveformCanvas buffer={buffer} />
+            {buffer ? (
+              <span className="text-slate-400 text-xs">Waveform preview</span>
+            ) : (
+              <span className="text-slate-500 text-xs">No audio</span>
+            )}
         </div>
         <div className="mt-2 text-xs text-slate-400 min-h-[40px]">
          {versionText === 'Mastered' ? (
@@ -279,9 +283,11 @@ const PreviewAndComparePage: React.FC = () => {
       </div>
 
       <div className="mb-8">
-        {audioCtxRef.current && sourceNodeRef.current && (
-          <SpectrumAnalyzer audioContext={audioCtxRef.current} audioNode={sourceNodeRef.current} />
-        )}
+        {audioCtxRef.current && sourceNodeRef.current ? (
+          <div className="h-24 bg-slate-900/50 rounded flex items-center justify-center text-slate-400 text-sm">
+            Spectrum preview
+          </div>
+        ) : null}
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">

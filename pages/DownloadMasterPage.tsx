@@ -5,7 +5,7 @@ import { analyticsService } from '../services/analyticsService';
 import Button from '../components/Button';
 import Modal from '../components/Modal';
 import { encodeWAV } from '../utils/wavEncoder';
-import { deductCredits } from '../services/paymentService';
+// import { deductCredits } from '../services/paymentService';
 import { checkAndDeductCredits } from '../services/firebaseService';
 import { IconDownload, IconArrowRight, IconCheckCircle, IconLockClosed, IconSparkles, IconAlertTriangle } from '../constants';
 import PageContainer from '../components/PageContainer';

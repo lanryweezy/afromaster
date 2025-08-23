@@ -11,7 +11,7 @@ interface AIMasteringSuggestionsProps {
   handleGetAISettings: () => Promise<void>;
   aiStrength: number;
   setAiStrength: (strength: number) => void;
-  aiSettings?: any; // Add this to show when AI settings are available
+  aiSettings?: Record<string, unknown>; // Add this to show when AI settings are available
   hasGeneratedSettings?: boolean; // Add this to track if settings were generated
 }
 

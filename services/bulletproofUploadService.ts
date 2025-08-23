@@ -199,7 +199,7 @@ export class BulletproofUploadService {
       const transaction = db.transaction(['audioFiles'], 'readonly');
       const store = transaction.objectStore('audioFiles');
       const result = await store.get(filename);
-      return result?.blob || null;
+      return (result && (result as { blob?: Blob }).blob) || null;
     } catch (error) {
       console.error('Error retrieving local file:', error);
       return null;

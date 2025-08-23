@@ -14,16 +14,16 @@ const Dropdown = <T extends string | number,>({
   value,
   onChange,
   optionDisplayNames,
-  className = '',
+  className,
   ...props
 }: DropdownProps<T>): React.ReactElement => {
   return (
-    <div className={`w-full ${className}`}>
-      <label htmlFor={props.id || label} className="block text-sm font-medium text-slate-300 mb-2">
+    <div className={`w-full ${className || ''}`}>
+      <label htmlFor={(props as { id?: string }).id || label} className="block text-sm font-medium text-slate-300 mb-2">
         {label}
       </label>
       <select
-        id={props.id || label}
+        id={(props as { id?: string }).id || label}
         value={value}
         onChange={onChange}
         className="w-full bg-slate-800 border border-slate-700 text-slate-100 rounded-lg shadow-sm focus:ring-primary focus:border-primary transition-colors"

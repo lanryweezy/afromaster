@@ -74,7 +74,7 @@ const FileUpload: React.FC<FileUploadProps> = ({
 
   const { getRootProps, getInputProps, isDragActive, open } = useDropzone({
     onDrop,
-    accept: acceptedMimeTypes.reduce((acc, type) => ({ ...acc, [type]: [] }), {}),
+    accept: acceptedMimeTypes.reduce<Record<string, string[]>>((acc, type) => { acc[type] = []; return acc; }, {}),
     multiple: false,
     noClick: true, // Disable click on the dropzone itself
   });

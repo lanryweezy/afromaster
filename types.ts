@@ -74,3 +74,13 @@ export interface GroundingChunk {
     title?: string;
   };
 }
+
+export interface AIPreset {
+  name: string;
+  description: string;
+  settings: {
+    loudnessTarget: string;
+    tonePreference: string;
+    stereoWidth: string;
+  };
+}
