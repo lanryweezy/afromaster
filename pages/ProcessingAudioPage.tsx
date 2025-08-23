@@ -7,7 +7,7 @@ import { fetchAIChainSettings, generateMasteringReport } from '../services/gemin
 import { saveUserProject, checkAndDeductCredits } from '../services/firebaseService';
 import { bulletproofUploadService } from '../services/bulletproofUploadService';
 import { processAudio } from '../services/audioProcessingService';
-import { automatedMastering } from '../services/automatedMasteringService';
+
 import StatusMessage from '../components/StatusMessage';
 
 const ProcessingAudioPage: React.FC = () => {
@@ -65,21 +65,31 @@ const ProcessingAudioPage: React.FC = () => {
           throw new Error("Audio file too long. Please use a track under 10 minutes.");
         }
 
-        // Step 2: Automated mastering analysis and optimization
-        setStatusMessage("Analyzing track for optimal mastering...");
+        // Step 2: Optimize settings based on genre
+        setStatusMessage("Optimizing mastering settings...");
         setProgress(15);
         
-        // Use automated mastering to get optimized settings
-        const automatedResult = await automatedMastering(
-          uploadedTrack.audioBuffer,
-          masteringSettings.genre,
-          masteringSettings
-        );
+        // Use genre-based optimization
+        let finalSettings = { ...masteringSettings };
         
-        let finalSettings = automatedResult.settings;
-        
-        // Log the automated recommendations
-        console.log("Automated mastering recommendations:", automatedResult.recommendations);
+        // Apply genre-specific optimizations
+        switch (masteringSettings.genre) {
+          case 'Hip Hop':
+            finalSettings.eq.bassGain = Math.max(finalSettings.eq.bassGain, 2);
+            finalSettings.loudnessTarget = 'STREAMING_LOUD';
+            break;
+          case 'Afrobeats':
+            finalSettings.eq.trebleGain = Math.max(finalSettings.eq.trebleGain, 1);
+            finalSettings.saturation.amount = Math.min(finalSettings.saturation.amount + 0.1, 0.8);
+            break;
+          case 'EDM':
+            finalSettings.eq.bassGain = Math.max(finalSettings.eq.bassGain, 3);
+            finalSettings.loudnessTarget = 'CLUB';
+            break;
+          default:
+            // Keep default settings
+            break;
+        }
 
         if (cancelledRef.current) return;
 
