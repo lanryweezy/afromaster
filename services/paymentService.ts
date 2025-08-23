@@ -1,20 +1,20 @@
-interface PaystackConfig {
-  key: string;
-  email: string;
-  amount: number; // in kobo
-  currency?: string;
-  ref: string;
-  onClose: () => void;
-  callback: (response: { reference: string; status: string; message: string }) => void;
-  metadata?: Record<string, unknown>;
-}
+// Paystack Configuration Interface
+// interface PaystackConfig {
+//   key: string;
+//   email: string;
+//   amount: number;
+//   currency: string;
+//   metadata?: Record<string, string>;
+//   callback: (response: { reference: string; message: string; status: string; trans: string; transaction: string; trxref: string; redirecturl: string }) => void;
+//   onClose: () => void;
+// }
 
 // This tells TypeScript that PaystackPop is a global variable provided by the script
-declare const PaystackPop: {
-  setup: (config: PaystackConfig) => {
-    openIframe: () => void;
-  };
-};
+// declare const PaystackPop: {
+//   setup: (config: PaystackConfig) => {
+//     openIframe: () => void;
+//   };
+// };
 
 // Real Paystack payment integration (this is now handled by usePaystack hook)
 // This service is now deprecated in favor of the hook-based approach

@@ -170,7 +170,7 @@ const getDefaultAISettings = (genre: string): Partial<MasteringSettings> => {
 };
 
 // Helper function to validate and fix AI settings
-const validateAndFixAISettings = (data: any): Partial<MasteringSettings> => {
+const validateAndFixAISettings = (data: unknown): Partial<MasteringSettings> => {
   const defaults = getDefaultAISettings('Pop');
   
   // Ensure all required properties exist with proper types

@@ -107,7 +107,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   });
   const [masteredTrackInfo, setMasteredTrackInfo] = useState<MasteredTrackInfo | null>(null);
   const [userProjects, setUserProjects] = useState<MasteredTrackInfo[]>([]);
-  const [apiKey, setApiKey] = useLocalStorage<string | undefined>('afromaster-api-key', (import.meta as any).env?.VITE_GEMINI_API_KEY || undefined);
+  const [apiKey, setApiKey] = useLocalStorage<string | undefined>('afromaster-api-key', (import.meta as { env?: Record<string, string> }).env?.VITE_GEMINI_API_KEY || undefined);
   const [originalAudioBuffer, setOriginalAudioBuffer] = useState<AudioBuffer | null>(null);
   const [masteredAudioBuffer, setMasteredAudioBuffer] = useState<AudioBuffer | null>(null);
   
