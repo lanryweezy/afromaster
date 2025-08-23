@@ -141,7 +141,7 @@ const getDefaultAISettings = (genre: string): Partial<MasteringSettings> => {
       return {
         ...baseSettings,
         eq: { ...baseSettings.eq, bassGain: 2, trebleGain: 1 },
-        saturation: { amount: 15 },
+        saturation: { amount: 15, flavor: 'tape' },
         bands: {
           ...baseSettings.bands,
           low: { ...baseSettings.bands.low, threshold: -30, makeupGain: 3.0 },
@@ -152,7 +152,7 @@ const getDefaultAISettings = (genre: string): Partial<MasteringSettings> => {
       return {
         ...baseSettings,
         eq: { ...baseSettings.eq, bassGain: 3, trebleGain: 0 },
-        saturation: { amount: 20 },
+        saturation: { amount: 20, flavor: 'tube' },
         bands: {
           ...baseSettings.bands,
           low: { ...baseSettings.bands.low, threshold: -25, makeupGain: 4.0 },
@@ -162,7 +162,7 @@ const getDefaultAISettings = (genre: string): Partial<MasteringSettings> => {
       return {
         ...baseSettings,
         eq: { ...baseSettings.eq, bassGain: 1, trebleGain: 2 },
-        saturation: { amount: 10 },
+        saturation: { amount: 10, flavor: 'tape' },
       };
     default:
       return baseSettings;

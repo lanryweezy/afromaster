@@ -98,7 +98,7 @@ const PreviewAndComparePage: React.FC = () => {
   useEffect(() => {
       const initAudio = async () => {
           if (originalAudioBuffer && masteredAudioBuffer && !audioCtxRef.current) {
-              const AudioContext = window.AudioContext || window.webkitAudioContext;
+              const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
               const ctx = new AudioContext();
               audioCtxRef.current = ctx;
               gainNodeRef.current = ctx.createGain();

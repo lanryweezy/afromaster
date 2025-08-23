@@ -5,7 +5,7 @@ import { getStorage } from "firebase/storage";
 
 // Your web app's Firebase configuration
 const getEnvVar = (key: string) => {
-  const value = import.meta.env[key];
+  const value = (import.meta as any).env[key];
   if (!value) {
     throw new Error(`Environment variable ${key} is not defined.`);
   }

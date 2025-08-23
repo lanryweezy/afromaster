@@ -14,6 +14,14 @@ export enum AppPage {
   BUY_CREDITS,
 }
 
+export interface AIPreset {
+  id: string;
+  name: string;
+  description: string;
+  icon: string;
+  settings: Partial<MasteringSettings>;
+}
+
 export interface MasteringSettings {
   genre: Genre;
   loudnessTarget: LoudnessTarget | string;

@@ -31,7 +31,7 @@ const useCreditPurchase = ({ user }: UseCreditPurchaseOptions) => {
     console.log('Received pkg:', pkg);
     
     payWithPaystack({
-      publicKey: import.meta.env.VITE_PAYSTACK_PUBLIC_KEY as string,
+      publicKey: (import.meta as any).env.VITE_PAYSTACK_PUBLIC_KEY as string,
       email: user.email,
       amount: pkg.price * 100, // Paystack expects amount in kobo for NGN, cents for USD
       currency: pkg.currency,
