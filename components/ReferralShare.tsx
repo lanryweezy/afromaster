@@ -86,7 +86,7 @@ const ReferralShare: React.FC<ReferralShareProps> = ({ className = '' }) => {
       <div className="space-y-4">
         <div className="flex items-center gap-2 text-slate-300">
           <IconUsers className="w-5 h-5" />
-          <span>You've referred {referralCount} friends</span>
+          <span>You&apos;ve referred {referralCount} friends</span>
           {referralCount > 0 && (
             <span className="text-green-400 font-semibold">
               (+{Math.min(referralCount, 5)} credits earned!)

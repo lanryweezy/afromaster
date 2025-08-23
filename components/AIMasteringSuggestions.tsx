@@ -3,6 +3,7 @@ import Button from './Button';
 import LoadingSpinner from './LoadingSpinner';
 import Slider from './Slider';
 import { IconSparkles, IconCheck, IconCog } from '../constants';
+import { MasteringSettings } from '../types';
 
 interface AIMasteringSuggestionsProps {
   isLoading: boolean;
@@ -11,7 +12,7 @@ interface AIMasteringSuggestionsProps {
   handleGetAISettings: () => Promise<void>;
   aiStrength: number;
   setAiStrength: (strength: number) => void;
-  aiSettings?: any; // Add this to show when AI settings are available
+  aiSettings?: MasteringSettings; // Add this to show when AI settings are available
   hasGeneratedSettings?: boolean; // Add this to track if settings were generated
 }
 

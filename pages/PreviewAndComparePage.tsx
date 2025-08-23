@@ -5,6 +5,8 @@ import Button from '../components/Button';
 import { IconPlay, IconPause, IconCog, IconCheckCircle } from '../constants';
 import LoadingSpinner from '../components/LoadingSpinner';
 import ToggleSwitch from '../components/ToggleSwitch';
+import WaveformCanvas from '../components/WaveformCanvas';
+import SpectrumAnalyzer from '../components/SpectrumAnalyzer';
 
 const PreviewAndComparePage: React.FC = () => {
   const { 

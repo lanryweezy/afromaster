@@ -1,8 +1,8 @@
 // Analytics Service for tracking user interactions and business metrics
 declare global {
   interface Window {
-    gtag: (...args: any[]) => void;
-    dataLayer: any[];
+    gtag: (...args: unknown[]) => void;
+    dataLayer: Record<string, unknown>[];
   }
 }
 
@@ -11,7 +11,7 @@ export interface AnalyticsEvent {
   category: string;
   label?: string;
   value?: number;
-  custom_parameters?: Record<string, any>;
+  custom_parameters?: Record<string, string | number | boolean>;
 }
 
 export interface UserProperties {
@@ -125,7 +125,7 @@ class AnalyticsService {
   }
 
   // Track mastering settings
-  trackMasteringSettings(settings: any) {
+  trackMasteringSettings(settings: import('../types').MasteringSettings) {
     this.trackEvent({
       action: 'mastering_settings_configured',
       category: 'audio_processing',

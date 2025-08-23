@@ -107,15 +107,17 @@ const App: React.FC = () => {
 
   return (
     <ErrorBoundary>
-      <div className="min-h-screen flex flex-col bg-transparent font-sans relative transition-colors duration-500 z-0">
+      <div className="min-h-screen flex flex-col bg-transparent font-sans relative transition-all duration-500 z-0">
         <div id="particle-container"></div>
         <div id="aurora-pointer"></div>
         <ParticleBackground />
         <Header />
-        <main key={currentPage} className="flex-grow container mx-auto px-4 py-8 md:py-12 animate-fadeIn z-10">
+        <main key={currentPage} className="flex-grow container mx-auto px-4 py-8 md:py-12 animate-fade-in-up z-10 relative">
           <Breadcrumbs />
           <WorkflowProgress />
-          {renderPage()}
+          <div className="animate-scale-in">
+            {renderPage()}
+          </div>
         </main>
         <Footer />
       </div>

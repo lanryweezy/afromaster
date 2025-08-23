@@ -3,8 +3,8 @@ import { useAppContext } from '../contexts/AppContext';
 import { AppPage, MasteredTrackInfo } from '../types';
 import ProgressBar from '../components/ProgressBar';
 import LoadingSpinner from '../components/LoadingSpinner';
-import { fetchAIChainSettings, generateMasteringReport } from '../services/geminiService';
-import { saveUserProject, checkAndDeductCredits } from '../services/firebaseService';
+import { generateMasteringReport } from '../services/geminiService';
+import { saveUserProject } from '../services/firebaseService';
 import { bulletproofUploadService } from '../services/bulletproofUploadService';
 import { processAudio } from '../services/audioProcessingService';
 
@@ -70,7 +70,7 @@ const ProcessingAudioPage: React.FC = () => {
         setProgress(15);
         
         // Use genre-based optimization
-        let finalSettings = { ...masteringSettings };
+        const finalSettings = { ...masteringSettings };
         
         // Apply genre-specific optimizations
         switch (masteringSettings.genre) {

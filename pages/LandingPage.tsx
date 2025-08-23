@@ -60,11 +60,11 @@ const LandingPage: React.FC = () => {
   const { setCurrentPage } = useAppContext();
   
   return (
-    <div className="animated-bg">
-      {/* Hero Section */}
-      <section className="text-center pt-16 md:pt-20 relative min-h-[80vh] flex flex-col justify-center items-center hero-background">
+    <div className="w-full space-y-16 md:space-y-24">
+      {/* Hero Section - Single, Beautiful Hero */}
+      <section className="text-center pt-16 md:pt-20 relative min-h-[70vh] flex flex-col justify-center items-center hero-background">
         <div className="relative z-10 flex flex-col justify-center items-center w-full px-4">
-            <StaggeredText text="Mastering, Reimagined for the Culture." className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-heading font-bold text-gradient-primary pb-4" />
+            <StaggeredText text="Mastering, Reimagined for the Culture." className="text-4xl sm:text-5xl md:text-7xl font-heading font-bold text-gradient-primary pb-4" />
 
             <p className="mt-6 text-base sm:text-lg md:text-xl text-slate-200 max-w-3xl mx-auto animate-slideInUp" style={{ animationDelay: '0.5s'}}>
              From a flat mix to a global hit. The AI mastering engine trained on Afrobeats, Amapiano, and Trap.

@@ -47,7 +47,7 @@ export const processReferral = async (referrerId: string, newUserId: string): Pr
       const newReferralCount = (referrerData.referralCount || 0) + 1;
       
       // Update referrer's referral count and add credits if they reach milestones
-      const updates: any = { referralCount: newReferralCount };
+      const updates: { referralCount: number; credits?: number } = { referralCount: newReferralCount };
       
       // Give credits for referrals (1 credit per referral, up to 5)
       if (newReferralCount <= 5) {
@@ -74,10 +74,10 @@ export const uploadMasteredTrack = async (user: User, masteredBuffer: AudioBuffe
   // First, try to check if Firebase Storage is available
   let storageAvailable = false;
   try {
-    // Quick test to see if storage is accessible
-    const testRef = ref(storage, 'test-connection');
+    // Quick test to see if storage is accessible - testRef not used, just for availability check
+    ref(storage, 'test-connection');
     storageAvailable = true;
-  } catch (error) {
+  } catch {
     console.log('Firebase Storage not available, using local fallback');
     storageAvailable = false;
   }

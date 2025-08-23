@@ -284,7 +284,7 @@ const AdvancedAnalytics: React.FC<AdvancedAnalyticsProps> = ({
     ctx.stroke();
   };
 
-  const drawLoudnessGraph = (loudness: any) => {
+  const drawLoudnessGraph = (loudness: { momentary: number; shortTerm: number; integrated: number }) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
