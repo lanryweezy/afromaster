@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { AppPage } from './types';
 import { useAppContext } from './contexts/AppContext';
+import { analyticsService } from './services/analyticsService';
 
 import Header from './components/Header';
 import Footer from './components/Footer';
@@ -61,6 +62,24 @@ const App: React.FC = () => {
     };
   }, [currentPage]);
 
+  // Track page views
+  useEffect(() => {
+    const pageNames = {
+      [AppPage.LANDING]: 'Landing Page',
+      [AppPage.UPLOAD]: 'Upload Audio',
+      [AppPage.SETTINGS]: 'Mastering Settings',
+      [AppPage.PROCESSING]: 'Processing Audio',
+      [AppPage.PREVIEW]: 'Preview & Compare',
+      [AppPage.DOWNLOAD]: 'Download Master',
+      [AppPage.DASHBOARD]: 'User Dashboard',
+      [AppPage.AUTH]: 'Authentication',
+      [AppPage.BUY_CREDITS]: 'Buy Credits'
+    };
+
+    const pageName = pageNames[currentPage] || 'Unknown Page';
+    analyticsService.trackPageView(pageName);
+  }, [currentPage]);
+
   const renderPage = () => {
     switch (currentPage) {
       case AppPage.LANDING:
@@ -89,6 +108,8 @@ const App: React.FC = () => {
   return (
     <ErrorBoundary>
       <div className="min-h-screen flex flex-col bg-transparent font-sans relative transition-colors duration-500 z-0">
+        <div id="particle-container"></div>
+        <div id="aurora-pointer"></div>
         <ParticleBackground />
         <Header />
         <main key={currentPage} className="flex-grow container mx-auto px-4 py-8 md:py-12 animate-fadeIn z-10">

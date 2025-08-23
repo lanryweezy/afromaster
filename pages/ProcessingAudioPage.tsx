@@ -4,8 +4,10 @@ import { AppPage, MasteredTrackInfo } from '../types';
 import ProgressBar from '../components/ProgressBar';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { fetchAIChainSettings, generateMasteringReport } from '../services/geminiService';
-import { uploadMasteredTrack, saveUserProject, checkAndDeductCredits } from '../services/firebaseService';
+import { saveUserProject, checkAndDeductCredits } from '../services/firebaseService';
+import { bulletproofUploadService } from '../services/bulletproofUploadService';
 import { processAudio } from '../services/audioProcessingService';
+import { automatedMastering } from '../services/automatedMasteringService';
 import StatusMessage from '../components/StatusMessage';
 
 const ProcessingAudioPage: React.FC = () => {
@@ -63,91 +65,55 @@ const ProcessingAudioPage: React.FC = () => {
           throw new Error("Audio file too long. Please use a track under 10 minutes.");
         }
 
-        // Step 2: Prepare mastering settings with fallbacks
-        setStatusMessage("Configuring mastering chain...");
+        // Step 2: Automated mastering analysis and optimization
+        setStatusMessage("Analyzing track for optimal mastering...");
         setProgress(15);
         
-        let finalSettings = {
-          ...masteringSettings,
-          eq: { 
-            bassFreq: masteringSettings.eq?.bassFreq ?? 200,
-            trebleFreq: masteringSettings.eq?.trebleFreq ?? 5000,
-            bassGain: masteringSettings.eq?.bassGain ?? 0,
-            trebleGain: masteringSettings.eq?.trebleGain ?? 0,
-          },
-          crossover: { 
-            lowPass: masteringSettings.crossover?.lowPass ?? 250,
-            highPass: masteringSettings.crossover?.highPass ?? 4000,
-          },
-          bands: {
-            low: { 
-              threshold: masteringSettings.bands?.low?.threshold ?? -35,
-              knee: masteringSettings.bands?.low?.knee ?? 15,
-              ratio: masteringSettings.bands?.low?.ratio ?? 4,
-              attack: masteringSettings.bands?.low?.attack ?? 0.05,
-              release: masteringSettings.bands?.low?.release ?? 0.3,
-              makeupGain: masteringSettings.bands?.low?.makeupGain ?? 2.0,
-            },
-            mid: { 
-              threshold: masteringSettings.bands?.mid?.threshold ?? -30,
-              knee: masteringSettings.bands?.mid?.knee ?? 10,
-              ratio: masteringSettings.bands?.mid?.ratio ?? 3,
-              attack: masteringSettings.bands?.mid?.attack ?? 0.01,
-              release: masteringSettings.bands?.mid?.release ?? 0.25,
-              makeupGain: masteringSettings.bands?.mid?.makeupGain ?? 2.0,
-            },
-            high: { 
-              threshold: masteringSettings.bands?.high?.threshold ?? -25,
-              knee: masteringSettings.bands?.high?.knee ?? 5,
-              ratio: masteringSettings.bands?.high?.ratio ?? 3,
-              attack: masteringSettings.bands?.high?.attack ?? 0.005,
-              release: masteringSettings.bands?.high?.release ?? 0.15,
-              makeupGain: masteringSettings.bands?.high?.makeupGain ?? 1.5,
-            },
-          },
-          limiter: { 
-            threshold: masteringSettings.limiter?.threshold ?? -1.5,
-            attack: masteringSettings.limiter?.attack ?? 0.002,
-            release: masteringSettings.limiter?.release ?? 0.05,
-          },
-          reverb: { 
-            impulseResponse: masteringSettings.reverb?.impulseResponse ?? 'none',
-            wetDryMix: masteringSettings.reverb?.wetDryMix ?? 0,
-          },
-          saturation: {
-            flavor: masteringSettings.saturation?.flavor ?? 'tape',
-            amount: masteringSettings.saturation?.amount ?? 0,
-          },
-        };
+        // Use automated mastering to get optimized settings
+        const automatedResult = await automatedMastering(
+          uploadedTrack.audioBuffer,
+          masteringSettings.genre,
+          masteringSettings
+        );
+        
+        let finalSettings = automatedResult.settings;
+        
+        // Log the automated recommendations
+        console.log("Automated mastering recommendations:", automatedResult.recommendations);
 
         if (cancelledRef.current) return;
 
-        // Step 3: Process the audio with multiple fallback strategies
-        setStatusMessage("Applying professional mastering...");
+        // Step 3: Process the audio with automated mastering
+        setStatusMessage("Applying intelligent mastering chain...");
         setProgress(30);
         
         let masteredBuffer: AudioBuffer;
         
         try {
-          // Primary processing
+          // Use the main audio processing service with optimized settings
+          setStatusMessage("Processing audio with professional mastering chain...");
+          setProgress(50);
+          
           masteredBuffer = await processAudio(uploadedTrack.audioBuffer, finalSettings);
+          
+          if (!masteredBuffer || masteredBuffer.length === 0) {
+            throw new Error("Audio processing failed to produce valid output");
+          }
+          
+          setProgress(70);
+          
         } catch (processingError) {
-          console.warn("Primary processing failed, using fallback:", processingError);
+          console.warn("Advanced processing failed, using fallback:", processingError);
           
-          // Fallback: Use simplified settings
-          const fallbackSettings = {
-            ...finalSettings,
-            eq: { bassFreq: 200, trebleFreq: 5000, bassGain: 0, trebleGain: 0 },
-            saturation: { amount: 0, flavor: 'tape' },
-            bands: {
-              low: { threshold: -30, knee: 10, ratio: 3, attack: 0.01, release: 0.2, makeupGain: 1.5 },
-              mid: { threshold: -25, knee: 8, ratio: 2, attack: 0.005, release: 0.15, makeupGain: 1.0 },
-              high: { threshold: -20, knee: 5, ratio: 2, attack: 0.002, release: 0.1, makeupGain: 0.5 },
-            },
-            limiter: { threshold: -1.0, attack: 0.001, release: 0.01 },
-          };
+          // Fallback to basic processing
+          setStatusMessage("Using fallback processing...");
+          setProgress(50);
           
-          masteredBuffer = await processAudio(uploadedTrack.audioBuffer, fallbackSettings);
+          masteredBuffer = await processAudio(uploadedTrack.audioBuffer, masteringSettings);
+          
+          if (!masteredBuffer || masteredBuffer.length === 0) {
+            throw new Error("Audio processing failed. Please try again.");
+          }
         }
         
         // Validate processed audio
@@ -197,12 +163,27 @@ const ProcessingAudioPage: React.FC = () => {
         };
 
         // Step 6: Upload to cloud storage (bulletproof)
-        setStatusMessage("Preparing download...");
+        setStatusMessage("Securing your track in the cloud...");
         setProgress(85);
         
         let downloadURL = '';
+        let uploadSuccess = false;
+        
         try {
-          downloadURL = await uploadMasteredTrack(user, masteredBuffer, setIsLoading, setErrorMessage) || '';
+          const uploadResult = await bulletproofUploadService.uploadMasteredTrack(
+            user, 
+            masteredBuffer, 
+            setIsLoading, 
+            setErrorMessage
+          );
+          
+          if (uploadResult.success) {
+            downloadURL = uploadResult.url || '';
+            uploadSuccess = uploadResult.method !== 'local';
+            console.log(`${uploadResult.method} upload successful:`, downloadURL);
+          } else {
+            throw new Error(uploadResult.error || 'Upload failed');
+          }
         } catch (uploadError) {
           console.warn("Upload failed, continuing with local download:", uploadError);
           setErrorMessage("Cloud upload failed, but your mastered track is ready for local download.");
@@ -212,8 +193,8 @@ const ProcessingAudioPage: React.FC = () => {
         trackInfo.downloadUrl = downloadURL;
         addUserProject(trackInfo);
         
-        // Try to save to database if upload succeeded (and it's a real URL)
-        if (downloadURL && downloadURL !== 'local-download-available') {
+        // Try to save to database if upload succeeded
+        if (uploadSuccess) {
           try {
             const savedProject = await saveUserProject(user, uploadedTrack.name, downloadURL, finalSettings, setIsLoading, setErrorMessage);
             if (savedProject) {
@@ -221,6 +202,7 @@ const ProcessingAudioPage: React.FC = () => {
             }
           } catch (dbError) {
             console.warn("Database save failed:", dbError);
+            // Even if database save fails, user still has cloud backup
           }
         }
 
@@ -228,10 +210,10 @@ const ProcessingAudioPage: React.FC = () => {
         setMasteredTrackInfo(trackInfo);
         setProgress(100);
         
-        if (downloadURL && downloadURL !== 'local-download-available') {
-          setStatusMessage("Mastering complete! Your track is ready for download.");
+        if (uploadSuccess) {
+          setStatusMessage("🎉 Automated mastering complete! Your track is professionally mastered and safely stored.");
         } else {
-          setStatusMessage("Mastering complete! Download your track below.");
+          setStatusMessage("🎉 Automated mastering complete! Download your professionally mastered track below.");
         }
         
         setTimeout(() => setCurrentPage(AppPage.PREVIEW), 2000);

@@ -4,7 +4,7 @@ import { AppPage, MasteringSettings } from '../types';
 import Button from '../components/Button';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { fetchAIChainSettings } from '../services/geminiService';
-import { IconArrowRight, IconArrowLeft } from '../constants';
+import { IconArrowRight, IconArrowLeft, Genre, LoudnessTarget, TonePreference, StereoWidth } from '../constants';
 import ManualMasteringControls from '../components/ManualMasteringControls';
 import AIMasteringSuggestions from '../components/AIMasteringSuggestions';
 import Card from '../components/Card';
@@ -24,10 +24,10 @@ const MasteringSettingsPage: React.FC = () => {
 
   const [currentSettings, setCurrentSettings] = useState<MasteringSettings>(() => {
     const initialSettings: MasteringSettings = {
-      genre: 'Pop',
-      loudnessTarget: 'Streaming Standard',
-      tonePreference: 'Balanced',
-      stereoWidth: 'Standard',
+      genre: Genre.POP,
+      loudnessTarget: LoudnessTarget.STREAMING_STANDARD,
+      tonePreference: TonePreference.BALANCED,
+      stereoWidth: StereoWidth.STANDARD,
       customLoudnessValue: -14,
       referenceTrackFile: null,
       compressionAmount: 50,
@@ -71,8 +71,8 @@ const MasteringSettingsPage: React.FC = () => {
   });
 
   const [aiSettings, setAiSettings] = useState<Partial<MasteringSettings> | null>(null);
-  // Removed local isLoading and error states
-  const [aiStrength, setAiStrength] = useState(100);
+  const [aiStrength, setAiStrength] = useState(50);
+  const [hasGeneratedSettings, setHasGeneratedSettings] = useState(false); // Add this state
   const [referenceAnalysis, setReferenceAnalysis] = useState<Record<string, unknown> | null>(null);
 
   useEffect(() => {
@@ -173,14 +173,22 @@ const MasteringSettingsPage: React.FC = () => {
       if (settings) {
         console.log("AI settings received:", settings);
         setAiSettings(settings);
+        setHasGeneratedSettings(true);
         setCurrentSettings(prev => ({ ...prev, aiSettingsApplied: true }));
-        setErrorMessage(null); // Clear any previous errors
+        setErrorMessage(null);
+        
+        // Show success message briefly
+        setTimeout(() => {
+          setErrorMessage(null);
+        }, 3000);
       } else {
         setErrorMessage("Failed to generate AI settings. Please try again.");
+        setHasGeneratedSettings(false);
       }
     } catch (err: unknown) {
       console.error("Failed to fetch AI settings:", err);
       setErrorMessage("Failed to generate AI settings. Please check your connection and try again.");
+      setHasGeneratedSettings(false);
     } finally {
       setIsLoading(false);
     }
@@ -280,12 +288,14 @@ const MasteringSettingsPage: React.FC = () => {
     <AIMasteringSuggestions
       isLoading={isLoading}
       apiKey={apiKey}
-      // error={error}
+      error={null}
       handleGetAISettings={handleGetAISettings}
       aiStrength={aiStrength}
       setAiStrength={setAiStrength}
+      aiSettings={aiSettings}
+      hasGeneratedSettings={hasGeneratedSettings}
     />
-  ), [isLoading, apiKey, handleGetAISettings, aiStrength, setAiStrength]);
+  ), [isLoading, apiKey, handleGetAISettings, aiStrength, setAiStrength, aiSettings, hasGeneratedSettings]);
 
   if (!uploadedTrack) return <LoadingSpinner text="Loading track data..." />;
 

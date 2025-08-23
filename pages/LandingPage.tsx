@@ -51,7 +51,47 @@ const LandingPage: React.FC = () => {
   const { setCurrentPage } = useAppContext();
   
   return (
-    <div className="space-y-24 md:space-y-36">
+    <div className="animated-bg">
+      {/* Hero Section */}
+      <section className="hero">
+        <div className="hero-content">
+          <h1 className="gradient-text mb-4">
+            Mastering, Reimagined for the Culture
+          </h1>
+          <p className="section-subtitle mb-8">
+            From a flat mix to a global hit. The AI mastering engine trained on Afrobeats, Amapiano, and Trap.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+            <Button 
+              onClick={() => setCurrentPage(AppPage.UPLOAD)} 
+              variant="primary"
+              size="lg"
+              rightIcon={<IconArrowRight className="w-5 h-5"/>}
+            >
+              Master Your Track Free
+            </Button>
+            <Button 
+              onClick={() => {
+                const demo = document.getElementById('demo-section');
+                if(demo) demo.scrollIntoView({ behavior: 'smooth' });
+              }} 
+              variant="secondary"
+              size="lg"
+              leftIcon={<IconPlay className="w-5 h-5"/>}
+            >
+              Hear the Difference
+            </Button>
+          </div>
+          <div className="mt-8 text-center">
+            <div className="flex items-center justify-center gap-2 text-sm text-gray-light">
+              <div className="flex text-yellow-400">
+                <span>★</span><span>★</span><span>★</span><span>★</span><span>★</span>
+              </div>
+              <span>Trusted by <strong>10,000+</strong> producers & artists</span>
+            </div>
+          </div>
+        </div>
+      </section>
       {/* Hero Section */}
       <section className="text-center pt-10 md:pt-16 relative min-h-[70vh] flex flex-col justify-center items-center hero-background">
         <div className="relative z-10 flex flex-col justify-center items-center w-full p-4">

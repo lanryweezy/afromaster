@@ -14,7 +14,7 @@ const Card: React.FC<CardProps> = ({
   shadow = 'shadow-2xl', // Default to the larger shadow
 }) => {
   return (
-    <div className={`${maxWidth} mx-auto p-6 md:p-8 bg-slate-900/60 backdrop-blur-lg border border-slate-700/50 rounded-xl ${shadow} card-accent ${className || ''}`}>
+    <div className={`${maxWidth} mx-auto bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 ${className || ''}`}>
       {children}
     </div>
   );

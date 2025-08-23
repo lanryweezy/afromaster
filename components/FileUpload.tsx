@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { useDropzone, FileRejection } from 'react-dropzone';
+import { analyticsService } from '../services/analyticsService';
 import { IconUpload, IconMusicNote, IconXCircle } from '../constants';
 
 interface FileUploadProps {
@@ -55,6 +56,9 @@ const FileUpload: React.FC<FileUploadProps> = ({
       setInternalFile(null);
       setFileInfo(null);
       if (onFileCleared) onFileCleared();
+      
+      // Track file upload error
+      analyticsService.trackError('file_upload_rejection', rejectionError, 'upload_page');
       return;
     }
     if (acceptedFiles.length > 0) {
@@ -62,6 +66,9 @@ const FileUpload: React.FC<FileUploadProps> = ({
       setInternalFile(file);
       setFileInfo({ name: file.name, size: file.size }); // Duration will be set by parent after decoding
       onFileAccepted(file);
+      
+      // Track successful file upload
+      analyticsService.trackFileUpload(file.size, file.type);
     }
   }, [onFileAccepted, acceptedMimeTypes, onFileCleared]);
 

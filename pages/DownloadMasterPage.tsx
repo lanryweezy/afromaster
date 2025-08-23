@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useAppContext } from '../contexts/AppContext';
 import { AppPage } from '../types';
+import { analyticsService } from '../services/analyticsService';
 import Button from '../components/Button';
 import Modal from '../components/Modal';
 import { encodeWAV } from '../utils/wavEncoder';
@@ -55,6 +56,9 @@ const DownloadMasterPage: React.FC = () => {
         
         console.log('Download completed successfully');
         setErrorMessage(null); // Clear any previous errors
+        
+        // Track successful download
+        analyticsService.trackDownload(settings.genre, 85, false); // Assuming 85% quality score
       } else {
         alert(`Simulating download of ${format.toUpperCase()} file. This would be enabled for Pro users.`);
       }

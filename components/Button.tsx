@@ -19,13 +19,13 @@ const Button: React.FC<ButtonProps> = ({
   className = '',
   ...props
 }) => {
-  const baseStyles = "font-semibold rounded-lg focus:outline-none focus:ring-4 transition-all duration-200 ease-in-out inline-flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed transform hover:-translate-y-0.5 active:scale-95";
+  const baseStyles = "font-semibold rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all duration-300 ease-in-out inline-flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed transform active:scale-95";
 
   const variantStyles = {
-    primary: "bg-gradient-to-r from-primary to-secondary text-white focus:ring-primary/50 shadow-lg shadow-primary/40 hover:shadow-2xl hover:shadow-primary/50",
-    secondary: "bg-slate-700 hover:bg-slate-600 text-slate-100 focus:ring-slate-500/50 shadow-md",
+    primary: "bg-gradient-to-r from-primary to-secondary text-white shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300",
+    secondary: "bg-white/10 backdrop-blur-sm border border-white/20 text-white hover:bg-white/20 hover:border-white/30 transition-all duration-300",
     danger: "bg-red-600 hover:bg-red-700 text-white focus:ring-red-500/50 shadow-lg shadow-red-500/20",
-    ghost: "bg-transparent hover:bg-slate-800 text-primary-focus focus:ring-primary/50 border border-slate-700 hover:border-primary"
+    ghost: "bg-transparent hover:bg-white/10 text-white border border-white/20 hover:border-white/40 transition-all duration-300"
   };
 
   const sizeStyles = {

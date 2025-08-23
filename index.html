@@ -1,47 +1,65 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="solar-flare">
   <head>
-    <meta charset="utf--8" />
+    <meta charset="utf-8" />
+
+    
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#000000" />
     <meta
       name="description"
-      content="Afromaster is the leading AI-powered audio mastering tool specifically designed for Afrobeats, Hip Hop, and Trap music."
+      content="Afromaster - Professional AI-powered audio mastering for Afrobeats, Hip Hop, and African music. Get studio-quality masters with WebAssembly processing and machine learning algorithms. Free mastering credits available."
     />
-    <title>Afromaster - AI Mastering for Afrobeats & Hip Hop</title>
+    <meta name="keywords" content="audio mastering, afrobeats, hip hop, AI mastering, music production, african music, studio quality, online mastering, free mastering" />
+    <meta name="author" content="Afromaster" />
+    <meta name="robots" content="index, follow" />
+    <meta name="language" content="English" />
+    <meta name="revisit-after" content="7 days" />
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://afromaster-ed786.web.app/" />
+    <meta property="og:title" content="Afromaster - AI Mastering for Afrobeats & Hip Hop" />
+    <meta property="og:description" content="Professional AI-powered audio mastering for Afrobeats, Hip Hop, and African music. Get studio-quality masters with advanced algorithms." />
+    <meta property="og:image" content="https://afromaster-ed786.web.app/og-image.jpg" />
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:url" content="https://afromaster-ed786.web.app/" />
+    <meta property="twitter:title" content="Afromaster - AI Mastering for Afrobeats & Hip Hop" />
+    <meta property="twitter:description" content="Professional AI-powered audio mastering for Afrobeats, Hip Hop, and African music." />
+    <meta property="twitter:image" content="https://afromaster-ed786.web.app/og-image.jpg" />
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+    
+    <title>Afromaster - AI Mastering for Afrobeats & Hip Hop | Professional Audio Mastering</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Oswald:wght@400;500;700&display=swap" rel="stylesheet">
-    <script src="https://cdn.tailwindcss.com"></script>
+
     <script src="https://js.paystack.co/v1/inline.js"></script>
+    
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-TRACKING-ID"></script>
     <script>
-      tailwind.config = {
-        theme: {
-          extend: {
-            fontFamily: {
-              sans: ['Inter', 'sans-serif'],
-              heading: ['Oswald', 'sans-serif'],
-            },
-            colors: {
-              // Custom colors that can be controlled by CSS variables
-              primary: {
-                DEFAULT: 'var(--color-primary, #f97316)', 
-                focus: 'var(--color-primary-focus, #fb923c)',
-              },
-              secondary: {
-                DEFAULT: 'var(--color-secondary, #dc2626)',
-              },
-              accent: {
-                DEFAULT: 'var(--color-accent, #fde047)',
-              },
-              'gradient-from': 'var(--gradient-from, #7f1d1d)',
-              'gradient-to': 'var(--gradient-to, #854d0e)',
-              'gradient-via': 'var(--gradient-via, #030712)',
-            }
-          },
-        },
-      }
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-TRACKING-ID', {
+        page_title: 'Afromaster - AI Mastering for Afrobeats & Hip Hop',
+        page_location: window.location.href,
+        custom_map: {
+          'custom_parameter_1': 'user_type',
+          'custom_parameter_2': 'genre_preference',
+          'custom_parameter_3': 'mastering_credits'
+        }
+      });
     </script>
+
     <style>
       :root {
         --hero-image-url: url('https://images.unsplash.com/photo-1593697821252-0c9137d9fc45?q=80&w=2670&auto=format&fit=crop&ixlib=rb-4.0.3');

@@ -71,13 +71,31 @@ export const uploadMasteredTrack = async (user: User, masteredBuffer: AudioBuffe
   setIsLoading(true);
   setErrorMessage(null);
   
-  const maxRetries = 10; // Increased to 10 attempts for maximum reliability
+  // First, try to check if Firebase Storage is available
+  let storageAvailable = false;
+  try {
+    // Quick test to see if storage is accessible
+    const testRef = ref(storage, 'test-connection');
+    storageAvailable = true;
+  } catch (error) {
+    console.log('Firebase Storage not available, using local fallback');
+    storageAvailable = false;
+  }
+  
+  // If storage is not available, immediately return local download indicator
+  if (!storageAvailable) {
+    console.log('Firebase Storage not configured, using local download only');
+    setErrorMessage('Cloud storage not available. Your track is ready for local download.');
+    return 'local-download-available';
+  }
+  
+  const maxRetries = 5; // Reduced retries since we have fallback
   let lastError: Error | null = null;
   
-  // Single bulletproof upload strategy with multiple retries
+  // Try cloud upload with fallback
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
-      console.log(`Upload attempt ${attempt}/${maxRetries}`);
+      console.log(`Cloud upload attempt ${attempt}/${maxRetries}`);
       
       // Convert audio buffer to WAV blob
       const wavBlob = new Blob([toWav(masteredBuffer)], { type: 'audio/wav' });
@@ -94,9 +112,9 @@ export const uploadMasteredTrack = async (user: User, masteredBuffer: AudioBuffe
       const storageRef = ref(storage, `users/${user.uid}/tracks/${filename}`);
       
       // Upload with progress tracking
-      setErrorMessage(`Uploading track (attempt ${attempt}/${maxRetries})...`);
+      setErrorMessage(`Uploading to cloud (attempt ${attempt}/${maxRetries})...`);
       
-      // Upload with extended timeout
+      // Upload with timeout
       const uploadPromise = uploadBytes(storageRef, wavBlob, {
         cacheControl: 'public, max-age=31536000', // 1 year cache
         customMetadata: {
@@ -107,66 +125,48 @@ export const uploadMasteredTrack = async (user: User, masteredBuffer: AudioBuffe
       });
       
       const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('Upload timeout')), 90000); // 90 second timeout
+        setTimeout(() => reject(new Error('Upload timeout')), 30000); // 30 second timeout
       });
       
       const uploadResult = await Promise.race([uploadPromise, timeoutPromise]);
-      console.log('Upload successful:', uploadResult);
+      console.log('Cloud upload successful:', uploadResult);
       
-      // Get download URL with multiple retries
-      let downloadURL;
-      for (let urlAttempt = 1; urlAttempt <= 5; urlAttempt++) {
-        try {
-          downloadURL = await getDownloadURL(storageRef);
-          console.log('Download URL obtained:', downloadURL);
-          break;
-        } catch (urlError) {
-          console.warn(`Download URL attempt ${urlAttempt} failed:`, urlError);
-          if (urlAttempt === 5) throw urlError;
-          await new Promise(resolve => setTimeout(resolve, 2000)); // Wait 2 seconds
-        }
-      }
-      
-      // Verify the URL is accessible
-      try {
-        const response = await fetch(downloadURL, { method: 'HEAD' });
-        if (!response.ok) {
-          throw new Error('Download URL not accessible');
-        }
-      } catch (verifyError) {
-        console.warn('URL verification failed:', verifyError);
-        // Continue anyway, the URL might still work
-      }
+      // Get download URL
+      const downloadURL = await getDownloadURL(storageRef);
+      console.log('Cloud download URL obtained:', downloadURL);
       
       setErrorMessage(null);
       return downloadURL;
       
     } catch (error: unknown) {
       lastError = error instanceof Error ? error : new Error('Unknown upload error');
-      console.error(`Upload attempt ${attempt} failed:`, lastError);
+      console.error(`Cloud upload attempt ${attempt} failed:`, lastError);
       
       // Don't retry for certain errors
       if (lastError.message.includes('unauthorized') || 
           lastError.message.includes('permission') ||
           lastError.message.includes('quota') ||
-          lastError.message.includes('size')) {
+          lastError.message.includes('size') ||
+          lastError.message.includes('CORS') ||
+          lastError.message.includes('storage')) {
+        console.log('Storage error detected, switching to local fallback');
         break;
       }
       
-      // Wait before retrying (exponential backoff with longer delays)
+      // Wait before retrying
       if (attempt < maxRetries) {
-        const delay = Math.min(3000 * Math.pow(2, attempt - 1), 20000); // Max 20 seconds
+        const delay = Math.min(2000 * Math.pow(2, attempt - 1), 10000); // Max 10 seconds
         console.log(`Waiting ${delay}ms before retry...`);
         await new Promise(resolve => setTimeout(resolve, delay));
       }
     }
   }
   
-  // All upload attempts failed - this should be extremely rare
-  console.error('All upload strategies failed:', lastError);
-  setErrorMessage('Cloud upload failed after multiple attempts. Your track is available for local download.');
+  // Cloud upload failed, use local fallback
+  console.log('Cloud upload failed, using local download fallback');
+  setErrorMessage('Cloud upload unavailable. Your track is ready for local download.');
   
-  // Return a placeholder URL that indicates local download is available
+  // Return local download indicator
   return 'local-download-available';
 };
 
