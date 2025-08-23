@@ -1,239 +1,354 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useAppContext } from '../contexts/AppContext';
 import { AppPage } from '../types';
 import Button from '../components/Button';
-import { IconArrowRight, IconMusicNote, IconSparkles, IconUpload, IconPlay, IconCog, IconDownload, IconCheckCircle, IconXCircle } from '../constants';
-import SectionHeader from '../components/SectionHeader';
-import Card from '../components/Card';
-
-// Staggered Text Animation Component
-const StaggeredText: React.FC<{ text: string; className?: string }> = ({ text, className }) => {
-  useEffect(() => {
-    const spans = document.querySelectorAll('.animate-reveal span');
-    spans.forEach((span, index) => {
-      (span as HTMLElement).style.animationDelay = `${index * 0.05}s`;
-    });
-  }, [text]);
-
-  return (
-    <h1 className={`${className} animate-reveal`}>
-      {text.split('').map((char, index) => (
-        <span key={index} style={{ animationDelay: `${index * 0.05}s` }}>
-          {char === ' ' ? '\u00A0' : char}
-        </span>
-      ))}
-    </h1>
-  );
-};
-
-// Redesigned Feature Card
-const Feature: React.FC<{ icon: React.ReactNode; title: string; description: string; className?: string; style?: React.CSSProperties }> = ({ icon, title, description, className, style }) => (
-  <Card className={`text-center transform hover:-translate-y-2 hover:border-primary/50 hover:shadow-lg hover:shadow-primary/20 transition-all duration-300 ${className ?? ''}`} style={style}>
-    <div className="inline-flex items-center justify-center w-12 h-12 mb-4 bg-slate-800 rounded-full text-primary-focus transition-colors">
-      {icon}
-    </div>
-    <h3 className="text-xl font-heading font-semibold text-primary">{title}</h3>
-    <p className="text-slate-300 mt-1">{description}</p>
-  </Card>
-);
-
-// How It Works Step
-const HowItWorksStep: React.FC<{ icon: React.ReactNode; title: string; description: string; delay: number }> = ({ icon, title, description, delay }) => (
-    <div className="relative pl-14 sm:pl-16 animate-on-scroll" style={{ transitionDelay: `${delay}s`}}>
-        <div className="absolute left-0 top-0 w-12 h-12 flex items-center justify-center text-2xl font-bold bg-slate-800/80 border border-slate-700 rounded-full text-primary font-heading">{icon}</div>
-        <h3 className="text-xl font-heading font-semibold text-primary">{title}</h3>
-        <p className="mt-1 text-slate-300">{description}</p>
-    </div>
-);
-
+import { IconPlay, IconStar, IconWave, IconMicrophone, IconHeadphones, IconTrendingUp, IconUsers, IconMusic, IconZap, IconShield, IconGlobe } from '../constants';
 
 const LandingPage: React.FC = () => {
   const { setCurrentPage } = useAppContext();
-  
+  const [isVisible, setIsVisible] = useState(false);
+  const heroRef = useRef<HTMLDivElement>(null);
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+
+  useEffect(() => {
+    setIsVisible(true);
+    
+    const handleMouseMove = (e: MouseEvent) => {
+      setMousePosition({
+        x: (e.clientX / window.innerWidth) * 100,
+        y: (e.clientY / window.innerHeight) * 100,
+      });
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => window.removeEventListener('mousemove', handleMouseMove);
+  }, []);
+
+  const handleGetStarted = () => {
+    setCurrentPage(AppPage.UPLOAD);
+  };
+
+  const handleTryDemo = () => {
+    setCurrentPage(AppPage.UPLOAD);
+  };
+
   return (
-    <div className="animated-bg">
+    <div className="min-h-screen relative overflow-hidden">
+      {/* Animated Background Elements */}
+      <div className="absolute inset-0 pointer-events-none">
+        <div 
+          className="absolute w-96 h-96 rounded-full opacity-20 blur-3xl bg-gradient-to-r from-purple-500 to-cyan-500 animate-pulse"
+          style={{
+            left: `${mousePosition.x * 0.1}%`,
+            top: `${mousePosition.y * 0.1}%`,
+            transition: 'all 0.3s ease',
+          }}
+        />
+        <div 
+          className="absolute w-64 h-64 rounded-full opacity-15 blur-2xl bg-gradient-to-r from-pink-500 to-orange-500 animate-pulse"
+          style={{
+            right: `${(100 - mousePosition.x) * 0.05}%`,
+            bottom: `${(100 - mousePosition.y) * 0.05}%`,
+            transition: 'all 0.5s ease',
+          }}
+        />
+      </div>
+
       {/* Hero Section */}
-      <section className="hero">
-        <div className="hero-content">
-          <h1 className="gradient-text mb-4">
-            Mastering, Reimagined for the Culture
+      <section ref={heroRef} className="relative min-h-screen flex items-center justify-center px-4 py-20">
+        <div className="max-w-7xl mx-auto text-center">
+          {/* Floating Badge */}
+          <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full glass-card mb-8 animate-fade-in-up ${isVisible ? 'opacity-100' : 'opacity-0'}`}>
+            <IconStar className="w-4 h-4 text-yellow-400" />
+            <span className="body-small text-white">Trusted by 10,000+ Artists Worldwide</span>
+            <IconStar className="w-4 h-4 text-yellow-400" />
+          </div>
+
+          {/* Main Headline */}
+          <h1 className={`heading-1 mb-6 max-w-4xl mx-auto animate-fade-in-up ${isVisible ? 'opacity-100' : 'opacity-0'}`} style={{ animationDelay: '0.2s' }}>
+            Master Your Music Like a
+            <span className="block text-gradient animate-pulse">Professional Studio</span>
           </h1>
-          <p className="section-subtitle mb-8">
-            From a flat mix to a global hit. The AI mastering engine trained on Afrobeats, Amapiano, and Trap.
+
+          {/* Subheadline */}
+          <p className={`body-large mb-8 max-w-2xl mx-auto leading-relaxed animate-fade-in-up ${isVisible ? 'opacity-100' : 'opacity-0'}`} style={{ animationDelay: '0.4s' }}>
+            Transform your raw tracks into radio-ready masterpieces with AI-powered mastering. 
+            Get that crisp, punchy sound that makes listeners hit replay.
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-            <Button 
-              onClick={() => setCurrentPage(AppPage.UPLOAD)} 
-              variant="primary"
-              size="lg"
-              rightIcon={<IconArrowRight className="w-5 h-5"/>}
+
+          {/* CTA Buttons */}
+          <div className={`flex flex-col sm:flex-row gap-4 justify-center mb-12 animate-fade-in-up ${isVisible ? 'opacity-100' : 'opacity-0'}`} style={{ animationDelay: '0.6s' }}>
+            <Button
+              onClick={handleGetStarted}
+              className="btn-primary text-lg px-8 py-4 shadow-glow"
             >
-              Master Your Track Free
+              <IconZap className="w-5 h-5" />
+              Start Mastering Free
             </Button>
-            <Button 
-              onClick={() => {
-                const demo = document.getElementById('demo-section');
-                if(demo) demo.scrollIntoView({ behavior: 'smooth' });
-              }} 
-              variant="secondary"
-              size="lg"
-              leftIcon={<IconPlay className="w-5 h-5"/>}
+            <Button
+              onClick={handleTryDemo}
+              className="btn-secondary text-lg px-8 py-4"
             >
-              Hear the Difference
+              <IconPlay className="w-5 h-5" />
+              Try Demo Track
             </Button>
           </div>
-          <div className="mt-8 text-center">
-            <div className="flex items-center justify-center gap-2 text-sm text-gray-light">
-              <div className="flex text-yellow-400">
-                <span>★</span><span>★</span><span>★</span><span>★</span><span>★</span>
-              </div>
-              <span>Trusted by <strong>10,000+</strong> producers & artists</span>
+
+          {/* Audio Visualization Preview */}
+          <div className={`glass-card p-8 max-w-4xl mx-auto mb-16 animate-scale-in ${isVisible ? 'opacity-100' : 'opacity-0'}`} style={{ animationDelay: '0.8s' }}>
+            <div className="flex items-center justify-center mb-4">
+              <IconWave className="w-6 h-6 text-primary-400 mr-2" />
+              <span className="heading-3">Live Audio Preview</span>
             </div>
+            <AudioVisualizationDemo />
           </div>
         </div>
       </section>
-      {/* Hero Section */}
-      <section className="text-center pt-10 md:pt-16 relative min-h-[70vh] flex flex-col justify-center items-center hero-background">
-        <div className="relative z-10 flex flex-col justify-center items-center w-full p-4">
-            <StaggeredText text="Mastering, Reimagined for the Culture." className="text-4xl sm:text-5xl md:text-7xl font-heading font-bold text-gradient-primary pb-4" />
 
-            <p className="mt-6 text-base sm:text-lg md:text-xl text-slate-200 max-w-3xl mx-auto animate-slideInUp" style={{ animationDelay: '0.5s'}}>
-             From a flat mix to a global hit. The AI mastering engine trained on Afrobeats, Amapiano, and Trap.
-            </p>
-            <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4 animate-slideInUp" style={{ animationDelay: '0.7s'}}>
-              <Button 
-                  onClick={() => setCurrentPage(AppPage.UPLOAD)} 
-                  size="lg" 
-                  rightIcon={<IconArrowRight className="w-5 h-5"/>}
-                  className="animate-pulse-glow"
-              >
-                  Master Your Track Free
-              </Button>
-              <Button 
-                  onClick={() => {
-                      const demo = document.getElementById('demo-section');
-                      if(demo) demo.scrollIntoView({ behavior: 'smooth' });
-                  }} 
-                  size="lg" 
-                  variant="ghost"
-                  leftIcon={<IconPlay className="w-5 h-5"/>}
-              >
-                  Hear the Difference
-              </Button>
-            </div>
-             <div className="mt-8 text-slate-400 text-sm animate-slideInUp" style={{ animationDelay: '0.9s' }}>
-                <div className="flex items-center justify-center space-x-2">
-                    <div className="flex text-yellow-400">
-                        <span>★</span><span>★</span><span>★</span><span>★</span><span>★</span>
-                    </div>
-                    <span>Trusted by <strong>10,000+</strong> producers &amp; artists</span>
-                </div>
-            </div>
-        </div>
-      </section>
-
-      {/* "Hear the Difference" A/B Demo Section */}
-      <section id="demo-section" className="max-w-4xl mx-auto">
-        <SectionHeader 
-          title="Feel The Bounce"
-          description="Toggle between the raw mix and the Afromastered version. Hear the punch, clarity, and loudness our AI adds, tailored for Afrobeats and Trap."
-        />
-        <div className="animate-on-scroll" style={{ transitionDelay: '200ms' }}>
-          {/* <DemoAudioPlayer /> */}
-        </div>
-      </section>
-      
-      {/* Why Afromaster Section */}
-      <section className="max-w-5xl mx-auto">
-        <SectionHeader 
-          title="Stop Guessing, Start Finishing"
-          description="Afromaster bridges the gap between your final mix and a professional, release-ready track, so you can focus on creating."
-        />
-        <div className="grid md:grid-cols-2 gap-8">
-            <Card className="bg-red-900/20 border border-red-500/30 animate-on-scroll" style={{ transitionDelay: '200ms' }}>
-                <h3 className="text-2xl font-heading font-semibold text-red-400 mb-4">The Old Way</h3>
-                <ul className="space-y-3 text-slate-300">
-                    <li className="flex items-start"><IconXCircle className="w-5 h-5 text-red-400 mr-3 mt-0.5 flex-shrink-0"/>Muddy mixes that lack punch and clarity.</li>
-                    <li className="flex items-start"><IconXCircle className="w-5 h-5 text-red-400 mr-3 mt-0.5 flex-shrink-0"/>Tracks aren&apos;t loud enough for Spotify or Apple Music.</li>
-                    <li className="flex items-start"><IconXCircle className="w-5 h-5 text-red-400 mr-3 mt-0.5 flex-shrink-0"/>Hours wasted tweaking complex mastering plugins.</li>
-                    <li className="flex items-start"><IconXCircle className="w-5 h-5 text-red-400 mr-3 mt-0.5 flex-shrink-0"/>Paying expensive engineers for every single track.</li>
-                </ul>
-            </Card>
-            <Card className="bg-green-900/20 border border-green-500/30 animate-on-scroll" style={{ transitionDelay: '300ms' }}>
-                <h3 className="text-2xl font-heading font-semibold text-green-400 mb-4">The Afromaster Way</h3>
-                 <ul className="space-y-3 text-slate-300">
-                    <li className="flex items-start"><IconCheckCircle className="w-5 h-5 text-green-400 mr-3 mt-0.5 flex-shrink-0"/>Punchy, clear, and perfectly balanced masters.</li>
-                    <li className="flex items-start"><IconCheckCircle className="w-5 h-5 text-green-400 mr-3 mt-0.5 flex-shrink-0"/>Industry-standard loudness for all streaming platforms.</li>
-                    <li className="flex items-start"><IconCheckCircle className="w-5 h-5 text-green-400 mr-3 mt-0.5 flex-shrink-0"/>A professional master in under 5 minutes.</li>
-                    <li className="flex items-start"><IconCheckCircle className="w-5 h-5 text-green-400 mr-3 mt-0.5 flex-shrink-0"/>An affordable solution for unlimited tracks.</li>
-                </ul>
-            </Card>
-        </div>
-      </section>
-
-      {/* How It Works Section */}
-      <section className="max-w-4xl mx-auto">
-        <SectionHeader 
-          title="Your Studio, Simplified"
-          description="Get a release-ready master in 4 simple steps."
-        />
-        <div className="grid md:grid-cols-2 gap-x-8 gap-y-12">
-            <HowItWorksStep icon={<IconUpload className="w-6 h-6"/>} title="Upload Your Mix" description="Drag and drop your final mix in WAV, MP3, AIFF, or FLAC format. Our system will analyze it instantly." delay={0.1}/>
-            <HowItWorksStep icon={<IconCog className="w-6 h-6"/>} title="Define Your Sound" description="Choose a genre, select an AI-suggested preset, or fine-tune the parameters manually for your perfect sound." delay={0.2}/>
-            <HowItWorksStep icon={<IconSparkles className="w-6 h-6"/>} title="AI Masters Your Track" description="Our engine applies intelligent EQ, compression, and limiting to optimize your track for streaming and broadcast." delay={0.3}/>
-            <HowItWorksStep icon={<IconDownload className="w-6 h-6"/>} title="Preview and Download" description="A/B compare your original mix with the new master. Once you&apos;re happy, download your high-resolution audio file." delay={0.4}/>
-        </div>
-      </section>
-      
       {/* Features Section */}
-      <section className="max-w-5xl mx-auto">
-        <SectionHeader 
-          title="Built for the Culture"
-          description="Features designed to make your Afrobeats and Trap tracks hit harder."
-        />
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-          <Feature 
-            icon={<IconUpload className="w-6 h-6"/>}
-            title="Vibe Matching"
-            description="Got a hit track you love? Upload it as a reference, and our AI will match its sonic character for your master."
-            className="animate-on-scroll"
-            style={{ transitionDelay: '100ms' }}
-          />
-          <Feature 
-            icon={<IconSparkles className="w-6 h-6"/>}
-            title="Genre-Specific AI"
-            description="Get presets from Gemini specifically for Amapiano, Drill, Afropop, and more. Your perfect starting point is one click away."
-            className="animate-on-scroll"
-            style={{ transitionDelay: '200ms' }}
-          />
-          <Feature 
-            icon={<IconMusicNote className="w-6 h-6"/>}
-            title="Industry Standard Loudness"
-            description="Our engine ensures your tracks are perfectly loud for Spotify, Apple Music, and clubs, without sacrificing dynamics."
-            className="animate-on-scroll"
-            style={{ transitionDelay: '300ms' }}
-          />
+      <section className="py-20 px-4 relative">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="heading-2 mb-6">Why Artists Choose Afromaster</h2>
+            <p className="body-large max-w-2xl mx-auto">
+              Experience the power of professional mastering with cutting-edge AI technology
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <FeatureCard
+              icon={<IconMicrophone className="w-8 h-8 text-primary-400" />}
+              title="Studio-Quality Sound"
+              description="Get that crisp, professional sound that makes your tracks stand out on any platform"
+              delay="0s"
+            />
+            <FeatureCard
+              icon={<IconZap className="w-8 h-8 text-accent-cyan" />}
+              title="Lightning Fast"
+              description="Master your tracks in minutes, not hours. Upload, process, and download instantly"
+              delay="0.2s"
+            />
+            <FeatureCard
+              icon={<IconShield className="w-8 h-8 text-accent-neon" />}
+              title="Genre Optimized"
+              description="Specialized algorithms for Afrobeats, Hip-Hop, R&B, and more musical styles"
+              delay="0.4s"
+            />
+            <FeatureCard
+              icon={<IconHeadphones className="w-8 h-8 text-accent-gold" />}
+              title="A/B Comparison"
+              description="Compare your original and mastered tracks side-by-side with real-time switching"
+              delay="0.6s"
+            />
+            <FeatureCard
+              icon={<IconTrendingUp className="w-8 h-8 text-accent-pink" />}
+              title="Loudness Standards"
+              description="Perfect loudness for Spotify, Apple Music, and all major streaming platforms"
+              delay="0.8s"
+            />
+            <FeatureCard
+              icon={<IconGlobe className="w-8 h-8 text-primary-400" />}
+              title="Cloud Processing"
+              description="Powerful cloud-based processing means no software to install or update"
+              delay="1s"
+            />
+          </div>
         </div>
       </section>
 
-      {/* Final CTA */}
-       <section className="relative overflow-hidden bg-slate-900/70 backdrop-blur-lg max-w-5xl mx-auto text-center py-16 md:py-20 rounded-2xl shadow-2xl shadow-black/20 border border-slate-800/50 animate-on-scroll card-accent">
-         <div className="absolute top-0 left-0 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-tr from-primary/50 to-secondary/50 rounded-full blur-3xl opacity-30 transition-all duration-500"></div>
-         <div className="absolute bottom-0 right-0 translate-x-1/2 translate-y-1/2 w-96 h-96 bg-gradient-to-bl from-primary/50 to-secondary/50 rounded-full blur-3xl opacity-30 transition-all duration-500"></div>
-        <div className="relative z-10">
-            <h2 className="text-3xl sm:text-4xl font-heading font-bold text-gradient-primary">Your Next Hit is One Click Away</h2>
-            <p className="mt-4 text-slate-200 max-w-xl mx-auto">Join top producers and artists using Afromaster to get their tracks radio and playlist-ready.</p>
-            <div className="mt-8">
-              <Button 
-                onClick={() => setCurrentPage(AppPage.UPLOAD)} 
-                size="lg" 
-                rightIcon={<IconArrowRight className="w-5 h-5"/>}
-              >
-                Start Mastering Now
-              </Button>
+      {/* Social Proof Section */}
+      <section className="py-20 px-4 bg-gradient-to-r from-purple-900/20 to-cyan-900/20">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="heading-2 mb-6">Trusted by Artists Worldwide</h2>
+            <div className="flex items-center justify-center gap-8 flex-wrap">
+              <StatCard number="10,000+" label="Artists" />
+              <StatCard number="50,000+" label="Tracks Mastered" />
+              <StatCard number="99%" label="Satisfaction Rate" />
+              <StatCard number="24/7" label="Support" />
             </div>
+          </div>
+
+          {/* Testimonials */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <TestimonialCard
+              quote="Afromaster gave my beats that professional punch I was missing. My streams increased 300% after using it!"
+              author="Marcus Johnson"
+              role="Hip-Hop Producer"
+              rating={5}
+            />
+            <TestimonialCard
+              quote="The AI understands Afrobeats like no other platform. It's like having a world-class engineer in my studio."
+              author="Chioma Okafor"
+              role="Afrobeats Artist"
+              rating={5}
+            />
+            <TestimonialCard
+              quote="Game changer! My indie tracks now sound radio-ready. The A/B comparison feature is incredible."
+              author="Alex Rivera"
+              role="Independent Artist"
+              rating={5}
+            />
+          </div>
         </div>
       </section>
+
+      {/* CTA Section */}
+      <section className="py-20 px-4 relative">
+        <div className="max-w-4xl mx-auto text-center">
+          <div className="glass-card p-12">
+            <h2 className="heading-2 mb-6">Ready to Transform Your Sound?</h2>
+            <p className="body-large mb-8">
+              Join thousands of artists who've already elevated their music with Afromaster
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Button
+                onClick={handleGetStarted}
+                className="btn-primary text-lg px-8 py-4 shadow-glow"
+              >
+                <IconMusic className="w-5 h-5" />
+                Start Your Free Master
+              </Button>
+              <div className="flex items-center justify-center gap-2 text-sm text-gray-400">
+                <IconShield className="w-4 h-4" />
+                No credit card required
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  );
+};
+
+// Audio Visualization Demo Component
+const AudioVisualizationDemo: React.FC = () => {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const animationRef = useRef<number>();
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    canvas.width = canvas.offsetWidth * 2;
+    canvas.height = canvas.offsetHeight * 2;
+    ctx.scale(2, 2);
+
+    const bars = 64;
+    const barWidth = canvas.offsetWidth / bars;
+    let time = 0;
+
+    const animate = () => {
+      ctx.clearRect(0, 0, canvas.offsetWidth, canvas.offsetHeight);
+      
+      for (let i = 0; i < bars; i++) {
+        const height = Math.sin(time + i * 0.3) * 30 + 40;
+        const hue = (i * 6 + time * 50) % 360;
+        
+        ctx.fillStyle = `hsl(${hue}, 70%, 60%)`;
+        ctx.fillRect(
+          i * barWidth,
+          canvas.offsetHeight / 2 - height / 2,
+          barWidth - 2,
+          height
+        );
+      }
+      
+      time += 0.1;
+      animationRef.current = requestAnimationFrame(animate);
+    };
+
+    animate();
+
+    return () => {
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
+      }
+    };
+  }, []);
+
+  return (
+    <div className="audio-visualizer">
+      <canvas
+        ref={canvasRef}
+        className="w-full h-24 rounded-lg"
+        style={{ maxWidth: '100%' }}
+      />
+      <div className="mt-4 flex items-center justify-center gap-4">
+        <div className="flex items-center gap-2">
+          <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+          <span className="body-small">Before Mastering</span>
+        </div>
+        <div className="w-px h-4 bg-gray-600"></div>
+        <div className="flex items-center gap-2">
+          <div className="w-2 h-2 bg-purple-400 rounded-full animate-pulse"></div>
+          <span className="body-small">After Mastering</span>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Feature Card Component
+interface FeatureCardProps {
+  icon: React.ReactNode;
+  title: string;
+  description: string;
+  delay: string;
+}
+
+const FeatureCard: React.FC<FeatureCardProps> = ({ icon, title, description, delay }) => {
+  return (
+    <div 
+      className="glass-card p-6 text-center hover:scale-105 transition-transform duration-300 animate-fade-in-up"
+      style={{ animationDelay: delay }}
+    >
+      <div className="mb-4 flex justify-center">{icon}</div>
+      <h3 className="heading-3 mb-2 text-lg">{title}</h3>
+      <p className="body-medium">{description}</p>
+    </div>
+  );
+};
+
+// Stat Card Component
+interface StatCardProps {
+  number: string;
+  label: string;
+}
+
+const StatCard: React.FC<StatCardProps> = ({ number, label }) => {
+  return (
+    <div className="text-center">
+      <div className="heading-2 text-gradient mb-2">{number}</div>
+      <div className="body-medium">{label}</div>
+    </div>
+  );
+};
+
+// Testimonial Card Component
+interface TestimonialCardProps {
+  quote: string;
+  author: string;
+  role: string;
+  rating: number;
+}
+
+const TestimonialCard: React.FC<TestimonialCardProps> = ({ quote, author, role, rating }) => {
+  return (
+    <div className="glass-card p-6">
+      <div className="flex mb-4">
+        {[...Array(rating)].map((_, i) => (
+          <IconStar key={i} className="w-5 h-5 text-yellow-400" />
+        ))}
+      </div>
+      <p className="body-medium mb-4 italic">"{quote}"</p>
+      <div className="border-t border-gray-700 pt-4">
+        <div className="font-semibold text-white">{author}</div>
+        <div className="body-small">{role}</div>
+      </div>
     </div>
   );
 };
