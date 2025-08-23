@@ -1,242 +1,422 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useAppContext } from '../contexts/AppContext';
 import { AppPage } from '../types';
 import Button from '../components/Button';
-import { IconArrowRight, IconMusicNote, IconSparkles, IconUpload, IconPlay, IconCog, IconDownload, IconCheckCircle, IconXCircle } from '../constants';
-import DemoAudioPlayer from '../components/DemoAudioPlayer';
-import { useTranslation } from 'react-i18next';
+import { 
+  IconArrowRight, 
+  IconMusicNote, 
+  IconSparkles, 
+  IconUpload, 
+  IconPlay, 
+  IconCog, 
+  IconDownload, 
+  IconCheckCircle,
+  IconStar,
+  IconTrendingUp,
+  IconUsers,
+  IconAward,
+  IconBolt,
+  IconHeart,
+  IconFire
+} from '../constants';
 
-// Staggered Text Animation Component
-const StaggeredText: React.FC<{ text: string; className?: string }> = ({ text, className }) => {
+// Animated Hero Text with Stunning Effects
+const AnimatedHeroText: React.FC<{ text: string; className?: string }> = ({ text, className }) => {
+  const [isVisible, setIsVisible] = useState(false);
+
   useEffect(() => {
-    const spans = document.querySelectorAll('.animate-reveal span');
-    spans.forEach((span, index) => {
-      (span as HTMLElement).style.animationDelay = `${index * 0.05}s`;
-    });
-  }, [text]);
+    const timer = setTimeout(() => setIsVisible(true), 500);
+    return () => clearTimeout(timer);
+  }, []);
 
   return (
-    <h1 className={`${className} animate-reveal leading-tight`}>
-      {text.split('').map((char, index) => (
-        <span key={index} style={{ animationDelay: `${index * 0.05}s` }}>
-          {char === ' ' ? '\u00A0' : char}
-        </span>
-      ))}
+    <h1 className={`${className} ${isVisible ? 'animate-fade-in-up' : 'opacity-0'}`}>
+      <span className="gradient-text-hero">{text}</span>
     </h1>
   );
 };
 
-// Redesigned Feature Card
-const Feature: React.FC<{ icon: React.ReactNode; title: string; description: string; className?: string; style?: React.CSSProperties }> = ({ icon, title, description, className, style }) => (
-  <div className={`group bg-slate-900/40 backdrop-blur-md p-8 rounded-2xl border border-slate-800/50 hover:bg-slate-800/60 hover:border-primary/30 transition-all duration-300 card-accent ${className ?? ''}`} style={style}>
-    <div className="inline-flex items-center justify-center w-14 h-14 mb-6 bg-slate-800/80 rounded-2xl text-primary shadow-lg shadow-black/20 group-hover:scale-110 transition-transform duration-300">
-      {icon}
+// Floating Audio Visualizer Component
+const AudioVisualizer: React.FC = () => {
+  const barsRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const animateBars = () => {
+      if (barsRef.current) {
+        const bars = barsRef.current.children;
+        for (let i = 0; i < bars.length; i++) {
+          const height = Math.random() * 60 + 10;
+          (bars[i] as HTMLElement).style.height = `${height}px`;
+        }
+      }
+    };
+
+    const interval = setInterval(animateBars, 200);
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <div className="spectrum-analyzer animate-float" ref={barsRef}>
+      {Array.from({ length: 20 }, (_, i) => (
+        <div
+          key={i}
+          className="spectrum-bar"
+          style={{
+            height: Math.random() * 60 + 10,
+            animationDelay: `${i * 0.1}s`
+          }}
+        />
+      ))}
     </div>
-    <h3 className="text-xl font-heading font-bold text-white mb-3 group-hover:text-primary transition-colors">{title}</h3>
-    <p className="text-slate-400 leading-relaxed">{description}</p>
+  );
+};
+
+// Premium Feature Card with Hover Effects
+const FeatureCard: React.FC<{ 
+  icon: React.ReactNode; 
+  title: string; 
+  description: string; 
+  gradient?: string;
+  glowColor?: string;
+}> = ({ icon, title, description, gradient = "card", glowColor = "primary" }) => (
+  <div className={`card ${gradient === "spectrum" ? "card-spectrum" : ""} hover-glow animate-on-scroll group cursor-pointer`}>
+    <div className="flex flex-col items-center text-center space-y-4">
+      <div className={`w-16 h-16 rounded-full bg-gradient-to-br from-${glowColor} to-${glowColor}-dark flex items-center justify-center text-2xl text-white group-hover:scale-110 transition-transform duration-300 animate-pulse-glow`}>
+        {icon}
+      </div>
+      <h3 className="text-xl font-bold text-white">{title}</h3>
+      <p className="text-gray-300 leading-relaxed">{description}</p>
+    </div>
   </div>
 );
 
-// How It Works Step
-const HowItWorksStep: React.FC<{ icon: React.ReactNode; title: string; description: string; delay: number; step: number }> = ({ icon, title, description, delay, step }) => (
-    <div className="relative pl-0 sm:pl-6 animate-on-scroll flex flex-col items-center sm:items-start text-center sm:text-left" style={{ transitionDelay: `${delay}s`}}>
-        <div className="w-16 h-16 flex items-center justify-center text-3xl font-bold bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-2xl text-primary font-heading shadow-xl mb-4 relative z-10 group">
-             {icon}
-             <div className="absolute -top-2 -right-2 w-6 h-6 bg-primary text-white text-xs font-bold rounded-full flex items-center justify-center border-2 border-slate-900">
-                 {step}
-             </div>
-        </div>
-        <h3 className="text-xl font-heading font-bold text-white mb-2">{title}</h3>
-        <p className="text-slate-400">{description}</p>
+// Interactive Step with Animation
+const ProcessStep: React.FC<{ 
+  number: number;
+  icon: React.ReactNode;
+  title: string;
+  description: string;
+  isActive?: boolean;
+}> = ({ number, icon, title, description, isActive = false }) => (
+  <div className={`card-studio p-6 text-center animate-on-scroll group cursor-pointer ${isActive ? 'audio-reactive-border' : ''}`}>
+    <div className="relative mb-6">
+      <div className="w-20 h-20 mx-auto bg-gradient-hero rounded-full flex items-center justify-center text-3xl text-white mb-2 group-hover:scale-110 transition-transform duration-300">
+        {icon}
+      </div>
+      <div className="absolute -top-2 -right-2 w-8 h-8 bg-accent text-black rounded-full flex items-center justify-center text-sm font-bold">
+        {number}
+      </div>
     </div>
+    <h3 className="text-xl font-bold text-white mb-2">{title}</h3>
+    <p className="text-gray-300">{description}</p>
+  </div>
 );
 
+// Stats Counter Component
+const StatsCounter: React.FC<{ value: string; label: string; icon: React.ReactNode }> = ({ value, label, icon }) => {
+  const [count, setCount] = useState(0);
+  const targetValue = parseInt(value.replace(/[^0-9]/g, ''));
+
+  useEffect(() => {
+    const duration = 2000;
+    const steps = 60;
+    const increment = targetValue / steps;
+    let current = 0;
+
+    const timer = setInterval(() => {
+      current += increment;
+      if (current >= targetValue) {
+        setCount(targetValue);
+        clearInterval(timer);
+      } else {
+        setCount(Math.floor(current));
+      }
+    }, duration / steps);
+
+    return () => clearInterval(timer);
+  }, [targetValue]);
+
+  return (
+    <div className="text-center animate-on-scroll">
+      <div className="text-4xl mb-2 text-primary">{icon}</div>
+      <div className="text-3xl font-bold gradient-text-spectrum mb-1">
+        {count.toLocaleString()}{value.replace(/[0-9]/g, '')}
+      </div>
+      <div className="text-gray-400 text-sm uppercase tracking-wider">{label}</div>
+    </div>
+  );
+};
+
+// Testimonial Card with Premium Design
+const TestimonialCard: React.FC<{
+  name: string;
+  role: string;
+  content: string;
+  avatar?: string;
+  rating: number;
+}> = ({ name, role, content, avatar, rating }) => (
+  <div className="card hover-glow animate-on-scroll">
+    <div className="flex items-center mb-4">
+      <div className="w-12 h-12 bg-gradient-hero rounded-full flex items-center justify-center text-white font-bold mr-4">
+        {avatar || name[0]}
+      </div>
+      <div className="flex-1">
+        <div className="font-semibold text-white">{name}</div>
+        <div className="text-sm text-gray-400">{role}</div>
+      </div>
+      <div className="flex space-x-1">
+        {Array.from({ length: 5 }, (_, i) => (
+          <IconStar 
+            key={i} 
+            className={`w-4 h-4 ${i < rating ? 'text-accent' : 'text-gray-600'}`} 
+          />
+        ))}
+      </div>
+    </div>
+    <p className="text-gray-300 italic">"{content}"</p>
+  </div>
+);
 
 const LandingPage: React.FC = () => {
   const { setCurrentPage } = useAppContext();
-  const { t } = useTranslation();
-  
+  const [activeStep, setActiveStep] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setActiveStep(prev => (prev + 1) % 4);
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  const features = [
+    {
+      icon: <IconBolt />,
+      title: "AI-Powered Mastering",
+      description: "Advanced machine learning algorithms optimize your tracks for maximum impact and commercial success.",
+      gradient: "spectrum",
+      glowColor: "spectrum-1"
+    },
+    {
+      icon: <IconFire />,
+      title: "Genre-Specific Processing",
+      description: "Specialized mastering profiles for Afrobeats, Hip Hop, EDM, and more musical styles.",
+      glowColor: "spectrum-2"
+    },
+    {
+      icon: <IconTrendingUp />,
+      title: "Real-Time Analysis",
+      description: "Professional-grade audio analysis with LUFS metering, spectral display, and dynamic range optimization.",
+      glowColor: "spectrum-3"
+    },
+    {
+      icon: <IconHeart />,
+      title: "Artist-Friendly Interface",
+      description: "Intuitive design that makes professional mastering accessible to creators at every level.",
+      glowColor: "spectrum-4"
+    }
+  ];
+
+  const processSteps = [
+    {
+      icon: <IconUpload />,
+      title: "Upload Your Track",
+      description: "Drag & drop your audio file and let our AI analyze its characteristics"
+    },
+    {
+      icon: <IconCog />,
+      title: "AI Processing",
+      description: "Our advanced algorithms apply genre-specific mastering techniques"
+    },
+    {
+      icon: <IconPlay />,
+      title: "Preview & Compare",
+      description: "Listen to before/after comparisons and fine-tune your master"
+    },
+    {
+      icon: <IconDownload />,
+      title: "Download Master",
+      description: "Get your professional master ready for streaming and distribution"
+    }
+  ];
+
+  const stats = [
+    { value: "50K+", label: "Tracks Mastered", icon: <IconMusicNote /> },
+    { value: "15K+", label: "Happy Artists", icon: <IconUsers /> },
+    { value: "99.8%", label: "Success Rate", icon: <IconAward /> },
+    { value: "4.9★", label: "User Rating", icon: <IconStar /> }
+  ];
+
+  const testimonials = [
+    {
+      name: "Kwame Asante",
+      role: "Afrobeats Producer",
+      content: "Afromaster transformed my sound completely. The AI knows exactly how to make Afrobeats hit different!",
+      rating: 5
+    },
+    {
+      name: "Maya Johnson",
+      role: "Hip Hop Artist",
+      content: "I've tried every mastering service out there. Nothing comes close to the quality and speed of Afromaster.",
+      rating: 5
+    },
+    {
+      name: "David Okafor",
+      role: "Music Producer",
+      content: "The genre-specific processing is incredible. My clients' tracks sound radio-ready every single time.",
+      rating: 5
+    }
+  ];
+
   return (
-    <div className="space-y-32">
-      {/* Hero Section */}
-      <section className="text-center pt-20 pb-10 relative min-h-[85vh] flex flex-col justify-center items-center hero-background">
-        <div className="relative z-10 flex flex-col justify-center items-center w-full max-w-5xl px-4">
-            <div className="mb-6 animate-fadeIn opacity-0" style={{ animationDelay: '0.2s' }}>
-                 <span className="px-4 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-sm font-semibold tracking-wide uppercase">
-                    v2.0 Now Live
-                 </span>
-            </div>
-            
-            <StaggeredText text={t('hero_title')} className="text-5xl sm:text-6xl md:text-8xl font-heading font-extrabold text-transparent bg-clip-text bg-gradient-to-b from-white to-slate-400 pb-6 drop-shadow-sm" />
-
-            <p className="mt-8 text-lg sm:text-xl md:text-2xl text-slate-300 max-w-3xl mx-auto animate-slideInUp font-light" style={{ animationDelay: '0.5s'}}>
-             {t('hero_subtitle')}
-            </p>
-            
-            <div className="mt-12 flex flex-col sm:flex-row items-center justify-center gap-6 animate-slideInUp" style={{ animationDelay: '0.7s'}}>
-              <Button 
-                  onClick={() => setCurrentPage(AppPage.UPLOAD)} 
-                  size="lg" 
-                  variant="primary"
-                  rightIcon={<IconArrowRight className="w-5 h-5"/>}
-                  className="w-full sm:w-auto text-lg px-10 py-4 shadow-primary/30 shadow-2xl animate-pulse-glow"
-              >
-                  {t('start_mastering')}
-              </Button>
-              <Button 
-                  onClick={() => {
-                      const demo = document.getElementById('demo-section');
-                      if(demo) demo.scrollIntoView({ behavior: 'smooth' });
-                  }} 
-                  size="lg" 
-                  variant="glass"
-                  leftIcon={<IconPlay className="w-5 h-5"/>}
-                  className="w-full sm:w-auto"
-              >
-                  {t('hear_difference')}
-              </Button>
-            </div>
-            
-             <div className="mt-12 animate-slideInUp opacity-0" style={{ animationDelay: '1s' }}>
-                <p className="text-slate-500 text-sm font-medium mb-3">TRUSTED BY 10,000+ PRODUCERS</p>
-                <div className="flex -space-x-3 justify-center">
-                    {[1,2,3,4].map(i => (
-                        <div key={i} className="w-10 h-10 rounded-full border-2 border-slate-900 bg-slate-700 overflow-hidden">
-                             <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${i*135}`} alt="User" />
-                        </div>
-                    ))}
-                    <div className="w-10 h-10 rounded-full border-2 border-slate-900 bg-slate-800 flex items-center justify-center text-xs font-bold text-white">
-                        +10k
-                    </div>
-                </div>
-            </div>
-        </div>
-      </section>
-
-      {/* "Hear the Difference" A/B Demo Section */}
-      <section id="demo-section" className="max-w-6xl mx-auto px-4">
-        <div className="text-center mb-16 animate-on-scroll">
-            <h2 className="text-3xl sm:text-5xl font-heading font-bold text-white mb-4">Feel The Bounce</h2>
-            <p className="text-lg text-slate-400 max-w-2xl mx-auto">Toggle between the raw mix and the Afromastered version. Hear the punch, clarity, and loudness our AI adds.</p>
-        </div>
-        <div className="animate-on-scroll" style={{ transitionDelay: '200ms' }}>
-          <DemoAudioPlayer />
-        </div>
-      </section>
+    <div className="min-h-screen bg-studio-dark relative overflow-hidden">
+      {/* Animated Background Effects */}
+      <div className="particles-container">
+        <div className="absolute inset-0 bg-gradient-glow opacity-20 animate-pulse-glow"></div>
+      </div>
       
-      {/* Why Afromaster Section */}
-      <section className="max-w-6xl mx-auto px-4">
-        <div className="grid md:grid-cols-2 gap-12 items-center">
-            <div className="animate-on-scroll">
-                <h2 className="text-3xl sm:text-4xl font-heading font-bold text-white mb-6">Stop Guessing, Start Finishing</h2>
-                <p className="text-lg text-slate-400 mb-8">Afromaster bridges the gap between your final mix and a professional, release-ready track, so you can focus on creating.</p>
-                
-                 <div className="space-y-4">
-                    <div className="flex items-start p-4 bg-slate-900/40 rounded-xl border border-slate-800/50">
-                        <div className="bg-red-500/10 p-2 rounded-lg mr-4"><IconXCircle className="w-6 h-6 text-red-400"/></div>
-                        <div>
-                            <h4 className="font-bold text-slate-200">The Old Way</h4>
-                            <p className="text-sm text-slate-500 mt-1">Hours wasted tweaking plugins, muddy mixes, expensive engineers.</p>
-                        </div>
-                    </div>
-                    <div className="flex items-start p-4 bg-primary/5 rounded-xl border border-primary/20">
-                         <div className="bg-primary/10 p-2 rounded-lg mr-4"><IconCheckCircle className="w-6 h-6 text-primary"/></div>
-                        <div>
-                            <h4 className="font-bold text-white">The Afromaster Way</h4>
-                            <p className="text-sm text-slate-400 mt-1">Instant professional results, genre-specific AI, industry standard loudness.</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-             <div className="grid grid-cols-2 gap-4 animate-on-scroll" style={{ transitionDelay: '200ms' }}>
-                 <div className="space-y-4 mt-8">
-                     <div className="bg-slate-800/50 p-6 rounded-2xl border border-slate-700/50 h-40 flex flex-col justify-between">
-                         <IconMusicNote className="w-8 h-8 text-purple-400" />
-                         <span className="font-bold text-slate-200">Crystal Clear Highs</span>
-                     </div>
-                     <div className="bg-slate-800/50 p-6 rounded-2xl border border-slate-700/50 h-48 flex flex-col justify-between">
-                         <IconSparkles className="w-8 h-8 text-yellow-400" />
-                         <span className="font-bold text-slate-200">AI Powered Magic</span>
-                     </div>
-                 </div>
-                 <div className="space-y-4">
-                     <div className="bg-slate-800/50 p-6 rounded-2xl border border-slate-700/50 h-48 flex flex-col justify-between">
-                         <div className="w-8 h-8 rounded-full bg-green-500 animate-pulse"></div>
-                         <span className="font-bold text-slate-200">Streaming Ready</span>
-                     </div>
-                     <div className="bg-slate-800/50 p-6 rounded-2xl border border-slate-700/50 h-40 flex flex-col justify-between">
-                         <IconDownload className="w-8 h-8 text-blue-400" />
-                         <span className="font-bold text-slate-200">Instant Download</span>
-                     </div>
-                 </div>
-             </div>
-        </div>
-      </section>
-
-      {/* How It Works Section */}
-      <section className="max-w-6xl mx-auto px-4 py-10">
-        <div className="text-center mb-16 animate-on-scroll">
-            <h2 className="text-3xl sm:text-5xl font-heading font-bold text-white mb-4">Your Studio, Simplified</h2>
-            <p className="text-slate-400">Get a release-ready master in 4 simple steps.</p>
-        </div>
-        <div className="grid md:grid-cols-4 gap-8 relative">
-            {/* Connecting line for desktop */}
-            <div className="hidden md:block absolute top-8 left-[12%] right-[12%] h-0.5 bg-gradient-to-r from-slate-800 via-primary/50 to-slate-800 z-0"></div>
-            
-            <HowItWorksStep step={1} icon={<IconUpload className="w-6 h-6"/>} title={t('step_1_title')} description={t('step_1_desc')} delay={0.1}/>
-            <HowItWorksStep step={2} icon={<IconCog className="w-6 h-6"/>} title={t('step_2_title')} description={t('step_2_desc')} delay={0.2}/>
-            <HowItWorksStep step={3} icon={<IconSparkles className="w-6 h-6"/>} title={t('step_3_title')} description={t('step_3_desc')} delay={0.3}/>
-            <HowItWorksStep step={4} icon={<IconDownload className="w-6 h-6"/>} title={t('step_4_title')} description={t('step_4_desc')} delay={0.4}/>
-        </div>
-      </section>
-      
-      {/* Features Grid */}
-      <section className="max-w-6xl mx-auto px-4">
-        <div className="text-center mb-12 animate-on-scroll">
-          <h2 className="text-3xl sm:text-4xl font-heading font-bold text-white">Built for the Culture</h2>
-        </div>
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <Feature 
-            icon={<IconUpload className="w-7 h-7"/>}
-            title={t('feature_album_title')}
-            description={t('feature_album_desc')}
-            className="animate-on-scroll"
-            style={{ transitionDelay: '100ms' }}
+      {/* Hero Section - Stunning & Addictive */}
+      <section className="relative min-h-screen flex items-center justify-center px-4 py-20">
+        <div className="container max-w-6xl mx-auto text-center">
+          <div className="mb-8 animate-fade-in-up">
+            <AudioVisualizer />
+          </div>
+          
+          <AnimatedHeroText 
+            text="Master Your Sound Like a Pro" 
+            className="text-5xl md:text-7xl font-black mb-6 leading-tight"
           />
-          <Feature 
-            icon={<IconSparkles className="w-7 h-7"/>}
-            title={t('feature_abc_title')}
-            description={t('feature_abc_desc')}
-            className="animate-on-scroll"
-            style={{ transitionDelay: '200ms' }}
-          />
-          <Feature 
-            icon={<IconMusicNote className="w-7 h-7"/>}
-            title={t('feature_stem_title')}
-            description={t('feature_stem_desc')}
-            className="animate-on-scroll"
-            style={{ transitionDelay: '300ms' }}
-          />
-        </div>
-      </section>
-
-      {/* Final CTA */}
-       <section className="relative overflow-hidden bg-gradient-to-br from-slate-900 to-black max-w-6xl mx-auto text-center py-20 md:py-24 rounded-3xl shadow-2xl border border-slate-800/50 animate-on-scroll card-accent mb-20 mx-4">
-         <div className="absolute top-0 left-0 -translate-x-1/3 -translate-y-1/3 w-[500px] h-[500px] bg-primary/20 rounded-full blur-[100px] opacity-40"></div>
-         <div className="absolute bottom-0 right-0 translate-x-1/3 translate-y-1/3 w-[500px] h-[500px] bg-secondary/20 rounded-full blur-[100px] opacity-40"></div>
-        <div className="relative z-10 px-6">
-            <h2 className="text-4xl sm:text-6xl font-heading font-bold text-white mb-6">Your Next Hit is Waiting</h2>
-            <p className="text-xl text-slate-300 max-w-2xl mx-auto mb-10">Join top producers using Afromaster to get their tracks radio-ready in minutes.</p>
+          
+          <p className="text-xl md:text-2xl text-gray-300 mb-8 max-w-3xl mx-auto leading-relaxed animate-fade-in-up">
+            Transform your music with <span className="text-primary font-semibold">AI-powered mastering</span> designed for 
+            <span className="gradient-text-spectrum font-semibold"> Afrobeats, Hip Hop & African music</span>. 
+            Get studio-quality masters in minutes, not hours.
+          </p>
+          
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12 animate-fade-in-up">
             <Button 
-                onClick={() => setCurrentPage(AppPage.UPLOAD)} 
-                size="lg" 
-                variant="primary"
-                rightIcon={<IconArrowRight className="w-6 h-6"/>}
-                className="text-lg px-12 py-5 shadow-2xl"
+              onClick={() => setCurrentPage(AppPage.UPLOAD)} 
+              className="btn btn-primary btn-lg group"
             >
-                {t('start_mastering')}
+              <IconUpload className="w-5 h-5 group-hover:scale-110 transition-transform" />
+              Start Mastering Now
+              <IconArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </Button>
+            
+            <Button 
+              onClick={() => setCurrentPage(AppPage.AUTH)} 
+              className="btn btn-secondary btn-lg"
+            >
+              <IconPlay className="w-5 h-5" />
+              Watch Demo
+            </Button>
+          </div>
+          
+          {/* Social Proof */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 animate-fade-in-up">
+            {stats.map((stat, index) => (
+              <StatsCounter 
+                key={index}
+                value={stat.value}
+                label={stat.label}
+                icon={stat.icon}
+              />
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Features Section - Premium & Engaging */}
+      <section className="py-20 px-4 relative">
+        <div className="container max-w-6xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl md:text-5xl font-black mb-6 gradient-text-hero">
+              Why Artists Choose Afromaster
+            </h2>
+            <p className="text-xl text-gray-300 max-w-3xl mx-auto">
+              Professional mastering tools powered by AI, designed specifically for modern music production
+            </p>
+          </div>
+          
+          <div className="grid grid-2 gap-8">
+            {features.map((feature, index) => (
+              <FeatureCard key={index} {...feature} />
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* How It Works - Interactive & Visual */}
+      <section className="py-20 px-4 bg-studio-medium relative">
+        <div className="container max-w-6xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl md:text-5xl font-black mb-6 gradient-text-spectrum">
+              Master Your Track in 4 Simple Steps
+            </h2>
+            <p className="text-xl text-gray-300 max-w-2xl mx-auto">
+              Our streamlined process gets you professional results in minutes
+            </p>
+          </div>
+          
+          <div className="grid grid-4 gap-6">
+            {processSteps.map((step, index) => (
+              <ProcessStep 
+                key={index}
+                number={index + 1}
+                icon={step.icon}
+                title={step.title}
+                description={step.description}
+                isActive={activeStep === index}
+              />
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Testimonials - Social Proof */}
+      <section className="py-20 px-4">
+        <div className="container max-w-6xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl md:text-5xl font-black mb-6 gradient-text-hero">
+              What Artists Are Saying
+            </h2>
+            <p className="text-xl text-gray-300 max-w-2xl mx-auto">
+              Join thousands of satisfied artists who trust Afromaster with their music
+            </p>
+          </div>
+          
+          <div className="grid grid-3 gap-8">
+            {testimonials.map((testimonial, index) => (
+              <TestimonialCard key={index} {...testimonial} />
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Final CTA - Irresistible */}
+      <section className="py-20 px-4 bg-gradient-hero relative">
+        <div className="container max-w-4xl mx-auto text-center">
+          <h2 className="text-4xl md:text-5xl font-black mb-6 text-white">
+            Ready to Transform Your Music?
+          </h2>
+          <p className="text-xl text-white/90 mb-8 max-w-2xl mx-auto">
+            Join the revolution of AI-powered mastering. Get your first master FREE and experience the difference.
+          </p>
+          
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+            <Button 
+              onClick={() => setCurrentPage(AppPage.UPLOAD)} 
+              className="btn btn-secondary btn-lg group bg-white text-primary hover:bg-gray-100"
+            >
+              <IconSparkles className="w-5 h-5 group-hover:scale-110 transition-transform" />
+              Get Your FREE Master
+              <IconArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+            </Button>
+          </div>
+          
+          <p className="text-sm text-white/70 mt-4">
+            No credit card required • 100% satisfaction guaranteed
+          </p>
         </div>
       </section>
     </div>
