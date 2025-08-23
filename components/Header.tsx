@@ -1,19 +1,34 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAppContext } from '../contexts/AppContext';
 import { AppPage } from '../types';
-import { IconMusicNote, IconLogout, IconMenu, IconX } from '../constants';
+import { IconMusicNote, IconLogout, IconMenu, IconX, IconUser, IconSettings, IconCreditCard } from '../constants';
 import ThemeSwitcher from './ThemeSwitcher';
 import { auth } from '../src/firebaseConfig';
 import { signOut } from 'firebase/auth';
 
 const Header: React.FC = () => {
-  const { setCurrentPage, isAuthenticated, user } = useAppContext();
+  const { setCurrentPage, isAuthenticated, user, currentPage } = useAppContext();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  // Handle scroll effects
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 20);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const handleLogout = async () => {
-    await signOut(auth);
-    setCurrentPage(AppPage.LANDING);
-    setIsMobileMenuOpen(false);
+    try {
+      await signOut(auth);
+      setCurrentPage(AppPage.LANDING);
+      setIsMobileMenuOpen(false);
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
   };
 
   const navigate = (page: AppPage) => {
@@ -21,123 +36,173 @@ const Header: React.FC = () => {
     setIsMobileMenuOpen(false);
   };
 
+  const navItems = [
+    { label: 'Home', page: AppPage.LANDING },
+    { label: 'Master Track', page: AppPage.UPLOAD },
+    ...(isAuthenticated ? [
+      { label: 'Dashboard', page: AppPage.DASHBOARD },
+      { label: 'Credits', page: AppPage.BUY_CREDITS }
+    ] : [
+      { label: 'Sign In', page: AppPage.AUTH }
+    ])
+  ];
+
   return (
-    <header className="bg-slate-950/70 backdrop-blur-xl sticky top-0 z-40 border-b border-slate-800/50 shadow-lg shadow-black/20">
-      <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-        <div 
-          className="flex items-center space-x-3 cursor-pointer group"
-          onClick={() => navigate(AppPage.LANDING)}
-        >
-          <div className="w-10 h-10 bg-gradient-to-br from-primary to-secondary rounded-full flex items-center justify-center transition-all duration-300 group-hover:scale-110">
-            <IconMusicNote className="w-6 h-6 text-white" />
+    <header className={`navbar transition-all duration-300 ${isScrolled ? 'bg-studio-dark/95 border-gray-700' : 'bg-transparent border-transparent'}`}>
+      <div className="container mx-auto px-4">
+        <div className="flex justify-between items-center h-16">
+          {/* Logo & Brand */}
+          <div 
+            className="flex items-center space-x-3 cursor-pointer group"
+            onClick={() => navigate(AppPage.LANDING)}
+          >
+            <div className="relative">
+              <div className="w-10 h-10 bg-gradient-hero rounded-full flex items-center justify-center transition-all duration-300 group-hover:scale-110 group-hover:rotate-12">
+                <IconMusicNote className="w-6 h-6 text-white" />
+              </div>
+              <div className="absolute -inset-1 bg-gradient-hero rounded-full opacity-20 group-hover:opacity-40 transition-opacity duration-300 animate-pulse-glow"></div>
+            </div>
+            <h1 className="navbar-brand text-2xl font-black">
+              Afromaster
+            </h1>
           </div>
-          <h1 className="text-2xl font-heading font-bold text-gradient-primary">
-            Afromaster
-          </h1>
-        </div>
 
-        {/* --- Desktop Nav --- */}
-        <div className="hidden md:flex items-center space-x-4">
-           <ThemeSwitcher />
-           <nav className="flex items-center space-x-2">
-            {isAuthenticated ? (
-                <>
-                    <span className="text-white text-sm">Welcome, {user?.displayName || user?.email}</span>
-                    <button 
-                      onClick={() => navigate(AppPage.DASHBOARD)}
-                      className="text-slate-300 hover:bg-slate-800 hover:text-white transition-colors px-4 py-2 rounded-md text-sm font-medium"
-                    >
-                      Dashboard
-                    </button>
-                    <button
-                      onClick={() => navigate(AppPage.BUY_CREDITS)}
-                      className="text-slate-300 hover:bg-slate-800 hover:text-white transition-colors px-4 py-2 rounded-md text-sm font-medium"
-                    >
-                      Buy Credits
-                    </button>
-                    <button
-                        onClick={handleLogout}
-                        className="text-slate-300 hover:bg-slate-800 hover:text-white transition-colors px-4 py-2 rounded-md text-sm font-medium"
-                    >
-                        Logout
-                    </button>
-                </>
-            ) : (
-                <button
-                    onClick={() => navigate(AppPage.AUTH)}
-                    className="flex items-center space-x-2 font-semibold bg-slate-800 text-white px-4 py-2 rounded-md text-sm hover:bg-slate-700 transition-colors border border-slate-700"
-                >
-                    <span>Log In / Sign Up</span>
-                </button>
-            )}
+          {/* Desktop Navigation */}
+          <nav className="hidden md:flex items-center space-x-1">
+            {navItems.map((item) => (
+              <button
+                key={item.label}
+                onClick={() => navigate(item.page)}
+                className={`nav-link px-4 py-2 rounded-lg transition-all duration-300 ${
+                  currentPage === item.page 
+                    ? 'active bg-glass-bg text-white' 
+                    : 'text-gray-300 hover:text-white hover:bg-glass-bg'
+                }`}
+              >
+                {item.label}
+              </button>
+            ))}
           </nav>
-        </div>
 
-        {/* --- Mobile Menu Button --- */}
-        <div className="md:hidden flex items-center gap-2">
+          {/* Desktop User Menu & Actions */}
+          <div className="hidden md:flex items-center space-x-4">
             <ThemeSwitcher />
-            <button onClick={() => setIsMobileMenuOpen(true)} aria-label="Open menu" className="p-2">
-                <IconMenu className="w-6 h-6 text-slate-300" />
-            </button>
-        </div>
-      </div>
-
-      {/* --- Mobile Menu Overlay --- */}
-      {isMobileMenuOpen && (
-        <div className="fixed inset-0 bg-slate-950 z-50 flex flex-col p-4 md:hidden animate-fadeIn">
-            <div className="flex justify-between items-center mb-8">
-                 <div 
-                  className="flex items-center space-x-3 cursor-pointer group"
-                  onClick={() => navigate(AppPage.LANDING)}
-                >
-                    <div className="w-10 h-10 bg-gradient-to-br from-primary to-secondary rounded-full flex items-center justify-center">
-                        <IconMusicNote className="w-6 h-6 text-white" />
-                    </div>
-                    <h1 className="text-2xl font-heading font-bold text-gradient-primary">Afromaster</h1>
-                </div>
-                <button onClick={() => setIsMobileMenuOpen(false)} aria-label="Close menu" className="p-2">
-                    <IconX className="w-7 h-7 text-slate-400" />
-                </button>
-            </div>
             
-            <nav className="flex flex-col items-center justify-center flex-grow gap-8 text-center">
-                 {isAuthenticated ? (
-                    <>
-                        {user && <p className="text-xl text-primary-focus">Welcome, {user.displayName || user.email}!</p>}
-                        <button 
-                          onClick={() => navigate(AppPage.DASHBOARD)}
-                          className="text-2xl font-semibold text-slate-200 hover:text-primary transition-colors"
-                        >
-                          Dashboard
-                        </button>
-                        <button
-                          onClick={() => navigate(AppPage.BUY_CREDITS)}
-                          className="text-2xl font-semibold text-slate-200 hover:text-primary transition-colors"
-                        >
-                          Buy Credits
-                        </button>
-                        <button
-                            onClick={handleLogout}
-                            className="text-lg font-semibold flex items-center space-x-2 text-slate-400 hover:text-red-400 transition-colors mt-8"
-                        >
-                            <IconLogout className="w-5 h-5" />
-                            <span>Logout</span>
-                        </button>
-                    </>
-                ) : (
-                    <button
-                        onClick={() => navigate(AppPage.AUTH)}
-                        className="flex items-center space-x-3 font-semibold bg-slate-800 text-white px-6 py-3 rounded-lg text-lg hover:bg-slate-700 transition-colors border border-slate-700"
-                    >
-                        <span>Log In / Sign Up</span>
-                    </button>
-                )}
-            </nav>
-             <div className="pb-4 text-center text-xs text-slate-600">
-                &copy; {new Date().getFullYear()} Afromaster
-            </div>
+            {isAuthenticated ? (
+              <div className="flex items-center space-x-3">
+                {/* User Avatar & Info */}
+                <div className="flex items-center space-x-2 bg-glass-bg backdrop-filter backdrop-blur-lg px-3 py-2 rounded-lg border border-glass-border">
+                  <div className="w-8 h-8 bg-gradient-hero rounded-full flex items-center justify-center">
+                    <IconUser className="w-4 h-4 text-white" />
+                  </div>
+                  <span className="text-sm text-white font-medium">
+                    {user?.displayName?.split(' ')[0] || user?.email?.split('@')[0] || 'User'}
+                  </span>
+                </div>
+
+                {/* Action Buttons */}
+                <button
+                  onClick={() => navigate(AppPage.DASHBOARD)}
+                  className="btn btn-ghost btn-sm"
+                  title="Dashboard"
+                >
+                  <IconSettings className="w-4 h-4" />
+                </button>
+
+                <button
+                  onClick={handleLogout}
+                  className="btn btn-ghost btn-sm text-gray-400 hover:text-red-400"
+                  title="Logout"
+                >
+                  <IconLogout className="w-4 h-4" />
+                </button>
+              </div>
+            ) : (
+              <div className="flex items-center space-x-3">
+                <button
+                  onClick={() => navigate(AppPage.AUTH)}
+                  className="btn btn-ghost"
+                >
+                  Sign In
+                </button>
+                <button
+                  onClick={() => navigate(AppPage.UPLOAD)}
+                  className="btn btn-primary"
+                >
+                  Try Free
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Mobile Menu Button */}
+          <button
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            className="md:hidden btn btn-ghost btn-sm"
+            aria-label="Toggle mobile menu"
+          >
+            {isMobileMenuOpen ? (
+              <IconX className="w-6 h-6" />
+            ) : (
+              <IconMenu className="w-6 h-6" />
+            )}
+          </button>
         </div>
-      )}
+
+        {/* Mobile Navigation Menu */}
+        {isMobileMenuOpen && (
+          <div className="md:hidden absolute top-full left-0 right-0 bg-studio-dark/95 backdrop-filter backdrop-blur-xl border-t border-gray-700 animate-slide-in-down">
+            <div className="container mx-auto px-4 py-6">
+              <nav className="space-y-4">
+                {navItems.map((item) => (
+                  <button
+                    key={item.label}
+                    onClick={() => navigate(item.page)}
+                    className={`w-full text-left px-4 py-3 rounded-lg transition-all duration-300 ${
+                      currentPage === item.page 
+                        ? 'bg-gradient-hero text-white font-semibold' 
+                        : 'text-gray-300 hover:text-white hover:bg-glass-bg'
+                    }`}
+                  >
+                    {item.label}
+                  </button>
+                ))}
+                
+                {isAuthenticated && (
+                  <>
+                    <hr className="border-gray-700 my-4" />
+                    
+                    {/* Mobile User Info */}
+                    <div className="flex items-center space-x-3 px-4 py-2">
+                      <div className="w-10 h-10 bg-gradient-hero rounded-full flex items-center justify-center">
+                        <IconUser className="w-5 h-5 text-white" />
+                      </div>
+                      <div>
+                        <div className="text-white font-medium">
+                          {user?.displayName || 'User'}
+                        </div>
+                        <div className="text-sm text-gray-400">
+                          {user?.email}
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <button
+                      onClick={handleLogout}
+                      className="w-full text-left px-4 py-3 text-red-400 hover:text-red-300 hover:bg-red-900/20 rounded-lg transition-all duration-300"
+                    >
+                      <div className="flex items-center space-x-3">
+                        <IconLogout className="w-5 h-5" />
+                        <span>Sign Out</span>
+                      </div>
+                    </button>
+                  </>
+                )}
+              </nav>
+            </div>
+          </div>
+        )}
+      </div>
     </header>
   );
 };
