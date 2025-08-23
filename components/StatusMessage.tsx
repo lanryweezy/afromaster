@@ -1,6 +1,6 @@
 import React from 'react';
 import LoadingSpinner from './LoadingSpinner';
-import { IconCheckCircle, IconXCircle, IconInfo, IconExclamationTriangle } from '../constants';
+import { IconCheckCircle, IconXCircle, IconAlertTriangle as IconInfo, IconAlertTriangle as IconExclamationTriangle } from '../constants';
 
 interface StatusMessageProps {
   type: 'info' | 'error' | 'success' | 'loading' | 'warning';

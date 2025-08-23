@@ -1,7 +1,7 @@
 import React from 'react';
 import { MasteredTrackInfo } from '../types';
 import Button from './Button';
-import { IconMusicNote, IconDownload, IconCog, IconPlay, IconPause, IconCalendar, IconWaveform } from '../constants';
+import { IconMusicNote, IconDownload, IconCog, IconPlay, IconPause, IconCog as IconCalendar, IconMusicNote as IconWaveform } from '../constants';
 import { useAppContext } from '../contexts/AppContext';
 import { AppPage } from '../types';
 
