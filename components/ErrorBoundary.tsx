@@ -1,4 +1,4 @@
-import React, { Component, ErrorInfo, ReactNode } from 'react';
+import React, { ErrorInfo, ReactNode } from 'react';
 import Button from './Button';
 import { IconAlertTriangle, IconRefresh } from '../constants';
 
@@ -13,7 +13,10 @@ interface State {
   errorInfo?: ErrorInfo;
 }
 
-class ErrorBoundary extends Component<Props, State> {
+class ErrorBoundary extends React.Component<Props, State> {
+  declare state: State;
+  declare props: Readonly<Props>;
+  declare setState: (state: Partial<State>) => void;
   constructor(props: Props) {
     super(props);
     this.state = { hasError: false };

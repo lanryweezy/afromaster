@@ -11,7 +11,9 @@
     ],
     "skipLibCheck": true,
     "types": [
-      "node"
+      "node",
+      "jest",
+      "vite/client"
     ],
     "moduleResolution": "bundler",
     "isolatedModules": true,
@@ -26,5 +28,11 @@
     "allowImportingTsExtensions": true,
     "noEmit": true,
     "esModuleInterop": true
-  }
+  },
+  "exclude": [
+    "__tests__",
+    "test",
+    "**/*.test.ts",
+    "**/*.test.tsx"
+  ]
 }

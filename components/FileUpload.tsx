@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { useDropzone, FileRejection } from 'react-dropzone';
+import { useDropzone, DropzoneOptions } from 'react-dropzone';
 import { analyticsService } from '../services/analyticsService';
 import { IconUpload, IconMusicNote, IconXCircle } from '../constants';
 
@@ -47,7 +47,7 @@ const FileUpload: React.FC<FileUploadProps> = ({
   }, [externalFile]);
 
 
-  const onDrop = useCallback((acceptedFiles: File[], fileRejections: FileRejection[]) => {
+  const onDrop: NonNullable<DropzoneOptions['onDrop']> = useCallback((acceptedFiles, fileRejections) => {
     console.log('onDrop called with:', { acceptedFiles, fileRejections });
     setError(null);
     if (fileRejections.length > 0) {
@@ -72,12 +72,12 @@ const FileUpload: React.FC<FileUploadProps> = ({
     }
   }, [onFileAccepted, acceptedMimeTypes, onFileCleared]);
 
-  const { getRootProps, getInputProps, isDragActive, open } = useDropzone({
+  const { getRootProps, getInputProps, isDragActive, open } = useDropzone(({
     onDrop,
     accept: acceptedMimeTypes.reduce<Record<string, string[]>>((acc, type) => { acc[type] = []; return acc; }, {}),
     multiple: false,
     noClick: true, // Disable click on the dropzone itself
-  });
+  }) as unknown as DropzoneOptions);
 
   const clearFile = useCallback(() => {
     setInternalFile(null);

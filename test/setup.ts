@@ -1,5 +1,5 @@
 // Mock Vite's import.meta.env for Jest
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+ 
 (global as any).import = {
   meta: {
     env: {
@@ -17,7 +17,7 @@
 };
 
 // Mock AudioContext for tests
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+ 
 (window as any).AudioContext = class MockAudioContext {
   currentTime = 0;
   sampleRate = 44100;
@@ -101,7 +101,7 @@
 };
 
 // Mock OfflineAudioContext
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+ 
 (window as any).OfflineAudioContext = class MockOfflineAudioContext extends (window as any).AudioContext {
   numberOfChannels: number;
   length: number;
@@ -128,11 +128,11 @@
 };
 
 // Mock Worker
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+ 
 (window as any).Worker = class MockWorker {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   onmessage: ((event: any) => void) | null = null;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   onerror: ((event: any) => void) | null = null;
 
   constructor() {}
@@ -143,9 +143,9 @@
 };
 
 // Mock URL.createObjectURL
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+ 
 (URL as any).createObjectURL = () => 'mock-url';
 
 // Mock URL.revokeObjectURL
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+ 
 (URL as any).revokeObjectURL = () => {};

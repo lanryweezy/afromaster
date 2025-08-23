@@ -5,7 +5,10 @@ interface DropdownProps<T extends string | number> extends React.SelectHTMLAttri
   options: T[];
   value: T;
   onChange: (event: React.ChangeEvent<HTMLSelectElement>) => void;
-  optionDisplayNames?: Record<T, string>; // Optional map for display names if different from values
+  optionDisplayNames?: Record<string, string>; // Optional map for display names if different from values
+  name?: string;
+  id?: string;
+  className?: string;
 }
 
 const Dropdown = <T extends string | number,>({
@@ -31,7 +34,7 @@ const Dropdown = <T extends string | number,>({
       >
         {options.map((option) => (
           <option key={option} value={option}>
-            {optionDisplayNames ? optionDisplayNames[option] : option}
+            {optionDisplayNames ? optionDisplayNames[String(option)] : option}
           </option>
         ))}
       </select>

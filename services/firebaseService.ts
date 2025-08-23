@@ -62,8 +62,9 @@ export const processReferral = async (referrerId: string, newUserId: string): Pr
       
       await batch.commit();
     }
-  } catch (error) {
-    console.error('Error processing referral:', error);
+  } catch {
+    // Swallow errors in referral processing to avoid blocking UX
+    console.error('Error processing referral');
   }
 };
 
@@ -75,9 +76,9 @@ export const uploadMasteredTrack = async (user: User, masteredBuffer: AudioBuffe
   let storageAvailable = false;
   try {
     // Quick test to see if storage is accessible
-    const testRef = ref(storage, 'test-connection');
+    /* const testRef = ref(storage, 'test-connection'); */
     storageAvailable = true;
-  } catch (error) {
+  } catch {
     console.log('Firebase Storage not available, using local fallback');
     storageAvailable = false;
   }

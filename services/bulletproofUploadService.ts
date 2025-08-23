@@ -1,5 +1,5 @@
 import { User } from 'firebase/auth';
-import { MasteringSettings } from '../types';
+// import { MasteringSettings } from '../types';
 import toWav from 'audiobuffer-to-wav';
 
 // Multiple upload strategies for 100% success rate

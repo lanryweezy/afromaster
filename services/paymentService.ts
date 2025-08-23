@@ -1,23 +1,5 @@
-interface PaystackConfig {
-  key: string;
-  email: string;
-  amount: number; // in kobo
-  currency?: string;
-  ref: string;
-  onClose: () => void;
-  callback: (response: { reference: string; status: string; message: string }) => void;
-  metadata?: Record<string, unknown>;
-}
-
-// This tells TypeScript that PaystackPop is a global variable provided by the script
-declare const PaystackPop: {
-  setup: (config: PaystackConfig) => {
-    openIframe: () => void;
-  };
-};
-
-// Real Paystack payment integration (this is now handled by usePaystack hook)
-// This service is now deprecated in favor of the hook-based approach
+// Real Paystack payment integration is handled by the usePaystack hook
+// This service only contains Firebase credit deduction utilities
 
 // Real credit deduction using Firebase
 import { User } from 'firebase/auth';
