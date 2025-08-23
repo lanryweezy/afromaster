@@ -63,6 +63,7 @@
     <style>
       :root {
         --hero-image-url: url('https://images.unsplash.com/photo-1593697821252-0c9137d9fc45?q=80&w=2670&auto=format&fit=crop&ixlib=rb-4.0.3');
+        --color-primary-hsl: 25, 95%, 53%;
       }
 
       html[data-theme='solar-flare'] {
@@ -98,6 +99,7 @@
       body {
         transition: background-color 0.5s ease;
         background-color: #030712; /* gray-950 */
+        overflow-x: hidden;
       }
 
        #aurora-pointer {
@@ -251,6 +253,15 @@
       .card-accent {
         position: relative;
         overflow: hidden;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        background: rgba(15, 23, 42, 0.6);
+        backdrop-filter: blur(10px);
+        transition: all 0.3s ease;
+      }
+      .card-accent:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.1);
+        border: 1px solid rgba(249, 115, 22, 0.3);
       }
       .card-accent::after {
           content: '';
@@ -259,7 +270,7 @@
           left: 0;
           right: 0;
           height: 3px;
-          background: var(--color-primary);
+          background: linear-gradient(90deg, var(--color-primary), var(--color-accent), var(--color-primary));
           filter: blur(8px);
           opacity: 0.9;
           pointer-events: none;
@@ -297,6 +308,117 @@
           }
       }
       
+      /* Enhanced section headers */
+      .section-header {
+        position: relative;
+        text-align: center;
+        margin-bottom: 3rem;
+      }
+      
+      .section-header::after {
+        content: '';
+        display: block;
+        width: 80px;
+        height: 4px;
+        background: linear-gradient(90deg, var(--color-primary), var(--color-accent));
+        margin: 1rem auto;
+        border-radius: 2px;
+      }
+      
+      /* Glowing effect for buttons */
+      .glow-button {
+        position: relative;
+        overflow: hidden;
+      }
+      
+      .glow-button::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+        transition: 0.5s;
+      }
+      
+      .glow-button:hover::before {
+        left: 100%;
+      }
+      
+      /* Floating animation */
+      @keyframes float {
+        0% {
+          transform: translateY(0px);
+        }
+        50% {
+          transform: translateY(-10px);
+        }
+        100% {
+          transform: translateY(0px);
+        }
+      }
+      
+      .float {
+        animation: float 3s ease-in-out infinite;
+      }
+      
+      /* Enhanced card hover effects */
+      .feature-card {
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        position: relative;
+        overflow: hidden;
+      }
+      
+      .feature-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(120deg, 
+          transparent, 
+          rgba(249, 115, 22, 0.1), 
+          transparent);
+        transform: translateX(-100%);
+        transition: transform 0.6s ease;
+      }
+      
+      .feature-card:hover::before {
+        transform: translateX(100%);
+      }
+      
+      .feature-card:hover {
+        transform: translateY(-8px) scale(1.02);
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+      }
+      
+      /* Enhanced hero section */
+      .hero-content {
+        position: relative;
+        z-index: 10;
+        text-align: center;
+        padding: 2rem;
+        max-width: 900px;
+        margin: 0 auto;
+      }
+      
+      /* Review stars animation */
+      .review-stars {
+        animation: pulse 2s infinite;
+      }
+      
+      /* Responsive improvements */
+      @media (max-width: 768px) {
+        .hero-content h1 {
+          font-size: 2.5rem !important;
+        }
+        
+        .section-header h2 {
+          font-size: 1.8rem;
+        }
+      }
 
     </style>
 </head>

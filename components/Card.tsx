@@ -1,20 +1,17 @@
-import React from 'react';
+import React, { ReactNode } from 'react';
 
 interface CardProps {
-  children: React.ReactNode;
+  children: ReactNode;
   className?: string;
-  maxWidth?: string; // e.g., 'max-w-md', 'max-w-2xl'
-  shadow?: string; // e.g., 'shadow-xl', 'shadow-2xl'
+  style?: React.CSSProperties;
 }
 
-const Card: React.FC<CardProps> = ({
-  children,
-  className,
-  maxWidth = 'max-w-2xl', // Default to the larger size
-  shadow = 'shadow-2xl', // Default to the larger shadow
-}) => {
+const Card: React.FC<CardProps> = ({ children, className = '', style }) => {
   return (
-    <div className={`${maxWidth} mx-auto bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 ${className || ''}`}>
+    <div 
+      className={`bg-slate-800/30 backdrop-blur-sm border border-slate-700/50 rounded-xl p-6 transition-all duration-300 ${className}`} 
+      style={style}
+    >
       {children}
     </div>
   );

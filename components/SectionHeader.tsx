@@ -6,15 +6,11 @@ interface SectionHeaderProps {
   className?: string;
 }
 
-const SectionHeader: React.FC<SectionHeaderProps> = ({
-  title,
-  description,
-  className,
-}) => {
+const SectionHeader: React.FC<SectionHeaderProps> = ({ title, description, className = '' }) => {
   return (
-    <div className={`text-center mb-12 animate-on-scroll ${className || ''}`}>
-      <h2 className="text-3xl sm:text-4xl font-heading font-bold text-gradient-primary">{title}</h2>
-      <p className="mt-3 text-slate-300 max-w-2xl mx-auto">{description}</p>
+    <div className={`section-header ${className}`}>
+      <h2 className="text-2xl md:text-3xl font-heading font-bold text-primary mb-4">{title}</h2>
+      <p className="text-lg text-slate-300 max-w-3xl mx-auto">{description}</p>
     </div>
   );
 };
