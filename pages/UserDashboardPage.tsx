@@ -1,47 +1,13 @@
-import React, { useEffect, useState } from 'react';
+
+import React from 'react';
 import { useAppContext } from '../contexts/AppContext';
 import TrackCard from '../components/TrackCard';
 import Button from '../components/Button';
-import ReferralShare from '../components/ReferralShare';
-import { AppPage, MasteredTrackInfo } from '../types';
-import { IconUpload } from '../constants';
-import { db } from '../src/firebaseConfig';
-import { collection, query, where, getDocs } from 'firebase/firestore';
-import ListStatusDisplay from '../components/ListStatusDisplay';
+import { AppPage } from '../types';
+import { IconUpload, IconMusicNote, IconLockClosed } from '../constants';
 
 const UserDashboardPage: React.FC = () => {
-  const { user, setCurrentPage, isAuthenticated } = useAppContext();
-  const [projects, setProjects] = useState<MasteredTrackInfo[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    if (isAuthenticated && user) {
-      const fetchProjects = async () => {
-        setIsLoading(true);
-        const q = query(collection(db, "projects"), where("userId", "==", user.uid));
-        const querySnapshot = await getDocs(q);
-        const userProjects = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as MasteredTrackInfo));
-        setProjects(userProjects);
-        setIsLoading(false);
-      };
-      fetchProjects();
-    } else if (!isAuthenticated) {
-      setCurrentPage(AppPage.AUTH);
-    }
-  }, [isAuthenticated, user, setCurrentPage]);
-
-  if (!isAuthenticated) {
-    return null; // or a loading spinner
-  }
-
-  const displayStatus = (
-    <ListStatusDisplay
-      isLoading={isLoading}
-      isEmpty={projects.length === 0}
-      loadingMessage="Loading projects..."
-      emptyMessage="Click 'Master New Track' to get started!"
-    />
-  );
+  const { userProjects, setCurrentPage, isAuthenticated } = useAppContext();
 
   return (
     <div className="max-w-6xl mx-auto">
@@ -54,19 +20,24 @@ const UserDashboardPage: React.FC = () => {
         )}
       </div>
 
-      {displayStatus || (
-        <>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-            {projects.map(track => (
-              <TrackCard key={track.id} track={track} />
-            ))}
-          </div>
-          
-          {/* Referral Section */}
-          <div className="mt-12">
-            <ReferralShare />
-          </div>
-        </>
+      {!isAuthenticated ? (
+        <div className="text-center py-20 bg-slate-900/60 backdrop-blur-lg border border-slate-800/50 rounded-xl shadow-lg card-accent">
+          <IconLockClosed className="w-16 h-16 text-slate-600 mx-auto mb-4" />
+          <h3 className="text-2xl font-bold text-primary">Please log in to view your dashboard.</h3>
+          <p className="text-slate-300 mt-2">Your mastered tracks and projects will be saved here.</p>
+        </div>
+      ) : userProjects.length === 0 ? (
+        <div className="text-center py-20 bg-slate-900/60 backdrop-blur-lg border border-slate-800/50 rounded-xl shadow-lg card-accent">
+          <IconMusicNote className="w-16 h-16 text-slate-600 mx-auto mb-4" />
+          <h3 className="text-2xl font-bold text-primary">No Projects Yet</h3>
+          <p className="text-slate-300 mt-2">Click "Master New Track" to get started!</p>
+        </div>
+      ) : (
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {userProjects.map(track => (
+            <TrackCard key={track.id} track={track} />
+          ))}
+        </div>
       )}
     </div>
   );

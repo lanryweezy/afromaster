@@ -1,15 +1,14 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { useDropzone, FileRejection } from 'react-dropzone';
-import { analyticsService } from '../services/analyticsService';
+import { useDropzone } from 'react-dropzone';
 import { IconUpload, IconMusicNote, IconXCircle, IconCheckCircle } from '../constants';
 
 interface FileUploadProps {
   onFileAccepted: (file: File) => void;
   acceptedMimeTypes?: string[];
-  existingFile?: { name: string; size: number; duration?: number } | File | null; // Can be File object or info
+  existingFile?: { name: string; size: number; duration?: number } | File | null;
   onFileCleared?: () => void;
-  label?: string; // Optional label for the dropzone area
-  id?: string; // For associating label with input
+  label?: string;
+  id?: string;
 }
 
 const formatDuration = (seconds?: number): string => {
@@ -22,7 +21,7 @@ const formatDuration = (seconds?: number): string => {
 const FileUpload: React.FC<FileUploadProps> = ({ 
   onFileAccepted, 
   acceptedMimeTypes = ['audio/mpeg', 'audio/wav', 'audio/aiff', 'audio/flac'],
-  existingFile: externalFile, // Renamed to avoid conflict
+  existingFile: externalFile, 
   onFileCleared,
   label,
   id = 'file-upload'
@@ -30,16 +29,15 @@ const FileUpload: React.FC<FileUploadProps> = ({
   const [internalFile, setInternalFile] = useState<File | null>(null);
   const [fileInfo, setFileInfo] = useState<{ name: string; size: number; duration?: number } | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [isUploading, setIsUploading] = useState(false);
 
   useEffect(() => {
     if (externalFile) {
       if (externalFile instanceof File) {
         setInternalFile(externalFile);
-        setFileInfo({ name: externalFile.name, size: externalFile.size }); // Duration would be set by parent
+        setFileInfo({ name: externalFile.name, size: externalFile.size });
       } else {
         setFileInfo(externalFile);
-        setInternalFile(null); // We only have info, not the File object itself
+        setInternalFile(null);
       }
     } else {
       setInternalFile(null);
@@ -48,152 +46,116 @@ const FileUpload: React.FC<FileUploadProps> = ({
   }, [externalFile]);
 
 
-  const onDrop = useCallback((acceptedFiles: File[], fileRejections: FileRejection[]) => {
-    console.log('onDrop called with:', { acceptedFiles, fileRejections });
+  const onDrop = useCallback((acceptedFiles: File[], fileRejections: any[]) => {
     setError(null);
-    setIsUploading(true);
-    
     if (fileRejections.length > 0) {
       const rejectionError = fileRejections[0].errors[0]?.message || `File type not supported. Please upload: ${acceptedMimeTypes.join(', ')}.`;
       setError(rejectionError);
       setInternalFile(null);
       setFileInfo(null);
-      setIsUploading(false);
       if (onFileCleared) onFileCleared();
-      
-      // Track file upload error
-      analyticsService.trackError('file_upload_rejection', rejectionError, 'upload_page');
       return;
     }
     if (acceptedFiles.length > 0) {
       const file = acceptedFiles[0];
       setInternalFile(file);
-      setFileInfo({ name: file.name, size: file.size }); // Duration will be set by parent after decoding
-      
-      // Simulate upload progress
-      setTimeout(() => {
-        setIsUploading(false);
-        onFileAccepted(file);
-        
-        // Track successful file upload
-        analyticsService.trackFileUpload(file.size, file.type);
-      }, 800);
+      setFileInfo({ name: file.name, size: file.size });
+      onFileAccepted(file);
     }
   }, [onFileAccepted, acceptedMimeTypes, onFileCleared]);
 
-  const { getRootProps, getInputProps, isDragActive, open } = useDropzone({
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept: acceptedMimeTypes.reduce((acc, type) => ({ ...acc, [type]: [] }), {}),
     multiple: false,
-    noClick: true, // Disable click on the dropzone itself
   });
 
-  const clearFile = useCallback(() => {
+  const clearFile = (e: React.MouseEvent) => {
+    e.stopPropagation();
     setInternalFile(null);
     setFileInfo(null);
     setError(null);
-    setIsUploading(false);
     if (onFileCleared) {
       onFileCleared();
     }
-  }, [onFileCleared]);
+    const inputElement = document.getElementById(id) as HTMLInputElement;
+    if (inputElement) {
+        inputElement.value = "";
+    }
+  };
   
   const currentDisplayFile = internalFile ? {name: internalFile.name, size: internalFile.size, duration: fileInfo?.duration} : fileInfo;
 
 
   return (
     <div className="w-full">
-      {label && <p className="text-sm text-slate-300 mb-3 text-center font-medium">{label}</p>}
+      {label && <p className="text-sm text-slate-400 mb-2 font-medium ml-1">{label}</p>}
+      
       {!currentDisplayFile ? (
         <div
           {...getRootProps()}
-          className={`relative border-2 border-dashed rounded-2xl p-8 text-center cursor-pointer transition-all duration-300 ease-in-out overflow-hidden group
+          className={`relative group border-2 border-dashed rounded-2xl p-8 sm:p-12 text-center cursor-pointer transition-all duration-300 ease-in-out
             ${isDragActive 
-              ? 'border-orange-400 bg-orange-500/10 shadow-lg shadow-orange-500/20 scale-[1.02]' 
-              : 'border-slate-600 bg-slate-800/30 hover:border-orange-500 hover:bg-slate-700/50 hover:shadow-lg hover:shadow-orange-500/10'
+                ? 'border-primary bg-primary/10 scale-[1.02]' 
+                : 'border-slate-700/50 bg-slate-900/30 hover:border-primary/50 hover:bg-slate-800/50'
             }`}
         >
-          {/* Animated background gradient */}
-          <div className="absolute inset-0 bg-gradient-to-br from-orange-500/5 via-transparent to-red-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-          
           <input {...getInputProps()} id={id} />
-          <div onClick={open} className="relative z-10 w-full h-full"> {/* Wrapper to capture clicks */}
-            <div className={`transition-all duration-300 ${isDragActive ? 'scale-110' : 'group-hover:scale-105'}`}>
-              <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-orange-500 to-red-600 rounded-full flex items-center justify-center shadow-lg">
-                <IconUpload className="w-8 h-8 text-white" />
-              </div>
-            </div>
-            
-            {isDragActive ? (
-              <div className="animate-bounce-in">
-                <p className="text-lg font-semibold text-orange-400 mb-2">Drop your track here!</p>
-                <p className="text-sm text-slate-400">Release to upload</p>
-              </div>
-            ) : (
-              <div>
-                <p className="text-lg font-medium text-white mb-2">
-                  Drag & drop your audio file here
-                </p>
-                <p className="text-sm text-slate-400 mb-4">
-                  or <span className="text-orange-400 underline font-medium hover:text-orange-300 transition-colors">click to browse</span>
-                </p>
-                <div className="flex flex-wrap justify-center gap-2 text-xs text-slate-500">
-                  <span className="bg-slate-700/50 px-2 py-1 rounded-md">MP3</span>
-                  <span className="bg-slate-700/50 px-2 py-1 rounded-md">WAV</span>
-                  <span className="bg-slate-700/50 px-2 py-1 rounded-md">AIFF</span>
-                  <span className="bg-slate-700/50 px-2 py-1 rounded-md">FLAC</span>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      ) : (
-        <div className="relative p-6 bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700/50 rounded-2xl text-center shadow-lg hover:shadow-xl transition-all duration-300 group">
-          {/* Success indicator */}
-          <div className="absolute top-3 left-3 text-green-400">
-            <IconCheckCircle className="w-5 h-5" />
+          <div className={`mx-auto w-16 h-16 rounded-full flex items-center justify-center mb-4 transition-colors duration-300 ${isDragActive ? 'bg-primary/20 text-primary' : 'bg-slate-800 text-slate-500 group-hover:bg-primary/10 group-hover:text-primary'}`}>
+             <IconUpload className="w-8 h-8" />
           </div>
           
-          <button 
-            onClick={clearFile} 
-            className="absolute top-3 right-3 text-slate-400 hover:text-red-400 hover:bg-red-400/10 transition-all duration-200 p-1.5 rounded-lg hover:scale-110"
-            aria-label="Remove file"
-          >
-            <IconXCircle className="w-5 h-5" />
-          </button>
-          
-          {isUploading ? (
-            <div className="animate-pulse">
-              <div className="w-12 h-12 mx-auto mb-3 bg-gradient-to-br from-orange-500 to-red-600 rounded-full flex items-center justify-center">
-                <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-              </div>
-              <p className="text-sm font-medium text-orange-400">Processing file...</p>
-            </div>
+          {isDragActive ? (
+            <p className="text-lg font-bold text-primary">Drop it like it's hot!</p>
           ) : (
             <>
-              <div className="w-12 h-12 mx-auto mb-3 bg-gradient-to-br from-green-500 to-blue-600 rounded-full flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
-                <IconMusicNote className="w-6 h-6 text-white" />
-              </div>
-              <p className="text-base font-medium text-white truncate px-4 mb-2" title={currentDisplayFile.name}>
-                {currentDisplayFile.name}
-              </p>
-              <div className="flex items-center justify-center gap-4 text-sm text-slate-400">
-                <span className="bg-slate-700/50 px-2 py-1 rounded-md">
-                  {(currentDisplayFile.size / (1024 * 1024)).toFixed(2)} MB
-                </span>
-                {currentDisplayFile.duration && (
-                  <span className="bg-slate-700/50 px-2 py-1 rounded-md">
-                    {formatDuration(currentDisplayFile.duration)}
-                  </span>
-                )}
-              </div>
+                <p className="text-lg font-medium text-slate-200 group-hover:text-white transition-colors">Drag & drop your mix here</p>
+                <p className="text-sm text-slate-500 mt-2">or click to browse files</p>
             </>
           )}
+          <p className="text-xs text-slate-600 mt-4 font-mono">WAV, MP3, AIFF, FLAC up to 100MB</p>
+        </div>
+      ) : (
+        <div className="relative p-6 bg-gradient-to-br from-slate-800 to-slate-900 border border-primary/30 rounded-2xl text-center shadow-lg shadow-primary/5 group">
+          <div className="absolute top-0 right-0 p-3">
+             <button 
+                onClick={clearFile} 
+                className="p-1 rounded-full text-slate-500 hover:text-red-400 hover:bg-red-400/10 transition-colors"
+                aria-label="Remove file"
+            >
+                <IconXCircle className="w-6 h-6" />
+            </button>
+          </div>
+          
+          <div className="w-16 h-16 mx-auto bg-green-500/20 text-green-400 rounded-full flex items-center justify-center mb-3">
+             <IconMusicNote className="w-8 h-8" />
+          </div>
+          
+          <h3 className="text-lg font-bold text-white truncate px-8 mb-1" title={currentDisplayFile.name}>
+            {currentDisplayFile.name}
+          </h3>
+          
+          <div className="flex items-center justify-center gap-2 text-xs text-slate-400 font-mono bg-slate-950/50 py-1.5 px-3 rounded-full inline-flex mx-auto mt-2">
+            <span>{(currentDisplayFile.size / (1024 * 1024)).toFixed(2)} MB</span>
+            {currentDisplayFile.duration && (
+                <>
+                    <span className="w-1 h-1 rounded-full bg-slate-600"></span>
+                    <span>{formatDuration(currentDisplayFile.duration)}</span>
+                </>
+            )}
+          </div>
+          
+          <div className="absolute bottom-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
+              <span className="flex items-center text-xs text-green-400 font-medium">
+                  <IconCheckCircle className="w-4 h-4 mr-1"/> Ready
+              </span>
+          </div>
         </div>
       )}
       {error && (
-        <div className="mt-3 p-3 bg-red-900/20 border border-red-500/30 rounded-xl animate-shake">
-          <p className="text-red-400 text-sm text-center font-medium">{error}</p>
+        <div className="mt-3 p-3 bg-red-500/10 border border-red-500/20 rounded-lg flex items-center justify-center text-red-400 text-sm">
+            <IconXCircle className="w-4 h-4 mr-2 flex-shrink-0" />
+            {error}
         </div>
       )}
     </div>

@@ -10,37 +10,29 @@ export enum AppPage {
   PREVIEW,
   DOWNLOAD,
   DASHBOARD,
-  AUTH,
-  BUY_CREDITS,
 }
 
 export interface MasteringSettings {
   genre: Genre;
-  loudnessTarget: LoudnessTarget | string;
+  loudnessTarget: LoudnessTarget | string; // string for custom LUFS
   tonePreference: TonePreference;
   stereoWidth: StereoWidth;
-  referenceTrackFile?: File | null;
-  customLoudnessValue?: number;
-  compressionAmount: number;
-  saturationAmount: number;
-  bassBoost: number;
-  trebleBoost: number;
-  aiSettingsApplied?: boolean;
-  useDynamicEQ?: boolean;
-  crossover: { lowPass: number; highPass: number };
-  eq: { bassFreq: number; trebleFreq: number; bassGain: number; trebleGain: number };
-  saturation: { amount: number; flavor: string };
-  preGain: number;
-  bands: {
-    low: { threshold: number; knee: number; ratio: number; attack: number; release: number; makeupGain: number };
-    mid: { threshold: number; knee: number; ratio: number; attack: number; release: number; makeupGain: number };
-    high: { threshold: number; knee: number; ratio: number; attack: number; release: number; makeupGain: number };
-  };
-  limiter: { threshold: number; attack: number; release: number };
-  finalGain: number;
-  reverb: {
-    impulseResponse: string;
-    wetDryMix: number;
+  referenceTrackFile?: File | null; // Renamed for clarity, storing the File object
+  customLoudnessValue?: number; // e.g. -12 for -12 LUFS
+  // New advanced settings
+  compressionAmount: number; // 0-100
+  saturationAmount: number; // 0-100
+  bassBoost: number; // in dB, e.g., -6 to 6
+  trebleBoost: number; // in dB, e.g., -6 to 6
+}
+
+export interface AIPreset {
+  name: string;
+  description: string;
+  settings: {
+    loudnessTarget: string; // e.g., "-14 LUFS"
+    tonePreference: string; // e.g., "Warm"
+    stereoWidth: string; // e.g., "Wide"
   };
 }
 
@@ -52,15 +44,11 @@ export interface UploadedTrack {
   audioBuffer?: AudioBuffer | null; // To store decoded audio data
 }
 
-export interface MasteredTrackInfo {
+export interface MasteredTrackInfo extends UploadedTrack {
   id: string;
-  originalName: string;
-  masteredName: string;
-  dateProcessed: string;
+  masteredFileUrl: string; // Simulated URL
   settings: MasteringSettings;
-  downloadUrl: string;
-  originalDuration: number;
-  masteredDuration: number;
+  masteredDate: Date;
   masteringReportNotes?: string; // Added for AI-generated notes
 }
 

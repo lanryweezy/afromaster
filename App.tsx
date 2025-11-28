@@ -1,7 +1,6 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect } from 'react';
 import { AppPage } from './types';
 import { useAppContext } from './contexts/AppContext';
-import { analyticsService } from './services/analyticsService';
 
 import Header from './components/Header';
 import Footer from './components/Footer';
@@ -12,16 +11,10 @@ import ProcessingAudioPage from './pages/ProcessingAudioPage';
 import PreviewAndComparePage from './pages/PreviewAndComparePage';
 import DownloadMasterPage from './pages/DownloadMasterPage';
 import UserDashboardPage from './pages/UserDashboardPage';
-import AuthPage from './pages/AuthPage';
-import BuyCreditsPage from './pages/BuyCreditsPage';
 import ParticleBackground from './components/ParticleBackground';
-import ErrorBoundary from './components/ErrorBoundary';
-import Breadcrumbs from './components/Breadcrumbs';
-import WorkflowProgress from './components/WorkflowProgress';
 
 const App: React.FC = () => {
   const { currentPage } = useAppContext();
-  const observedElementsRef = useRef<Set<Element>>(new Set());
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
@@ -40,45 +33,19 @@ const App: React.FC = () => {
         if (entry.isIntersecting) {
           entry.target.classList.add('is-visible');
           observer.unobserve(entry.target);
-          observedElementsRef.current.delete(entry.target);
         }
       });
     }, {
-      threshold: 0.1,
+      threshold: 0.1, // Trigger when 10% of the element is visible
     });
 
     const elementsToAnimate = document.querySelectorAll('.animate-on-scroll');
-    elementsToAnimate.forEach(el => {
-      // Only observe elements that haven't been observed yet
-      if (!observedElementsRef.current.has(el) && !el.classList.contains('is-visible')) {
-        observer.observe(el);
-        observedElementsRef.current.add(el);
-      }
-    });
+    elementsToAnimate.forEach(el => observer.observe(el));
 
     return () => {
-      observer.disconnect();
-      observedElementsRef.current.clear();
+      elementsToAnimate.forEach(el => observer.unobserve(el));
     };
-  }, [currentPage]);
-
-  // Track page views
-  useEffect(() => {
-    const pageNames = {
-      [AppPage.LANDING]: 'Landing Page',
-      [AppPage.UPLOAD]: 'Upload Audio',
-      [AppPage.SETTINGS]: 'Mastering Settings',
-      [AppPage.PROCESSING]: 'Processing Audio',
-      [AppPage.PREVIEW]: 'Preview & Compare',
-      [AppPage.DOWNLOAD]: 'Download Master',
-      [AppPage.DASHBOARD]: 'User Dashboard',
-      [AppPage.AUTH]: 'Authentication',
-      [AppPage.BUY_CREDITS]: 'Buy Credits'
-    };
-
-    const pageName = pageNames[currentPage] || 'Unknown Page';
-    analyticsService.trackPageView(pageName);
-  }, [currentPage]);
+  }, [currentPage]); // Rerun observer logic when the page/view changes
 
   const renderPage = () => {
     switch (currentPage) {
@@ -96,32 +63,20 @@ const App: React.FC = () => {
         return <DownloadMasterPage />;
       case AppPage.DASHBOARD:
         return <UserDashboardPage />;
-      case AppPage.AUTH:
-        return <AuthPage />;
-      case AppPage.BUY_CREDITS:
-        return <BuyCreditsPage />;
       default:
         return <LandingPage />;
     }
   };
 
   return (
-    <ErrorBoundary>
-      <div className="min-h-screen flex flex-col bg-transparent font-sans relative transition-all duration-500 z-0">
-        <div id="particle-container"></div>
-        <div id="aurora-pointer"></div>
-        <ParticleBackground />
-        <Header />
-        <main key={currentPage} className="flex-grow container mx-auto px-4 py-8 md:py-12 animate-fade-in-up z-10 relative">
-          <Breadcrumbs />
-          <WorkflowProgress />
-          <div className="animate-scale-in">
-            {renderPage()}
-          </div>
-        </main>
-        <Footer />
-      </div>
-    </ErrorBoundary>
+    <div className="min-h-screen flex flex-col bg-transparent font-sans relative transition-colors duration-500 z-0">
+       <ParticleBackground />
+      <Header />
+      <main key={currentPage} className="flex-grow container mx-auto px-4 py-8 md:py-12 animate-fadeIn z-10">
+        {renderPage()}
+      </main>
+      <Footer />
+    </div>
   );
 };
 
