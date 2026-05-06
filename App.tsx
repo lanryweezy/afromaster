@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect } from 'react';
 import { AppPage } from './types';
 import { useAppContext } from './contexts/AppContext';
 import { analyticsService } from './services/analyticsService';
@@ -14,53 +14,12 @@ import DownloadMasterPage from './pages/DownloadMasterPage';
 import UserDashboardPage from './pages/UserDashboardPage';
 import AuthPage from './pages/AuthPage';
 import BuyCreditsPage from './pages/BuyCreditsPage';
-import ParticleBackground from './components/ParticleBackground';
 import ErrorBoundary from './components/ErrorBoundary';
 import Breadcrumbs from './components/Breadcrumbs';
 import WorkflowProgress from './components/WorkflowProgress';
 
 const App: React.FC = () => {
   const { currentPage } = useAppContext();
-  const observedElementsRef = useRef<Set<Element>>(new Set());
-
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      document.documentElement.style.setProperty('--mouse-x', `${e.clientX}px`);
-      document.documentElement.style.setProperty('--mouse-y', `${e.clientY}px`);
-    };
-    window.addEventListener('mousemove', handleMouseMove);
-    return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
-    };
-  }, []);
-
-  useEffect(() => {
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add('is-visible');
-          observer.unobserve(entry.target);
-          observedElementsRef.current.delete(entry.target);
-        }
-      });
-    }, {
-      threshold: 0.1,
-    });
-
-    const elementsToAnimate = document.querySelectorAll('.animate-on-scroll');
-    elementsToAnimate.forEach(el => {
-      // Only observe elements that haven't been observed yet
-      if (!observedElementsRef.current.has(el) && !el.classList.contains('is-visible')) {
-        observer.observe(el);
-        observedElementsRef.current.add(el);
-      }
-    });
-
-    return () => {
-      observer.disconnect();
-      observedElementsRef.current.clear();
-    };
-  }, [currentPage]);
 
   // Track page views
   useEffect(() => {
@@ -108,9 +67,6 @@ const App: React.FC = () => {
   return (
     <ErrorBoundary>
       <div className="min-h-screen flex flex-col bg-transparent font-sans relative transition-all duration-500 z-0">
-        <div id="particle-container"></div>
-        <div id="aurora-pointer"></div>
-        <ParticleBackground />
         <Header />
         <main key={currentPage} className="flex-grow container mx-auto px-4 py-8 md:py-12 animate-fade-in-up z-10 relative">
           <Breadcrumbs />

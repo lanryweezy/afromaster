@@ -44,6 +44,17 @@ export interface MasteringSettings {
   };
 }
 
+export interface AIPreset {
+  id?: string;
+  name: string;
+  description: string;
+  settings: Partial<MasteringSettings> & {
+    loudnessTarget?: string;
+    tonePreference?: string;
+    stereoWidth?: string;
+  };
+}
+
 export interface UploadedTrack {
   file: File;
   name: string;

@@ -11,7 +11,7 @@ export interface AnalyticsEvent {
   category: string;
   label?: string;
   value?: number;
-  custom_parameters?: Record<string, string | number | boolean>;
+  custom_parameters?: Record<string, any>;
 }
 
 export interface UserProperties {

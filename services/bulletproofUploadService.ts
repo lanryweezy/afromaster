@@ -197,8 +197,11 @@ export class BulletproofUploadService {
       const db = await this.openIndexedDB();
       const transaction = db.transaction(['audioFiles'], 'readonly');
       const store = transaction.objectStore('audioFiles');
-      const result = await store.get(filename);
-      return result?.blob || null;
+      const request = store.get(filename);
+      return new Promise((resolve) => {
+        request.onsuccess = () => resolve(request.result?.blob || null);
+        request.onerror = () => resolve(null);
+      });
     } catch (error) {
       console.error('Error retrieving local file:', error);
       return null;

@@ -1,7 +1,8 @@
 import React from 'react';
 
-interface DropdownProps<T extends string | number> extends React.SelectHTMLAttributes<HTMLSelectElement> {
+interface DropdownProps<T extends string | number> extends Omit<React.SelectHTMLAttributes<HTMLSelectElement>, 'value' | 'onChange'> {
   label: string;
+  name?: string;
   options: T[];
   value: T;
   onChange: (event: React.ChangeEvent<HTMLSelectElement>) => void;
@@ -12,6 +13,7 @@ interface DropdownProps<T extends string | number> extends React.SelectHTMLAttri
 
 const Dropdown = <T extends string | number,>({
   label,
+  name,
   options,
   value,
   onChange,
@@ -19,16 +21,18 @@ const Dropdown = <T extends string | number,>({
   className = '',
   error,
   helpText,
+  id,
   ...props
 }: DropdownProps<T>): React.ReactElement => {
   return (
     <div className={`w-full ${className}`}>
-      <label htmlFor={props.id || label} className="block text-sm font-semibold text-slate-300 mb-2">
+      <label htmlFor={id || name || label} className="block text-sm font-semibold text-slate-300 mb-2">
         {label}
       </label>
       <div className="relative">
         <select
-          id={props.id || label}
+          id={id || name || label}
+          name={name}
           value={value}
           onChange={onChange}
           className={`w-full appearance-none bg-gradient-to-br from-slate-800 to-slate-900 border-2 text-slate-100 rounded-xl px-4 py-3 pr-10 shadow-lg focus:shadow-xl transition-all duration-300 cursor-pointer

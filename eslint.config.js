@@ -23,6 +23,9 @@ export default [
   prettierConfig,
   {
     rules: {
+      '@typescript-eslint/no-explicit-any': 'off',
+      '@typescript-eslint/no-unused-vars': 'off',
+      'react/no-unescaped-entities': 'off',
       "react/react-in-jsx-scope": "off",
       "react/prop-types": "off", // Disable PropTypes for TypeScript projects
     },

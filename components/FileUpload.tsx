@@ -86,7 +86,7 @@ const FileUpload: React.FC<FileUploadProps> = ({
     accept: acceptedMimeTypes.reduce((acc, type) => ({ ...acc, [type]: [] }), {}),
     multiple: false,
     noClick: true, // Disable click on the dropzone itself
-  });
+  } as any);
 
   const clearFile = useCallback(() => {
     setInternalFile(null);

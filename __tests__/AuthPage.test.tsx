@@ -11,9 +11,11 @@ jest.mock('../src/firebaseConfig', () => ({
 
 jest.spyOn(AppContextModule, 'useAppContext').mockReturnValue({
   setCurrentPage: jest.fn(),
+  setIsLoading: jest.fn(),
+  setErrorMessage: jest.fn(),
   isAuthenticated: false,
   user: null,
-});
+} as any);
 
 jest.spyOn(firebaseAuth, 'onAuthStateChanged').mockReturnValue(jest.fn());
 

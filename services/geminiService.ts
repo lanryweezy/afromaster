@@ -22,16 +22,30 @@ export const fetchAIChainSettings = async (
   const ai = new GoogleGenAI({ apiKey });
     console.log("Gemini AI initialized");
 
-    // Simplified prompt for better reliability
-    const prompt = `You are an expert mastering engineer. Generate mastering settings for a ${genre} track called "${trackName}".
+    // Construct a more detailed prompt using analysis data if available
+    let analysisContext = "";
+    if (referenceAnalysis) {
+      analysisContext = `
+Here is a technical analysis of the audio:
+- Average Loudness: ${referenceAnalysis.loudness} LUFS
+- Peak Level: ${referenceAnalysis.peak} dB
+- Dynamic Range: ${referenceAnalysis.dynamicRange} dB
+- Spectral Balance: Lows: ${referenceAnalysis.spectralBalance?.low}, Mids: ${referenceAnalysis.spectralBalance?.mid}, Highs: ${referenceAnalysis.spectralBalance?.high}
+
+Please use this technical data to inform your mastering decisions. For example, if the loudness is low, increase makeup gain. If the spectral balance is heavy on the lows, consider a gentle low-shelf cut or more aggressive low-band compression.
+`;
+    }
+
+    const prompt = `You are an expert mastering engineer. Generate professional mastering settings for a ${genre} track called "${trackName}".
+${analysisContext}
 
 Return ONLY a JSON object with this exact structure:
 {
   "crossover": {"lowPass": 250, "highPass": 4000},
   "eq": {"bassFreq": 200, "trebleFreq": 5000, "bassGain": 0, "trebleGain": 0},
-  "saturation": {"amount": 0},
+  "saturation": {"amount": 0, "flavor": "tape"},
   "preGain": 1.0,
-      "bands": {
+  "bands": {
     "low": {"threshold": -35, "knee": 15, "ratio": 4, "attack": 0.05, "release": 0.3, "makeupGain": 2.0},
     "mid": {"threshold": -30, "knee": 10, "ratio": 3, "attack": 0.01, "release": 0.25, "makeupGain": 2.0},
     "high": {"threshold": -25, "knee": 5, "ratio": 3, "attack": 0.005, "release": 0.15, "makeupGain": 1.5}
@@ -40,7 +54,9 @@ Return ONLY a JSON object with this exact structure:
   "finalGain": 1.0
 }
 
-Adjust the values based on the genre. For ${genre}, focus on appropriate frequency ranges and compression settings.`;
+Adjust all values precisely based on the genre and the provided technical analysis.
+Valid saturation flavors are: "tape", "tube", "transformer", "digital".
+Return ONLY the JSON object. No other text.`;
 
     console.log("Sending prompt to Gemini...");
     
@@ -123,7 +139,7 @@ const getDefaultAISettings = (genre: string): Partial<MasteringSettings> => {
   const baseSettings = {
     crossover: { lowPass: 250, highPass: 4000 },
     eq: { bassFreq: 200, trebleFreq: 5000, bassGain: 0, trebleGain: 0 },
-    saturation: { amount: 0 },
+    saturation: { amount: 0, flavor: 'tape' },
     preGain: 1.0,
     bands: {
       low: { threshold: -35, knee: 15, ratio: 4, attack: 0.05, release: 0.3, makeupGain: 2.0 },
@@ -141,7 +157,7 @@ const getDefaultAISettings = (genre: string): Partial<MasteringSettings> => {
       return {
         ...baseSettings,
         eq: { ...baseSettings.eq, bassGain: 2, trebleGain: 1 },
-        saturation: { amount: 15 },
+        saturation: { amount: 15, flavor: 'tape' },
         bands: {
           ...baseSettings.bands,
           low: { ...baseSettings.bands.low, threshold: -30, makeupGain: 3.0 },
@@ -152,7 +168,7 @@ const getDefaultAISettings = (genre: string): Partial<MasteringSettings> => {
       return {
         ...baseSettings,
         eq: { ...baseSettings.eq, bassGain: 3, trebleGain: 0 },
-        saturation: { amount: 20 },
+        saturation: { amount: 20, flavor: 'tube' },
         bands: {
           ...baseSettings.bands,
           low: { ...baseSettings.bands.low, threshold: -25, makeupGain: 4.0 },
@@ -162,7 +178,7 @@ const getDefaultAISettings = (genre: string): Partial<MasteringSettings> => {
       return {
         ...baseSettings,
         eq: { ...baseSettings.eq, bassGain: 1, trebleGain: 2 },
-        saturation: { amount: 10 },
+        saturation: { amount: 10, flavor: 'tape' },
       };
     default:
       return baseSettings;
@@ -170,7 +186,7 @@ const getDefaultAISettings = (genre: string): Partial<MasteringSettings> => {
 };
 
 // Helper function to validate and fix AI settings
-const validateAndFixAISettings = (data: unknown): Partial<MasteringSettings> => {
+const validateAndFixAISettings = (data: any): Partial<MasteringSettings> => {
   const defaults = getDefaultAISettings('Pop');
   
   // Ensure all required properties exist with proper types
@@ -186,7 +202,8 @@ const validateAndFixAISettings = (data: unknown): Partial<MasteringSettings> => 
       trebleGain: typeof data?.eq?.trebleGain === 'number' ? data.eq.trebleGain : defaults.eq.trebleGain,
     },
     saturation: {
-      amount: typeof data?.saturation?.amount === 'number' ? data.saturation.amount : defaults.saturation.amount,
+      amount: typeof data?.saturation?.amount === 'number' ? data.saturation.amount : defaults.saturation?.amount || 0,
+      flavor: typeof data?.saturation?.flavor === 'string' ? data.saturation.flavor : defaults.saturation?.flavor || 'tape',
     },
     preGain: typeof data?.preGain === 'number' ? data.preGain : defaults.preGain,
     bands: {
