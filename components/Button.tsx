@@ -2,7 +2,7 @@ import React, { ReactNode } from 'react';
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   children: ReactNode;
-  variant?: 'primary' | 'secondary' | 'danger' | 'ghost';
+  variant?: 'primary' | 'secondary' | 'danger' | 'ghost' | 'glass';
   size?: 'sm' | 'md' | 'lg';
   leftIcon?: ReactNode;
   rightIcon?: ReactNode;
@@ -19,23 +19,24 @@ const Button: React.FC<ButtonProps> = ({
   className = '',
   ...props
 }) => {
-  const baseStyles = "font-semibold rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all duration-300 ease-in-out inline-flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed transform active:scale-95 relative overflow-hidden";
+  const baseStyles = "relative font-semibold rounded-xl focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-900 transition-all duration-300 ease-out inline-flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed transform hover:-translate-y-0.5 active:scale-95 overflow-hidden";
 
   const variantStyles = {
-    primary: "bg-gradient-to-r from-orange-500 via-red-500 to-orange-600 text-white shadow-lg hover:shadow-orange-500/25 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 border border-orange-400/30",
-    secondary: "bg-white/10 backdrop-blur-sm border border-white/20 text-white hover:bg-white/20 hover:border-white/30 hover:shadow-lg hover:-translate-y-1 transition-all duration-300",
-    danger: "bg-red-600 hover:bg-red-700 text-white focus:ring-red-500/50 shadow-lg shadow-red-500/20 hover:-translate-y-1 transition-all duration-300",
-    ghost: "bg-transparent hover:bg-white/10 text-white border border-white/20 hover:border-white/40 hover:shadow-lg transition-all duration-300"
+    primary: "bg-gradient-to-r from-primary to-secondary text-white shadow-lg shadow-primary/25 hover:shadow-primary/40 border border-transparent",
+    secondary: "bg-slate-800 hover:bg-slate-700 text-slate-100 border border-slate-700 hover:border-slate-600 shadow-md",
+    danger: "bg-red-600 hover:bg-red-500 text-white shadow-lg shadow-red-600/20",
+    ghost: "bg-transparent hover:bg-slate-800/50 text-slate-300 hover:text-white border border-transparent hover:border-slate-700",
+    glass: "bg-white/5 hover:bg-white/10 text-white backdrop-blur-md border border-white/10 hover:border-white/20 shadow-lg"
   };
 
   const sizeStyles = {
-    sm: "px-4 py-2 text-sm gap-2",
-    md: "px-6 py-2.5 text-base gap-2",
-    lg: "px-8 py-3 text-lg gap-3",
+    sm: "px-4 py-2 text-sm",
+    md: "px-6 py-3 text-base",
+    lg: "px-8 py-4 text-lg",
   };
 
   const loadingSpinner = (
-    <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-current" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
     </svg>
@@ -47,15 +48,15 @@ const Button: React.FC<ButtonProps> = ({
       disabled={isLoading || props.disabled}
       {...props}
     >
-      {/* Shimmer effect for primary buttons */}
+      {/* Glossy overlay effect for primary buttons */}
       {variant === 'primary' && (
-        <div className="absolute inset-0 -top-10 -bottom-10 bg-gradient-to-r from-transparent via-white/20 to-transparent transform -skew-x-12 opacity-0 hover:opacity-100 hover:animate-shimmer transition-opacity duration-300"></div>
+        <div className="absolute inset-0 rounded-xl ring-1 ring-inset ring-white/20"></div>
       )}
       
       {isLoading && loadingSpinner}
-      {leftIcon && !isLoading && <span>{leftIcon}</span>}
-      <span>{children}</span>
-      {rightIcon && !isLoading && <span>{rightIcon}</span>}
+      {leftIcon && !isLoading && <span className="mr-2.5">{leftIcon}</span>}
+      <span className="relative z-10">{children}</span>
+      {rightIcon && !isLoading && <span className="ml-2.5">{rightIcon}</span>}
     </button>
   );
 };

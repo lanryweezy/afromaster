@@ -6,34 +6,20 @@ interface ModalProps {
   onClose: () => void;
   title: string;
   children: ReactNode;
-  size?: 'sm' | 'md' | 'lg' | 'xl';
 }
 
-const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, size = 'md' }) => {
+const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }) => {
   useEffect(() => {
     const handleEsc = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         onClose();
       }
     };
-    
-    if (isOpen) {
-      window.addEventListener('keydown', handleEsc);
-      document.body.style.overflow = 'hidden'; // Prevent background scrolling
-    }
-    
+    window.addEventListener('keydown', handleEsc);
     return () => {
       window.removeEventListener('keydown', handleEsc);
-      document.body.style.overflow = 'unset';
     };
-  }, [onClose, isOpen]);
-
-  const sizeClasses = {
-    sm: 'max-w-sm',
-    md: 'max-w-md',
-    lg: 'max-w-lg',
-    xl: 'max-w-xl'
-  };
+  }, [onClose]);
 
   if (!isOpen) {
     return null;
@@ -41,40 +27,29 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, size = 
 
   return (
     <div 
-      className="fixed inset-0 bg-black/70 backdrop-blur-md z-50 flex items-center justify-center p-4 animate-fade-in-up"
+      className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fadeIn"
       aria-labelledby="modal-title"
       role="dialog"
       aria-modal="true"
       onClick={onClose}
     >
       <div 
-        className={`relative bg-gradient-to-br from-slate-900 to-slate-800 backdrop-blur-xl border border-slate-700/50 rounded-2xl shadow-2xl shadow-black/50 w-full ${sizeClasses[size]} text-white transform transition-all animate-scale-in overflow-hidden`}
+        className="bg-slate-900/80 backdrop-blur-lg border border-slate-700/50 rounded-xl shadow-2xl w-full max-w-md p-6 text-white transform transition-all animate-slideInUp"
         onClick={(e) => e.stopPropagation()} // Prevent closing when clicking inside modal
       >
-        {/* Decorative gradient border */}
-        <div className="absolute inset-0 bg-gradient-to-r from-orange-500/20 via-transparent to-red-500/20 rounded-2xl pointer-events-none"></div>
-        
-        {/* Header */}
-        <div className="relative flex justify-between items-center p-6 border-b border-slate-700/50">
-          <h2 id="modal-title" className="text-2xl font-heading font-bold text-gradient-primary">
+        <div className="flex justify-between items-center mb-4">
+          <h2 id="modal-title" className="text-2xl font-heading font-semibold text-primary-focus">
             {title}
           </h2>
           <button 
             onClick={onClose} 
-            className="text-slate-400 hover:text-red-400 hover:bg-red-400/10 transition-all duration-200 p-2 rounded-lg hover:scale-110 group"
+            className="text-slate-400 hover:text-red-400 transition-colors"
             aria-label="Close modal"
           >
-            <IconXCircle className="w-6 h-6 group-hover:rotate-90 transition-transform duration-200" />
+            <IconXCircle className="w-7 h-7" />
           </button>
         </div>
-        
-        {/* Content */}
-        <div className="relative p-6">
-          {children}
-        </div>
-        
-        {/* Subtle glow effect */}
-        <div className="absolute -inset-1 bg-gradient-to-r from-orange-500/10 via-transparent to-red-500/10 rounded-2xl blur-sm pointer-events-none opacity-50"></div>
+        <div>{children}</div>
       </div>
     </div>
   );
