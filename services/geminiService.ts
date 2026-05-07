@@ -1,5 +1,86 @@
 import { GoogleGenAI, GenerateContentResponse } from "@google/genai";
-import { MasteringSettings } from '../types';
+import { MasteringSettings, MasteringVariation, Stem } from '../types';
+
+export const fetchMasteringVariations = async (
+  genre: string,
+  trackName: string,
+  apiKey: string,
+  referenceAnalysis: Record<string, any> | null | undefined,
+  setIsLoading: (loading: boolean) => void,
+  setErrorMessage: (message: string | null) => void,
+  stems?: Stem[]
+): Promise<MasteringVariation[]> => {
+  setIsLoading(true);
+  setErrorMessage(null);
+  
+  try {
+    if (!apiKey) throw new Error("Gemini API key is not provided.");
+    const ai = new GoogleGenAI({ apiKey });
+    
+    let analysisContext = "";
+    if (referenceAnalysis) {
+      analysisContext = `Technical analysis: Loudness: ${referenceAnalysis.loudness} LUFS, Spectral: Lows: ${referenceAnalysis.spectralBalance?.low}, Highs: ${referenceAnalysis.spectralBalance?.high}`;
+    }
+
+    let stemContext = "";
+    if (stems && stems.length > 0) {
+      stemContext = `The user has provided ${stems.length} stems: ${stems.map(s => `${s.name} (${s.type})`).join(', ')}. 
+      For each variation, suggest a 'stemGains' object mapping stem IDs to a multiplier (e.g. 1.0 is unity, 1.2 is +1.5dB).`;
+    }
+
+    const prompt = `You are 'Afromaster'. Generate 3 mastering variations for a ${genre} track.
+    ${analysisContext}
+    ${stemContext}
+
+    Variation A: "Balanced"
+    Variation B: "Warm & Analog"
+    Variation C: "Punchy & Aggressive"
+
+    For each variation, include a 'restoration' object:
+    { "deNoise": number, "deClip": number, "deReverb": number }
+    Use the analysis data: if peak is 0dB, the track might be clipped (suggest deClip > 0). If dynamic range is low, suggest de-noise or de-reverb if needed.
+
+    Return ONLY a JSON array of 3 objects:
+    {
+      "id": "v1",
+      "name": "Variation Name",
+      "settings": { 
+        ...MasteringSettings...
+        "restoration": { "deNoise": 10, "deClip": 5, "deReverb": 0 }
+      },
+      "stemGains": { "id": 1.0 }
+    }`;
+
+    const response: GenerateContentResponse = await ai.models.generateContent({
+      model: 'gemini-2.5-flash',
+      contents: prompt,
+      config: { temperature: 0.7, maxOutputTokens: 2048 },
+    });
+
+    let jsonStr = response.text.trim();
+    const jsonStart = jsonStr.indexOf('[');
+    const jsonEnd = jsonStr.lastIndexOf(']') + 1;
+    if (jsonStart !== -1 && jsonEnd > jsonStart) jsonStr = jsonStr.substring(jsonStart, jsonEnd);
+
+    const variationsData = JSON.parse(jsonStr);
+    return variationsData.map((v: any) => ({
+      id: v.id,
+      name: v.name,
+      settings: validateAndFixAISettings(v.settings, genre),
+      stemGains: v.stemGains
+    }));
+
+  } catch (error) {
+    console.error("Error fetching variations:", error);
+    return [
+      { id: 'v1', name: 'Balanced', settings: getDefaultAISettings(genre, 'balanced') },
+      { id: 'v2', name: 'Warm', settings: getDefaultAISettings(genre, 'warm') },
+      { id: 'v3', name: 'Punchy', settings: getDefaultAISettings(genre, 'punchy') }
+    ];
+  } finally {
+    setIsLoading(false);
+  }
+};
 
 export const fetchAIChainSettings = async (
   genre: string,
@@ -104,7 +185,7 @@ Return ONLY the JSON object. No other text.`;
     }
 
     // Validate and return with defaults
-    const validatedData = validateAndFixAISettings(parsedData);
+    const validatedData = validateAndFixAISettings(parsedData, genre);
     console.log("Validated settings:", validatedData);
     
     return validatedData;
@@ -134,12 +215,12 @@ Return ONLY the JSON object. No other text.`;
   }
 };
 
-// Helper function to get default AI settings based on genre
-const getDefaultAISettings = (genre: string): Partial<MasteringSettings> => {
+// Helper function to get default AI settings based on genre and flavor
+const getDefaultAISettings = (genre: string, flavor: string = 'balanced'): Partial<MasteringSettings> => {
   const baseSettings = {
     crossover: { lowPass: 250, highPass: 4000 },
     eq: { bassFreq: 200, trebleFreq: 5000, bassGain: 0, trebleGain: 0 },
-    saturation: { amount: 0, flavor: 'tape' },
+    saturation: { amount: 5, flavor: 'tape' as const },
     preGain: 1.0,
     bands: {
       low: { threshold: -35, knee: 15, ratio: 4, attack: 0.05, release: 0.3, makeupGain: 2.0 },
@@ -147,38 +228,49 @@ const getDefaultAISettings = (genre: string): Partial<MasteringSettings> => {
       high: { threshold: -25, knee: 5, ratio: 3, attack: 0.005, release: 0.15, makeupGain: 1.5 },
     },
     limiter: { threshold: -1.5, attack: 0.002, release: 0.05 },
+    restoration: { deNoise: 0, deClip: 0, deReverb: 0 },
     finalGain: 1.0,
   };
+
+  // Flavor-specific overrides
+  if (flavor === 'warm') {
+    baseSettings.saturation.amount = 20;
+    baseSettings.saturation.flavor = 'tube';
+    baseSettings.eq.bassGain = 1.5;
+  } else if (flavor === 'punchy') {
+    baseSettings.bands.low.ratio = 6;
+    baseSettings.bands.low.threshold = -25;
+    baseSettings.limiter.threshold = -0.5;
+    baseSettings.eq.trebleGain = 2;
+  }
 
   // Genre-specific adjustments
   switch (genre.toLowerCase()) {
     case 'afrobeats':
+      return {
+        ...baseSettings,
+        eq: { ...baseSettings.eq, bassGain: baseSettings.eq.bassGain + 1.5, trebleGain: baseSettings.eq.trebleGain + 1 },
+        saturation: { ...baseSettings.saturation, amount: baseSettings.saturation.amount + 10 },
+      };
     case 'amapiano':
       return {
         ...baseSettings,
-        eq: { ...baseSettings.eq, bassGain: 2, trebleGain: 1 },
-        saturation: { amount: 15, flavor: 'tape' },
+        eq: { ...baseSettings.eq, bassGain: baseSettings.eq.bassGain + 3, trebleGain: baseSettings.eq.trebleGain + 2 },
         bands: {
           ...baseSettings.bands,
-          low: { ...baseSettings.bands.low, threshold: -30, makeupGain: 3.0 },
+          low: { ...baseSettings.bands.low, threshold: -30, makeupGain: 4.0 },
         },
       };
-    case 'hip hop':
-    case 'trap':
+    case 'highlife':
       return {
         ...baseSettings,
-        eq: { ...baseSettings.eq, bassGain: 3, trebleGain: 0 },
-        saturation: { amount: 20, flavor: 'tube' },
-        bands: {
-          ...baseSettings.bands,
-          low: { ...baseSettings.bands.low, threshold: -25, makeupGain: 4.0 },
-        },
+        saturation: { amount: 12, flavor: 'transformer' },
+        preGain: 1.1,
       };
     case 'pop':
       return {
         ...baseSettings,
-        eq: { ...baseSettings.eq, bassGain: 1, trebleGain: 2 },
-        saturation: { amount: 10, flavor: 'tape' },
+        eq: { ...baseSettings.eq, trebleGain: baseSettings.eq.trebleGain + 1 },
       };
     default:
       return baseSettings;
@@ -186,58 +278,63 @@ const getDefaultAISettings = (genre: string): Partial<MasteringSettings> => {
 };
 
 // Helper function to validate and fix AI settings
-const validateAndFixAISettings = (data: any): Partial<MasteringSettings> => {
-  const defaults = getDefaultAISettings('Pop');
+const validateAndFixAISettings = (data: any, genre: string = 'Pop'): Partial<MasteringSettings> => {
+  const defaults = getDefaultAISettings(genre);
   
   // Ensure all required properties exist with proper types
   const validated = {
     crossover: {
-      lowPass: typeof data?.crossover?.lowPass === 'number' ? data.crossover.lowPass : defaults.crossover.lowPass,
-      highPass: typeof data?.crossover?.highPass === 'number' ? data.crossover.highPass : defaults.crossover.highPass,
+      lowPass: typeof data?.crossover?.lowPass === 'number' ? data.crossover.lowPass : defaults.crossover!.lowPass,
+      highPass: typeof data?.crossover?.highPass === 'number' ? data.crossover.highPass : defaults.crossover!.highPass,
     },
     eq: {
-      bassFreq: typeof data?.eq?.bassFreq === 'number' ? data.eq.bassFreq : defaults.eq.bassFreq,
-      trebleFreq: typeof data?.eq?.trebleFreq === 'number' ? data.eq.trebleFreq : defaults.eq.trebleFreq,
-      bassGain: typeof data?.eq?.bassGain === 'number' ? data.eq.bassGain : defaults.eq.bassGain,
-      trebleGain: typeof data?.eq?.trebleGain === 'number' ? data.eq.trebleGain : defaults.eq.trebleGain,
+      bassFreq: typeof data?.eq?.bassFreq === 'number' ? data.eq.bassFreq : defaults.eq!.bassFreq,
+      trebleFreq: typeof data?.eq?.trebleFreq === 'number' ? data.eq.trebleFreq : defaults.eq!.trebleFreq,
+      bassGain: typeof data?.eq?.bassGain === 'number' ? data.eq.bassGain : defaults.eq!.bassGain,
+      trebleGain: typeof data?.eq?.trebleGain === 'number' ? data.eq.trebleGain : defaults.eq!.trebleGain,
     },
     saturation: {
       amount: typeof data?.saturation?.amount === 'number' ? data.saturation.amount : defaults.saturation?.amount || 0,
       flavor: typeof data?.saturation?.flavor === 'string' ? data.saturation.flavor : defaults.saturation?.flavor || 'tape',
     },
-    preGain: typeof data?.preGain === 'number' ? data.preGain : defaults.preGain,
+    preGain: typeof data?.preGain === 'number' ? data.preGain : defaults.preGain!,
     bands: {
       low: {
-        threshold: typeof data?.bands?.low?.threshold === 'number' ? data.bands.low.threshold : defaults.bands.low.threshold,
-        knee: typeof data?.bands?.low?.knee === 'number' ? data.bands.low.knee : defaults.bands.low.knee,
-        ratio: typeof data?.bands?.low?.ratio === 'number' ? data.bands.low.ratio : defaults.bands.low.ratio,
-        attack: typeof data?.bands?.low?.attack === 'number' ? data.bands.low.attack : defaults.bands.low.attack,
-        release: typeof data?.bands?.low?.release === 'number' ? data.bands.low.release : defaults.bands.low.release,
-        makeupGain: typeof data?.bands?.low?.makeupGain === 'number' ? data.bands.low.makeupGain : defaults.bands.low.makeupGain,
+        threshold: typeof data?.bands?.low?.threshold === 'number' ? data.bands.low.threshold : defaults.bands!.low.threshold,
+        knee: typeof data?.bands?.low?.knee === 'number' ? data.bands.low.knee : defaults.bands!.low.knee,
+        ratio: typeof data?.bands?.low?.ratio === 'number' ? data.bands.low.ratio : defaults.bands!.low.ratio,
+        attack: typeof data?.bands?.low?.attack === 'number' ? data.bands.low.attack : defaults.bands!.low.attack,
+        release: typeof data?.bands?.low?.release === 'number' ? data.bands.low.release : defaults.bands!.low.release,
+        makeupGain: typeof data?.bands?.low?.makeupGain === 'number' ? data.bands.low.makeupGain : defaults.bands!.low.makeupGain,
       },
       mid: {
-        threshold: typeof data?.bands?.mid?.threshold === 'number' ? data.bands.mid.threshold : defaults.bands.mid.threshold,
-        knee: typeof data?.bands?.mid?.knee === 'number' ? data.bands.mid.knee : defaults.bands.mid.knee,
-        ratio: typeof data?.bands?.mid?.ratio === 'number' ? data.bands.mid.ratio : defaults.bands.mid.ratio,
-        attack: typeof data?.bands?.mid?.attack === 'number' ? data.bands.mid.attack : defaults.bands.mid.attack,
-        release: typeof data?.bands?.mid?.release === 'number' ? data.bands.mid.release : defaults.bands.mid.release,
-        makeupGain: typeof data?.bands?.mid?.makeupGain === 'number' ? data.bands.mid.makeupGain : defaults.bands.mid.makeupGain,
+        threshold: typeof data?.bands?.mid?.threshold === 'number' ? data.bands.mid.threshold : defaults.bands!.mid.threshold,
+        knee: typeof data?.bands?.mid?.knee === 'number' ? data.bands.mid.knee : defaults.bands!.mid.knee,
+        ratio: typeof data?.bands?.mid?.ratio === 'number' ? data.bands.mid.ratio : defaults.bands!.mid.ratio,
+        attack: typeof data?.bands?.mid?.attack === 'number' ? data.bands.mid.attack : defaults.bands!.mid.attack,
+        release: typeof data?.bands?.mid?.release === 'number' ? data.bands.mid.release : defaults.bands!.mid.release,
+        makeupGain: typeof data?.bands?.mid?.makeupGain === 'number' ? data.bands.mid.makeupGain : defaults.bands!.mid.makeupGain,
       },
       high: {
-        threshold: typeof data?.bands?.high?.threshold === 'number' ? data.bands.high.threshold : defaults.bands.high.threshold,
-        knee: typeof data?.bands?.high?.knee === 'number' ? data.bands.high.knee : defaults.bands.high.knee,
-        ratio: typeof data?.bands?.high?.ratio === 'number' ? data.bands.high.ratio : defaults.bands.high.ratio,
-        attack: typeof data?.bands?.high?.attack === 'number' ? data.bands.high.attack : defaults.bands.high.attack,
-        release: typeof data?.bands?.high?.release === 'number' ? data.bands.high.release : defaults.bands.high.release,
-        makeupGain: typeof data?.bands?.high?.makeupGain === 'number' ? data.bands.high.makeupGain : defaults.bands.high.makeupGain,
+        threshold: typeof data?.bands?.high?.threshold === 'number' ? data.bands.high.threshold : defaults.bands!.high.threshold,
+        knee: typeof data?.bands?.high?.knee === 'number' ? data.bands.high.knee : defaults.bands!.high.knee,
+        ratio: typeof data?.bands?.high?.ratio === 'number' ? data.bands.high.ratio : defaults.bands!.high.ratio,
+        attack: typeof data?.bands?.high?.attack === 'number' ? data.bands.high.attack : defaults.bands!.high.attack,
+        release: typeof data?.bands?.high?.release === 'number' ? data.bands.high.release : defaults.bands!.high.release,
+        makeupGain: typeof data?.bands?.high?.makeupGain === 'number' ? data.bands.high.makeupGain : defaults.bands!.high.makeupGain,
       },
     },
     limiter: {
-      threshold: typeof data?.limiter?.threshold === 'number' ? data.limiter.threshold : defaults.limiter.threshold,
-      attack: typeof data?.limiter?.attack === 'number' ? data.limiter.attack : defaults.limiter.attack,
-      release: typeof data?.limiter?.release === 'number' ? data.limiter.release : defaults.limiter.release,
+      threshold: typeof data?.limiter?.threshold === 'number' ? data.limiter.threshold : defaults.limiter!.threshold,
+      attack: typeof data?.limiter?.attack === 'number' ? data.limiter.attack : defaults.limiter!.attack,
+      release: typeof data?.limiter?.release === 'number' ? data.limiter.release : defaults.limiter!.release,
     },
-    finalGain: typeof data?.finalGain === 'number' ? data.finalGain : defaults.finalGain,
+    restoration: {
+      deNoise: typeof data?.restoration?.deNoise === 'number' ? data.restoration.deNoise : defaults.restoration!.deNoise,
+      deClip: typeof data?.restoration?.deClip === 'number' ? data.restoration.deClip : defaults.restoration!.deClip,
+      deReverb: typeof data?.restoration?.deReverb === 'number' ? data.restoration.deReverb : defaults.restoration!.deReverb,
+    },
+    finalGain: typeof data?.finalGain === 'number' ? data.finalGain : defaults.finalGain!,
   };
 
   return validated;
@@ -271,11 +368,11 @@ export const generateMasteringReport = async (
     - Tone Preference: ${settings.tonePreference}
     - Stereo Width: ${settings.stereoWidth}
     ${settings.referenceTrackFile ? `- Inspired by reference track: ${settings.referenceTrackFile.name}` : ''}
+    ${settings.referenceUrl ? `- Reference Link: ${settings.referenceUrl} (Extract the sonic blueprint from this known track)` : ''}
 
     Briefly describe the key processing steps you would take to achieve these mastering goals.
-    Focus on 2-4 main actions or considerations (e.g., "Gentle low-end boost for warmth", "Subtle high-frequency lift for clarity", "Overall dynamic range control to meet loudness target", "Careful stereo widening to enhance immersion without phase issues").
-    Keep the description concise and suitable for a user to understand as a quick insight into the AI's 'thinking' process.
-    Respond with a short paragraph or a few bullet points. Do not use markdown formatting like backticks or #. Just plain text.
+    If a Reference Link is provided, describe the specific sonic characteristics of that track (e.g., "The Burna Boy track has a signature warm low-mid presence") and how you will replicate them.
+    Focus on 2-4 main actions. Respond with a short paragraph. Just plain text.
   `;
 
     const response: GenerateContentResponse = await ai.models.generateContent({

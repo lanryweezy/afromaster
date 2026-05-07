@@ -6,10 +6,11 @@ import { IconUpload, IconMusicNote, IconXCircle, IconCheckCircle } from '../cons
 interface FileUploadProps {
   onFileAccepted: (file: File) => void;
   acceptedMimeTypes?: string[];
-  existingFile?: { name: string; size: number; duration?: number } | File | null; // Can be File object or info
+  existingFile?: { name: string; size: number; duration?: number } | File | null; 
   onFileCleared?: () => void;
-  label?: string; // Optional label for the dropzone area
-  id?: string; // For associating label with input
+  label?: string; 
+  id?: string;
+  multiple?: boolean;
 }
 
 const formatDuration = (seconds?: number): string => {
@@ -22,10 +23,11 @@ const formatDuration = (seconds?: number): string => {
 const FileUpload: React.FC<FileUploadProps> = ({ 
   onFileAccepted, 
   acceptedMimeTypes = ['audio/mpeg', 'audio/wav', 'audio/aiff', 'audio/flac'],
-  existingFile: externalFile, // Renamed to avoid conflict
+  existingFile: externalFile, 
   onFileCleared,
   label,
-  id = 'file-upload'
+  id = 'file-upload',
+  multiple = false
 }) => {
   const [internalFile, setInternalFile] = useState<File | null>(null);
   const [fileInfo, setFileInfo] = useState<{ name: string; size: number; duration?: number } | null>(null);
@@ -36,10 +38,10 @@ const FileUpload: React.FC<FileUploadProps> = ({
     if (externalFile) {
       if (externalFile instanceof File) {
         setInternalFile(externalFile);
-        setFileInfo({ name: externalFile.name, size: externalFile.size }); // Duration would be set by parent
+        setFileInfo({ name: externalFile.name, size: externalFile.size });
       } else {
         setFileInfo(externalFile);
-        setInternalFile(null); // We only have info, not the File object itself
+        setInternalFile(null);
       }
     } else {
       setInternalFile(null);
@@ -49,43 +51,44 @@ const FileUpload: React.FC<FileUploadProps> = ({
 
 
   const onDrop = useCallback((acceptedFiles: File[], fileRejections: FileRejection[]) => {
-    console.log('onDrop called with:', { acceptedFiles, fileRejections });
     setError(null);
-    setIsUploading(true);
     
     if (fileRejections.length > 0) {
-      const rejectionError = fileRejections[0].errors[0]?.message || `File type not supported. Please upload: ${acceptedMimeTypes.join(', ')}.`;
+      const rejectionError = fileRejections[0].errors[0]?.message || `File type not supported.`;
       setError(rejectionError);
-      setInternalFile(null);
-      setFileInfo(null);
-      setIsUploading(false);
-      if (onFileCleared) onFileCleared();
-      
-      // Track file upload error
       analyticsService.trackError('file_upload_rejection', rejectionError, 'upload_page');
       return;
     }
+
     if (acceptedFiles.length > 0) {
-      const file = acceptedFiles[0];
-      setInternalFile(file);
-      setFileInfo({ name: file.name, size: file.size }); // Duration will be set by parent after decoding
+      setIsUploading(true);
       
-      // Simulate upload progress
-      setTimeout(() => {
-        setIsUploading(false);
-        onFileAccepted(file);
-        
-        // Track successful file upload
-        analyticsService.trackFileUpload(file.size, file.type);
-      }, 800);
+      // If multiple is true, we call onFileAccepted for each file
+      // If multiple is false, we only handle the first one
+      const filesToProcess = multiple ? acceptedFiles : [acceptedFiles[0]];
+      
+      filesToProcess.forEach((file, index) => {
+        setTimeout(() => {
+          onFileAccepted(file);
+          if (index === filesToProcess.length - 1) {
+            setIsUploading(false);
+          }
+          analyticsService.trackFileUpload(file.size, file.type);
+        }, 300 * (index + 1));
+      });
+
+      if (!multiple) {
+        setInternalFile(acceptedFiles[0]);
+        setFileInfo({ name: acceptedFiles[0].name, size: acceptedFiles[0].size });
+      }
     }
-  }, [onFileAccepted, acceptedMimeTypes, onFileCleared]);
+  }, [onFileAccepted, acceptedMimeTypes, onFileCleared, multiple]);
 
   const { getRootProps, getInputProps, isDragActive, open } = useDropzone({
     onDrop,
     accept: acceptedMimeTypes.reduce((acc, type) => ({ ...acc, [type]: [] }), {}),
-    multiple: false,
-    noClick: true, // Disable click on the dropzone itself
+    multiple: multiple,
+    noClick: true,
   } as any);
 
   const clearFile = useCallback(() => {

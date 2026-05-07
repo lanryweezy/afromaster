@@ -14,16 +14,53 @@ export enum AppPage {
 
 export interface MasteringSettings {
   genre: Genre;
-  loudnessTarget: LoudnessTarget | string; // string for custom LUFS
+  loudnessTarget: LoudnessTarget | string;
   tonePreference: TonePreference;
   stereoWidth: StereoWidth;
-  referenceTrackFile?: File | null; // Renamed for clarity, storing the File object
-  customLoudnessValue?: number; // e.g. -12 for -12 LUFS
-  // New advanced settings
+  referenceTrackFile?: File | null;
+  referenceUrl?: string; // Added for URL references
+  customLoudnessValue?: number;
+  
+  // Advanced DSP Settings
+  preGain: number;
+  finalGain: number;
+  
+  eq: {
+    bassFreq: number;
+    bassGain: number;
+    trebleFreq: number;
+    trebleGain: number;
+  };
+  
+  saturation: {
+    amount: number;
+    flavor: 'tape' | 'tube' | 'transformer' | 'digital';
+  };
+  
+  bands: {
+    low: { threshold: number; knee: number; ratio: number; attack: number; release: number; makeupGain: number };
+    mid: { threshold: number; knee: number; ratio: number; attack: number; release: number; makeupGain: number };
+    high: { threshold: number; knee: number; ratio: number; attack: number; release: number; makeupGain: number };
+  };
+  
+  limiter: {
+    threshold: number;
+    attack: number;
+    release: number;
+  };
+
+  // Restoration (Audio Archeology)
+  restoration: {
+    deNoise: number; // 0-100
+    deClip: number; // 0-100
+    deReverb: number; // 0-100
+  };
+
+  // UI / Legacy compatibility
   compressionAmount: number; // 0-100
   saturationAmount: number; // 0-100
-  bassBoost: number; // in dB, e.g., -6 to 6
-  trebleBoost: number; // in dB, e.g., -6 to 6
+  bassBoost: number; // in dB
+  trebleBoost: number; // in dB
 }
 
 export interface AIPreset {
@@ -47,12 +84,36 @@ export interface AIPreset {
   };
 }
 
-export interface UploadedTrack {
+export type StemType = 'vocals' | 'drums' | 'bass' | 'instruments' | 'other';
+
+export interface Stem {
+  id: string;
   file: File;
   name: string;
-  duration?: number; // Optional, can be extracted later
-  waveformUrl?: string; // Placeholder for a visual
-  audioBuffer?: AudioBuffer | null; // To store decoded audio data
+  type: StemType;
+  audioBuffer?: AudioBuffer | null;
+  gain: number; // Applied by AI or user before summing
+  analysis?: any;
+}
+
+export interface UploadedTrack {
+  id: string; 
+  file?: File; // Optional if in stem mode
+  name: string;
+  duration?: number;
+  waveformUrl?: string;
+  audioBuffer?: AudioBuffer | null; // The summed buffer or single track buffer
+  analysis?: any; 
+  stems?: Stem[]; // Added for Stem Mastering
+  isStemMode?: boolean;
+}
+
+export interface MasteringVariation {
+  id: string;
+  name: string;
+  settings: Partial<MasteringSettings>;
+  audioBuffer?: AudioBuffer | null;
+  projectBuffers?: Record<string, AudioBuffer>; // id -> buffer mapping for batch processing
 }
 
 export interface MasteredTrackInfo extends UploadedTrack {

@@ -1,9 +1,9 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { useAppContext } from '../contexts/AppContext';
 import { AppPage } from '../types';
 import { IconMusicNote, IconGoogle, IconLogout, IconMenu, IconX } from '../constants';
 import ThemeSwitcher from './ThemeSwitcher';
+import LanguageSwitcher from './LanguageSwitcher';
 
 const UserMenu: React.FC = () => {
     const { user, setIsAuthenticated, setUser, setCurrentPage } = useAppContext();
@@ -57,17 +57,16 @@ const UserMenu: React.FC = () => {
 
 
 const Header: React.FC = () => {
-  const { setCurrentPage, isAuthenticated, setIsAuthenticated, setUser, user } = useAppContext();
+  const { setCurrentPage, isAuthenticated, user, setUser, setIsAuthenticated } = useAppContext();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   
   const handleLogin = () => {
-    // This is a simulation. In a real app, this would trigger the Google OAuth flow.
     setUser({
         name: 'Demo User',
         avatarUrl: `https://api.dicebear.com/8.x/initials/svg?seed=Demo%20User`
     });
     setIsAuthenticated(true);
-    setIsMobileMenuOpen(false); // Close menu on action
+    setIsMobileMenuOpen(false);
   };
   
   const handleLogout = () => {
@@ -99,6 +98,7 @@ const Header: React.FC = () => {
 
         {/* --- Desktop Nav --- */}
         <div className="hidden md:flex items-center space-x-4">
+           <LanguageSwitcher />
            <ThemeSwitcher />
            <nav className="flex items-center space-x-2">
             {isAuthenticated ? (
@@ -131,6 +131,7 @@ const Header: React.FC = () => {
 
         {/* --- Mobile Menu Button --- */}
         <div className="md:hidden flex items-center gap-2">
+            <LanguageSwitcher />
             <ThemeSwitcher />
             <button onClick={() => setIsMobileMenuOpen(true)} aria-label="Open menu" className="p-2">
                 <IconMenu className="w-6 h-6 text-slate-300" />

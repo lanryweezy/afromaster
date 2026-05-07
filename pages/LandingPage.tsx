@@ -4,6 +4,7 @@ import { AppPage } from '../types';
 import Button from '../components/Button';
 import { IconArrowRight, IconMusicNote, IconSparkles, IconUpload, IconPlay, IconCog, IconDownload, IconCheckCircle, IconXCircle } from '../constants';
 import DemoAudioPlayer from '../components/DemoAudioPlayer';
+import { useTranslation } from 'react-i18next';
 
 // Staggered Text Animation Component
 const StaggeredText: React.FC<{ text: string; className?: string }> = ({ text, className }) => {
@@ -53,6 +54,7 @@ const HowItWorksStep: React.FC<{ icon: React.ReactNode; title: string; descripti
 
 const LandingPage: React.FC = () => {
   const { setCurrentPage } = useAppContext();
+  const { t } = useTranslation();
   
   return (
     <div className="space-y-32">
@@ -65,10 +67,10 @@ const LandingPage: React.FC = () => {
                  </span>
             </div>
             
-            <StaggeredText text="Mastering, Reimagined for the Culture." className="text-5xl sm:text-6xl md:text-8xl font-heading font-extrabold text-transparent bg-clip-text bg-gradient-to-b from-white to-slate-400 pb-6 drop-shadow-sm" />
+            <StaggeredText text={t('hero_title')} className="text-5xl sm:text-6xl md:text-8xl font-heading font-extrabold text-transparent bg-clip-text bg-gradient-to-b from-white to-slate-400 pb-6 drop-shadow-sm" />
 
             <p className="mt-8 text-lg sm:text-xl md:text-2xl text-slate-300 max-w-3xl mx-auto animate-slideInUp font-light" style={{ animationDelay: '0.5s'}}>
-             From a flat mix to a global hit. The AI mastering engine trained specifically on <span className="text-white font-medium">Afrobeats, Amapiano, and Trap</span>.
+             {t('hero_subtitle')}
             </p>
             
             <div className="mt-12 flex flex-col sm:flex-row items-center justify-center gap-6 animate-slideInUp" style={{ animationDelay: '0.7s'}}>
@@ -79,7 +81,7 @@ const LandingPage: React.FC = () => {
                   rightIcon={<IconArrowRight className="w-5 h-5"/>}
                   className="w-full sm:w-auto text-lg px-10 py-4 shadow-primary/30 shadow-2xl animate-pulse-glow"
               >
-                  Start Mastering for Free
+                  {t('start_mastering')}
               </Button>
               <Button 
                   onClick={() => {
@@ -91,7 +93,7 @@ const LandingPage: React.FC = () => {
                   leftIcon={<IconPlay className="w-5 h-5"/>}
                   className="w-full sm:w-auto"
               >
-                  Hear the Difference
+                  {t('hear_difference')}
               </Button>
             </div>
             
@@ -182,10 +184,10 @@ const LandingPage: React.FC = () => {
             {/* Connecting line for desktop */}
             <div className="hidden md:block absolute top-8 left-[12%] right-[12%] h-0.5 bg-gradient-to-r from-slate-800 via-primary/50 to-slate-800 z-0"></div>
             
-            <HowItWorksStep step={1} icon={<IconUpload className="w-6 h-6"/>} title="Upload" description="Drag & drop your mix. WAV, MP3, AIFF supported." delay={0.1}/>
-            <HowItWorksStep step={2} icon={<IconCog className="w-6 h-6"/>} title="Customize" description="Select genre & AI presets or tweak manually." delay={0.2}/>
-            <HowItWorksStep step={3} icon={<IconSparkles className="w-6 h-6"/>} title="Process" description="Our AI engine balances and boosts your track." delay={0.3}/>
-            <HowItWorksStep step={4} icon={<IconDownload className="w-6 h-6"/>} title="Download" description="Preview, compare, and export your master." delay={0.4}/>
+            <HowItWorksStep step={1} icon={<IconUpload className="w-6 h-6"/>} title={t('step_1_title')} description={t('step_1_desc')} delay={0.1}/>
+            <HowItWorksStep step={2} icon={<IconCog className="w-6 h-6"/>} title={t('step_2_title')} description={t('step_2_desc')} delay={0.2}/>
+            <HowItWorksStep step={3} icon={<IconSparkles className="w-6 h-6"/>} title={t('step_3_title')} description={t('step_3_desc')} delay={0.3}/>
+            <HowItWorksStep step={4} icon={<IconDownload className="w-6 h-6"/>} title={t('step_4_title')} description={t('step_4_desc')} delay={0.4}/>
         </div>
       </section>
       
@@ -197,22 +199,22 @@ const LandingPage: React.FC = () => {
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           <Feature 
             icon={<IconUpload className="w-7 h-7"/>}
-            title="Vibe Matching"
-            description="Got a hit track you love? Upload it as a reference, and our AI will match its sonic character for your master."
+            title={t('feature_album_title')}
+            description={t('feature_album_desc')}
             className="animate-on-scroll"
             style={{ transitionDelay: '100ms' }}
           />
           <Feature 
             icon={<IconSparkles className="w-7 h-7"/>}
-            title="Genre-Specific AI"
-            description="Get presets from Gemini specifically for Amapiano, Drill, Afropop, and more. Your perfect starting point."
+            title={t('feature_abc_title')}
+            description={t('feature_abc_desc')}
             className="animate-on-scroll"
             style={{ transitionDelay: '200ms' }}
           />
           <Feature 
             icon={<IconMusicNote className="w-7 h-7"/>}
-            title="Loudness Standards"
-            description="Ensures your tracks are perfectly loud for Spotify (-14 LUFS) or the Club (-8 LUFS) without clipping."
+            title={t('feature_stem_title')}
+            description={t('feature_stem_desc')}
             className="animate-on-scroll"
             style={{ transitionDelay: '300ms' }}
           />
@@ -233,7 +235,7 @@ const LandingPage: React.FC = () => {
                 rightIcon={<IconArrowRight className="w-6 h-6"/>}
                 className="text-lg px-12 py-5 shadow-2xl"
             >
-                Start Mastering Now
+                {t('start_mastering')}
             </Button>
         </div>
       </section>
