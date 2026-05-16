@@ -340,6 +340,50 @@ const validateAndFixAISettings = (data: any, genre: string = 'Pop'): Partial<Mas
   return validated;
 };
 
+export const fetchAIPresets = async (
+  genre: string,
+  trackName: string,
+  apiKey: string,
+  referenceTrackName?: string
+): Promise<AIPreset[]> => {
+  try {
+    const ai = new GoogleGenAI({ apiKey });
+    const prompt = `You are 'Afromaster'. Suggest 3 professional mastering presets for a ${genre} track named "${trackName}".
+    ${referenceTrackName ? `Inspired by: ${referenceTrackName}` : ''}
+
+    Return ONLY a JSON array of 3 objects:
+    {
+      "name": "Preset Name",
+      "description": "Short description",
+      "settings": {
+        "loudnessTarget": "-14 LUFS",
+        "tonePreference": "Warm",
+        "stereoWidth": "Wide"
+      }
+    }`;
+
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.5-flash',
+      contents: prompt,
+      config: { temperature: 0.7, maxOutputTokens: 1024 },
+    });
+
+    let jsonStr = response.text.trim();
+    const jsonStart = jsonStr.indexOf('[');
+    const jsonEnd = jsonStr.lastIndexOf(']') + 1;
+    if (jsonStart !== -1 && jsonEnd > jsonStart) jsonStr = jsonStr.substring(jsonStart, jsonEnd);
+
+    return JSON.parse(jsonStr);
+  } catch (error) {
+    console.error("Error fetching AI presets:", error);
+    return [
+      { name: 'Balanced', description: 'Clean and natural', settings: { loudnessTarget: '-14 LUFS', tonePreference: 'Balanced', stereoWidth: 'Standard' } },
+      { name: 'Warm', description: 'Smooth highs', settings: { loudnessTarget: '-14 LUFS', tonePreference: 'Warm', stereoWidth: 'Wide' } },
+      { name: 'Punchy', description: 'Max impact', settings: { loudnessTarget: '-12 LUFS', tonePreference: 'Punchy', stereoWidth: 'Standard' } }
+    ];
+  }
+};
+
 export const generateMasteringReport = async (
   trackName: string,
   settings: MasteringSettings,
